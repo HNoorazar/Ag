@@ -1,0 +1,38 @@
+#!/bin/sh
+#PBS -N rcps_pet
+##PBS -l nodes=1:ppn=1,mem=300MB,walltime=48:00:00
+##PBS -q hydro
+#PBS -l nodes=1:ppn=1,mem=300MB,walltime=06:00:00
+#PBS -q batch 
+##PBS -t 0-603%20
+#PBS -t 501-603%10
+
+export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/home/liuming/opt/netcdf4.3.1.1-bin/lib:/usr/lib64/openmpi/lib:/opt/openmpi-gcc/1.6/lib:/opt/pvfs2/lib:/opt/db4/lib
+echo $LD_LIBRARY_PATH
+echo $date
+#models=( "bcc-csm1-1" "BNU-ESM" "CanESM2" "CNRM-CM5" "CSIRO-Mk3-6-0" "GFDL-ESM2G" "GFDL-ESM2M" "HadGEM2-CC365" "HadGEM2-ES365" "inmcm4" "IPSL-CM5A-LR" "IPSL-CM5A-MR" "IPSL-CM5B-LR" "MIROC5" "MIROC-ESM-CHEM" "MIROC-ESM" "MRI-CGCM3" )
+
+#models=( "BNU-ESM" "CanESM2" "CNRM-CM5" "CSIRO-Mk3-6-0" "GFDL-ESM2G" "GFDL-ESM2M" "HadGEM2-CC365" "HadGEM2-ES365" "inmcm4" "IPSL-CM5A-LR" "IPSL-CM5A-MR" "IPSL-CM5B-LR" "MIROC5" "MIROC-ESM-CHEM" "MIROC-ESM" "MRI-CGCM3" )
+
+models=( "bcc-csm1-1" )
+#rcps=( "historical" "rcp45" "rcp85" )
+rcps=("historical")
+
+for model in "${models[@]}"
+do
+  for rcp in "${rcps[@]}"
+  do
+    if [ $rcp == "historical" ]; then
+      start_year=1950
+      end_year=2005
+    else
+      start_year=2006
+      end_year=2095
+    fi
+    echo 
+    if [ ! -f /fastscratch/liuming/pet_ui/test_${model}_${rcp}_${start_year}_${end_year}_p${PBS_ARRAYID}.txt ]; then
+    /home/liuming/script/calculate_pet_from_UImetdata/readUINetCDF_rcps /home/liuming/script/calculate_pet_from_UImetdata/petinfo_input_p${PBS_ARRAYID}.txt ${start_year} ${end_year} /data/hydro/jennylabcommon2/metdata/maca_v2_metdata/ /fastscratch/liuming/pet_ui/test_${model}_${rcp}_${start_year}_${end_year}_p${PBS_ARRAYID}.txt ${model} ${rcp}
+    fi
+  done
+done
+echo $date

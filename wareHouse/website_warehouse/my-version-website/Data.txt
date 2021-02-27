@@ -1,0 +1,12 @@
+tags$div(<h3> <b>Pacific \nNorthwest Ag Climate Tools </b> </h3> )
+
+\n
+
+Our mission is to provide management-oriented climate-change decision support systems for Pacific (PNW) agriculture.
+
+
+
+h4(Vision)
+
+
+The PNW region's research community has made advances in characterizing the impacts of climate change on agriculture. However, there is a significant gap in translating this into specific management implications that are relevant and useful for risk analysis and decision making. Our vision is to be at the forefront of bridging this gap one step at a time. We believe this is achievable through partnerships with research and extension groups/agencies that are actively involved in current growing season decision support for agriculture, and the users of these tools.

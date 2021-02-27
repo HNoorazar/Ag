@@ -1,0 +1,56 @@
+program define horizontaldd
+*written by Dr. Vince Jones, WSU-TFREC
+* version 2.0
+*Horizontal cutoff function
+quietly {
+* horizontal lower threshold upper threshold so: horizontal varname1 varname2 lower upper outname
+* so example is horizontaldd max min 50 88 DD
+
+args maxtemp mintemp lower upper outname
+
+tempvar fk1 diff tsum heat d2 theta fk1b heat2 zheat d2b theta2 dd
+
+*define some variables for later calculations
+
+ 	local twopi = 2*_pi
+ 	local pihlf = .5 *_pi
+
+	quietly: generate double `fk1' = 2 * `lower'
+	quietly: generate double `diff' = `maxtemp' - `mintemp'
+	quietly: generate double `tsum' = `maxtemp' + `mintemp'
+
+* these columns are for tmin>=lowe
+	quietly: generate double `heat' = 0
+	quietly: generate double `d2'=`fk1'-`tsum'
+	quietly: generate double `theta'=atan(`d2'/sqrt(`diff'^2-`d2'^2))
+ 	quietly: replace  `theta'=`theta'-2*`pihlf' if (`d2'<0 & `theta'>0)
+	quietly: replace  `heat'=(`diff'*cos(`theta')-`d2'*(`pihlf'-`theta'))/`twopi'
+	quietly: replace  `theta'=`theta'-2*`pihlf' if (`d2'<0 & `theta'>0)
+	quietly: replace  `heat'= (`tsum'-`fk1')/2 if `mintemp'>=`lower'
+
+*these columns are for tmax>upp
+	quietly: generate double `fk1b'=2*`upper'
+	quietly: generate double `heat2'=`heat'
+	quietly: generate double `zheat'=`heat2'
+	quietly: generate double `d2b'=`fk1b'-`tsum'
+	quietly: generate double `theta2'=atan(`d2b'/sqrt(`diff'^2-`d2b'^2))
+	quietly: replace  `theta2'=`theta2'-2*`pihlf' if (`d2b'<0 & `theta2'>0)
+	quietly: replace  `heat2'=(`diff'*cos(`theta2')-`d2b'*(`pihlf'-`theta2'))/`twopi'
+	quietly: replace  `heat2'=`zheat'-`heat2'
+
+*generate dd for the different comparisons
+	quietly: generate double `dd'=.
+	quietly: replace `dd'=0 if `mintemp'>`maxtemp'
+	quietly: replace `dd'=`upper'-`lower' if `mintemp' >=`upper'
+	quietly: replace `dd'=0 if `maxtemp'<=`lower'
+	quietly: replace `dd'=`heat' if `mintemp'>=`lower'
+	quietly: replace `dd'=`heat2' if `maxtemp'>`upper'
+	quietly: replace `dd'=`heat' if `dd'==.
+	
+* generate output column
+	quietly: generate double `outname'=`dd'
+	format `outname' %9.1f
+}
+end	
+	
+	 

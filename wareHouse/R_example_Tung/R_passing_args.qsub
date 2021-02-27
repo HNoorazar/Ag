@@ -1,0 +1,53 @@
+#!/bin/bash
+
+#   Set the requested resources
+#PBS -l nodes=1:ppn=1,mem=1gb
+#PBS -l walltime=02:00:00
+#PBS -q fast
+#   Combine log and error file paths
+#PBS -j oe
+#   Request email on (a)bort, (b)eginning, and (e)nd.
+#PBS -V
+#PBS -N R_passing
+
+# GUIDE:
+# To install library/package to your /home directory,
+# run the following lines inside the '' from the terminal
+# 'mkdir -p ${HOME}/lib/R_libs'
+# 'echo export "R_LIBS_USER=\${HOME}/lib/R_libs" >> .bash_profile'
+# 'source .bash_profile'
+#
+# see more: https://hpc.wsu.edu/programmers-guide/r/
+
+echo
+echo We are in the $PWD directory
+echo
+
+cd $PBS_O_WORKDIR
+
+echo
+echo We are now in $PWD, running R script.
+echo
+
+# First we ensure a clean running environment:
+module purge
+
+# Load R
+module load R/R-3.4.3_gcc
+
+# NOTE: Make sure that we are using the right library folder for R 3.4
+echo $PATH
+echo $LD_LIBRARY_PATH
+
+nSet=10000
+echo
+echo "nSet = ${nSet}"
+echo
+
+Rscript --vanilla R_passing_args.R ${nSet}
+
+echo
+echo "----- DONE -----"
+echo
+
+exit 0

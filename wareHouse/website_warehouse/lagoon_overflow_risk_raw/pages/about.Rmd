@@ -1,0 +1,16 @@
+---
+title: "About"
+author: "Matthew Pruett"
+date: "March 9, 2018"
+output: html_document
+---
+
+# Pacific Northwest (PNW) AG Climate Tools
+
+## Mission
+
+Provide management-oriented climate-change decision support systems for PNW agriculture.
+
+## Vision
+
+As a research community, we have made advances in characterizing the impacts of climate change on agriculture. However, there is a significant gap in translating this into specific management implications relevant/useful for risk-analysis and decision-making. PNW Ag Climate Tool's vision is to be at the forefront of bridging this gap one step at a time. We believe this is achievable through partnerships with research and extension groups, and agencies that are actively involved in current growing season decision support for agriculture.

@@ -1,0 +1,51 @@
+#!/bin/bash
+
+#   Set the requested resources
+#PBS -l nodes=1:ppn=1,mem=1gb
+#PBS -l walltime=02:00:00
+#PBS -q fast
+#   Combine log and error file paths
+#PBS -j oe
+#   Request email on (a)bort, (b)eginning, and (e)nd.
+#PBS -V
+#PBS -N R_example
+
+# GUIDE:
+# To use MLSH group shared R_libs folder,
+# run the following lines inside the '' from the terminal
+# 'echo export "R_LIBS_USER=/data/hydro/R_libs35" >> .bash_profile'
+# 'source .bash_profile'
+#
+# see more: https://hpc.wsu.edu/programmers-guide/r/
+
+echo
+echo We are in the $PWD directory
+echo
+
+cd $PBS_O_WORKDIR
+
+echo
+echo We are now in $PWD, running R script.
+echo
+
+# First we ensure a clean running environment:
+module purge
+
+# Load R
+#module load udunits/2.2.20
+#module load libxml2/2.9.4
+#module load gdal/2.1.2_gcc proj/4.9.2
+#module load R/R-3.4.3_gcc
+
+module load udunits/2.2.20
+module load libxml2/2.9.4
+module load gdal/2.1.2_gcc proj/4.9.2
+module load gcc/7.3.0 r/3.5.1/gcc/7.3.0
+
+Rscript --vanilla R.hpc.example1.R
+
+echo
+echo "----- DONE -----"
+echo
+
+exit 0

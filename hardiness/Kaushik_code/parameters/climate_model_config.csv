@@ -1,0 +1,10 @@
+ARRAYID,SCENARIO,MODEL
+1,rcp45,BNU-ESM
+2,rcp45,CCSM4
+3,rcp45,CNRM-CM5
+4,rcp85,BNU-ESM
+5,rcp85,CCSM4
+6,rcp85,CNRM-CM5
+7,historical,BNU-ESM
+8,historical,CCSM4
+9,historical,CNRM-CM5

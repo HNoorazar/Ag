@@ -1,0 +1,91 @@
+CREATE TABLE Patient(
+  age integer,
+  name varchar(30),
+  address varchar(30),
+  SSN integer PRIMARY KEY
+)
+CREATE TABLE Doctor(
+  phySSN integer PRIMARY KEY,
+  name varchar(30),
+  specialty varchar(30),
+  experience varchar(30)
+)
+CREATE TABLE Pri_Physician(
+  SSN integer PRIMARY KEY,
+  phySSN integer,
+  FOREIGN KEY(SSN) REFERENCES Patient(SSN),
+  FOREIGN KEY(phySSN) REFERENCES Doctor(phySSN)
+)
+CREATE TABLE Clinic(
+  clinic_name varchar(30) PRIMARY KEY,
+  city varchar(30) PRIMARY KEY
+)
+CREATE TABLE Presecription(
+  pres# integer,
+  date varchar(30),
+  clinic_name varchar(30),
+  PRIMARY KEY (clinic_name, pres#),
+  FOREIGN KEY (clinic_name) REFERENCES Clinic(clinic_name)
+)
+CREATE TABLE Prescribes(
+  SSN integer,
+  phySSN integer,
+  pres# integer,
+  clinic_name varchar(30),
+  city varchar(30),
+  PRIMARY KEY (SSN, phySSN, pres#, clinic_name, city),
+  FOREIGN KEY (clinic_name, city) REFERENCES Clinic(clinic_name, city),
+  FOREIGN KEy (SSN) REFERENCES Patient(SSN),
+  FOREIGN KEY (pyhSSN), REFERENCES Doctor(pyhSSN)
+)
+CREATE TABLE Pharmacy(
+  phone_nu integer,
+  name varchar(30) PRIMARY KEY
+)
+CREATE TABLE OnlinePharmacy(
+  webURL varchar(30),
+  name varchar(30) PRIMARY KEY,
+  FOREIGN KEY (name) REFERENCES Pharmacy(name)
+)
+CREATE TABLE InStorePharmacy(
+  address varchar(30),
+  name varchar(30) PRIMARY KEY,
+  FOREIGN KEY (name) REFERENCES Pharmacy(name)
+)
+CREATE TABLE CONTRACT(
+  text varchar,
+  supervisor varchar(30),
+  end_date varchar (30),
+  start_date varchar(30),
+  DName varchar(30),
+  PName varchar(30),
+  PRIMARY KEY (PName, DName),
+  FOREIGN KEY (PName) REFERENCES OnlinePharmacy(name),
+  FOREIGN KEy (DName) REFERENCES DrugCompany(name)
+)
+CREATE TABLE DrugCompany(
+  phone_nu integer,
+  name varchar(30) PRIMARY KEY
+)
+CREATE TABLE Drug(
+  drug_name varchar(30),
+  formula text,
+  name varchar(30),
+  PRIMARY KEY (name, drug_name),
+  FOREIGN KEY (name) REFERENCES DrugCompany(name)
+)
+CREATE TABLE Include(
+  pres# integer,
+  drug_name varchar(30),
+  PRIMARY( pres#, drug_name),
+  FOREIGN KEY (pres#) REFERENCES Presecription(pres#),
+  FOREIGN KEY (drug_name) REFERENCES Drug(drug_name)
+)
+CREATE TABLE Sell(
+  price varchar(30),
+  name varchar(30),
+  drug_name varchar(30),
+  PRIMARY KEY (name),
+  FOREIGN KEY (drug_name) REFERENCES Drug(drug_name),
+  FOREIGN KEY (name) REFERENCES Pharmacy(name)
+)
