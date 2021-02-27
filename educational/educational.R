@@ -413,8 +413,9 @@ data = data.table(city = c("NYC", "NYC", "NYC", "LA", "LA", "LA", "LA"),
                   year = c(2000, 2000, 2000, 2000, 2000, 2000, 2000),
                   target = c(0, 666, 1, 0, 0, 666, 1))
 
-
+#
 # replace the first nonzero with another thing after group_by:
+#
 data %>%
 group_by(city, year) %>%
 mutate(target = replace(target, which.max(target != 0), 666))

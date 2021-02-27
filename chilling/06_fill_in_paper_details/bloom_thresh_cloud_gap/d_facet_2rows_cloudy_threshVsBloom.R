@@ -25,7 +25,7 @@ plot_base_dir <- "/Users/hn/Documents/01_research_data/bloom/plots/"
 plot_base_dir <- "/Users/hn/Documents/00_GitHub/Ag_papers/Chill_Paper/MajorRevision/figures_4_revision/"
 #############################################################
 ###
-###              
+### 
 ###
 #############################################################
 
@@ -184,10 +184,12 @@ rm(thresh, bloom)
 thresh_cut <- plot_threshols[1]
 app_tp <- apple_types[1]
 ####################################################################################################
-
+#
+# This for-loop takes care of RCP 4.5, and next one RCP 8.5.
+# 
 for (thresh_cut in plot_threshols){
   col_name <- paste0("thresh_", thresh_cut)
-  curr_thresh <- thresh_RCP45
+  curr_thresh <- thresh_RCP45 
 
   curr_thresh <- subset(curr_thresh, 
                         select=c("location", "chill_season",
@@ -248,7 +250,7 @@ for (thresh_cut in plot_threshols){
     
     source(source_1)
     source(source_2)
-    merged_plt <- double_cloud_2_rows(d1=merged_dt) # + ggtitle(lab=paste0(title_)) 
+    merged_plt <- double_cloud_2_rows(d1=merged_dt) # + ggtitle(lab=paste0(title_))
 
     if (remove_NA=="yes"){
       LP <- "NA_removed"
@@ -264,6 +266,7 @@ for (thresh_cut in plot_threshols){
         print (bloom_thresh_plot_dir)
       }
 
+    bloom_thresh_plot_dir = "/Users/hn/Documents/"
     ggsave(plot=merged_plt,
            filename = paste0(fruit_type, "_RCP45_",
                              gsub(" ", "_", app_tp), "_", thresh_cut, "CP_2rows.png"), 
@@ -274,6 +277,10 @@ for (thresh_cut in plot_threshols){
   }
 }
 
+
+#
+# This for-loop takes care of RCP 8.5. and previous one RCP 4.5
+# 
 for (thresh_cut in plot_threshols){
   col_name <- paste0("thresh_", thresh_cut)
   curr_thresh <- thresh_RCP85
@@ -352,6 +359,8 @@ for (thresh_cut in plot_threshols){
         dir.create(path = bloom_thresh_plot_dir, recursive = T)
         print (bloom_thresh_plot_dir)
       }
+
+    bloom_thresh_plot_dir = "/Users/hn/Documents/"
 
     ggsave(plot=merged_plt,
            filename = paste0(fruit_type, "_RCP85_",

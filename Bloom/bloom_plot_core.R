@@ -1,7 +1,7 @@
 # panel.grid.major = element_line(size=0.2), # inside theme
 # panel.grid.minor = element_blank(),
 
-ThreshCloud_2_rows_forForcing <- function(d1){
+ThreshCloud_2_rows_forForcing <- function(d1, trigger_dt){
   
   ##"""
   ##
@@ -22,14 +22,15 @@ ThreshCloud_2_rows_forForcing <- function(d1){
   # xbreaks <- c(xbreaks, 2097)
   # xbreaks <- c(xbreaks, 2100)
   ylow = min(d1$value) - 5
-  # ylow = 90
+  ylow = 90
 
-  ymax = 200
-  ymax = min(ymax, max(d1$value))
+  ymax = 220 # this is tuned by visual inspection!!
+  # ymax = min(ymax, max(d1$value))
   
   ggplot(d1, aes(x=chill_season, y=value, fill=factor(variable))) +
   labs(x = "chill year", y = "day of year", fill = "data type") +
-  guides(fill=guide_legend(title="")) + 
+  # guides(fill=guide_legend(title="")) + 
+
   facet_wrap(. ~ location, scales="fixed") +
   # geom_line(aes(fill=factor(Timeframe), color=factor(Timeframe) )) +
   stat_summary(geom="ribbon", fun =function(z) { quantile(z,0.5) }, 
@@ -47,24 +48,31 @@ ThreshCloud_2_rows_forForcing <- function(d1){
                               fun.max=function(z) { quantile(z,0.75) }, 
                alpha=0.8) + 
 
-  stat_summary(geom="line", fun=function(z) {quantile(z,0.5)}) +
-
+  stat_summary(geom = "line", fun=function(z) {quantile(z,0.5)}) +
+  # 
+  # plot horizontal lines for each city.
+  #
+  geom_hline(data = trigger_dt, 
+             aes(yintercept = median_heatTriggerThresh, 
+                 linetype = "heat accumulation trigger"), 
+             color = "red", 
+             size=1,
+             show.legend = TRUE
+             ) + 
+  scale_linetype_manual(name = "Limits", 
+                        labels = c("heat accumulation trigger"), 
+                        values = c("heat accumulation trigger" = 1)) +
+  
   scale_color_manual(values=c("darkgreen"), breaks=c("thresh"), labels=c("CP threshold")) +
   scale_fill_manual (values=c("darkgreen"), breaks=c("thresh"), labels=c("CP threshold")) +
   
   scale_x_continuous(breaks = xbreaks, label = xbreaks) +
   scale_y_continuous(breaks = chill_doy_map$day_count_since_sept, 
-                     labels = chill_doy_map$letter_day
-                     ) + 
-  # limits = c(ylow, ymax) This shit removes data beyod the limits, use coord_cartesian(xlim = c(-5000, 5000)) 
-  # shade on the background
-  # geom_rect(aes(xmin = -Inf, xmax = Inf, ymin = 110, ymax = Inf), 
-  #            fill = 'grey47', alpha = 0.004) + 
-  geom_hline(yintercept = 110, linetype = "solid" , color = "red", size = 1) + 
+                     labels = chill_doy_map$letter_day) + 
 
   theme(panel.grid.major = element_line(size=0.2),
-        panel.spacing=unit(.5, "cm"),
-        legend.text=element_text(size=18, face="bold"),
+        panel.spacing = unit(.5, "cm"),
+        legend.text = element_text(size=18, face="bold"),
         legend.title = element_blank(),
         legend.position = "bottom",
         strip.text = element_text(face="bold", size=16, color="black"),
@@ -77,7 +85,11 @@ ThreshCloud_2_rows_forForcing <- function(d1){
                                     margin=margin(t=0, r=10, b=0, l=0)),
         plot.title = element_text(lineheight=.8, face="bold", size=20)
         ) + # theme_bw() + 
-  coord_cartesian(ylim = c(ylow, ymax)) 
+  coord_cartesian(ylim = c(ylow, ymax)) + 
+   guides(colour = guide_legend(override.aes = list(linetype = 0)),
+         fill = guide_legend(override.aes = list(linetype = 0)),
+         shape = guide_legend(override.aes = list(linetype = 0)),
+         linetype = guide_legend())
 
 }
 
