@@ -255,9 +255,10 @@ curr_vertDD_narr <- curr_vertDD_narr %>%
 
 vertDD_quan_25_100 <- curr_vertDD_narr %>% 
                       group_by(location, emission, time_period ) %>% 
-                      summarise(vertDD_quan_25 = quantile(chill_dayofyear, probs = 0.25),
-                                vertDD_quan_1  = quantile(chill_dayofyear, probs = 0.75)) %>% 
+                      summarise(vertDD_quan_25 = quantile(chill_dayofyear, probs = 0.25)) %>% 
                        data.table()
+
+vertDD_quan_25_100$vertDD_quan_1 <- vertDD_quan_25_100$vertDD_quan_25 + 1
 
 vertDD_quan_25_100$y_intercept = 55
 vertDD_quan_25_100$variable <- "vert_Cum_dd"
@@ -273,9 +274,8 @@ merged_dt <- rbind(curr_dailyCP_melt, curr_vertDD_melt)
 source(bloom_core_source)
 source(bloom_plot_core_source)
 source(chill_core_source)
-merged_plt <- double_cloud_2_rows_Accum_VertDD_CP_Springer_QuantLines(d1=merged_dt, 
-                                                                      CP_quans = CP_quan_25_75, 
-                                                                      vertDD_quants = vertDD_quan_25_100)
+merged_plt <- box_and_LineKirti(CP_quans = CP_quan_25_75, 
+                                vertDD_quants = vertDD_quan_25_100)
 
 plot_dir <- paste0(plot_base_dir, "/CPAccum_heatAccum/")
 
@@ -285,8 +285,8 @@ if (dir.exists(plot_dir) == F) {
   }
 
 ggsave(plot = merged_plt,
-       filename = paste0("Acum_CPHeat_", gsub(" ", "_", app_tp), "_RCP45.png"), 
-       width = 13, height=10, units = "in", 
+       filename = paste0("Acum_CPHeat_", gsub(" ", "_", app_tp), "_RCP45_Kirti.png"), 
+       width = 13, height = 5, units = "in", 
        dpi = 400, device = "png",
        path = plot_dir)
 print (plot_dir)
@@ -333,10 +333,10 @@ curr_vertDD_narr <- curr_vertDD_narr %>%
 
 vertDD_quan_25_100 <- curr_vertDD_narr %>% 
                       group_by(location, emission, time_period ) %>% 
-                      summarise(vertDD_quan_25 = quantile(chill_dayofyear, probs = 0.25),
-                                vertDD_quan_1  = quantile(chill_dayofyear, probs = 0.75)) %>% 
+                      summarise(vertDD_quan_25 = quantile(chill_dayofyear, probs = 0.25)) %>% 
                       data.table()
 
+vertDD_quan_25_100$vertDD_quan_1 <- vertDD_quan_25_100$vertDD_quan_25 + 1
 vertDD_quan_25_100$y_intercept = 55
 vertDD_quan_25_100$variable <- "vert_Cum_dd"
 
@@ -351,9 +351,8 @@ merged_dt <- rbind(curr_dailyCP_melt, curr_vertDD_melt)
 source(bloom_core_source)
 source(bloom_plot_core_source)
 source(chill_core_source)
-merged_plt <- double_cloud_2_rows_Accum_VertDD_CP_Springer_QuantLines(d1=merged_dt, 
-                                                                      CP_quans = CP_quan_25_75, 
-                                                                      vertDD_quants = vertDD_quan_25_100)
+merged_plt <- box_and_LineKirti(CP_quans = CP_quan_25_75, 
+                                vertDD_quants = vertDD_quan_25_100)
 
 plot_dir <- paste0(plot_base_dir, "/CPAccum_heatAccum/")
 
@@ -363,8 +362,8 @@ if (dir.exists(plot_dir) == F) {
   }
 
 ggsave(plot = merged_plt,
-       filename = paste0("Acum_CPHeat_", gsub(" ", "_", app_tp), "_RCP85.png"), 
-       width = 13, height=10, units = "in", 
+       filename = paste0("Acum_CPHeat_", gsub(" ", "_", app_tp), "_RCP85_Kirti.png"), 
+       width = 13, height=5, units = "in", 
        dpi = 400, device = "png",
        path = plot_dir)
 print (plot_dir)

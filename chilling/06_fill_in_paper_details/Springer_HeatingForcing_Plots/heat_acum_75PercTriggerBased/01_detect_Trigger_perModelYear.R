@@ -16,20 +16,19 @@ library(dplyr)
 options(digits=9)
 options(digit=9)
 
-#-----------------------------------------------------------------
+#--------------------------------------------------------------------------------------------
 
 data_dir <- "/Users/hn/Documents/01_research_data/chilling/01_data/02/"
 param_dir <- "/Users/hn/Documents/00_GitHub/Ag/chilling/parameters/"
 
 out_dir <- "/Users/hn/Documents/01_research_data/bloom_4_chill_paper_trigger/"
 
-#-----------------------------------------------------------------
+#--------------------------------------------------------------------------------------------
 
 locations <- read.csv(paste0(param_dir, "4_locations.csv"), as.is=T) %>% data.table()
 sept_summary_comp <- data.table(readRDS(paste0(data_dir, "sept_summary_comp.rds")))
 
-
-#-----------------------------------------------------------------
+#--------------------------------------------------------------------------------------------
 #
 #  filter the goddamn locations
 #
@@ -41,7 +40,7 @@ sept_summary_comp <- sept_summary_comp %>%
 
 unique(sept_summary_comp$location)
 
-#-----------------------------------------------------------------
+#--------------------------------------------------------------------------------------------
 #
 #  subset the needed columns
 #  
@@ -51,15 +50,14 @@ unique(sept_summary_comp$location)
 col_names <- c("location", "chill_season", "year",  "model", 
                "emission", "time_period", "thresh_55")
 
-
 sept_summary_comp <- subset(sept_summary_comp, select = col_names)
 
-######################################################
+#--------------------------------------------------------------------------------------------
 #
 #   chill_season_1949_1950 includes the 
 #   months 9-12 of 1949 and months 1-8 of 1950
 #
-######################################################
+#--------------------------------------------------------------------------------------------
 
 sept_summary_comp_F <- sept_summary_comp %>% 
                      filter(time_period %in% c("2026-2050", "2051-2075", "2076-2099")) %>% 
