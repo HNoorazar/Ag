@@ -101,8 +101,8 @@ for(file in dir_con){
   
   # 3d. Save output
   saveRDS(object = met_data,
-          file=file.path(main_out, current_dir, 
-                         paste0("/bloom_", lat, "_", long, ".rds")))
+          file = file.path(main_out, current_dir, 
+                           paste0("/bloom_", lat, "_", long, ".rds")))
 
   # write.table(x = met_data,
   #             file = file.path(main_out, current_dir,

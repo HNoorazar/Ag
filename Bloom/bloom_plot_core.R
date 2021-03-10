@@ -1,6 +1,77 @@
 # panel.grid.major = element_line(size=0.2), # inside theme
 # panel.grid.minor = element_blank(),
 
+double_cloud_2_rows_Accum_VertDD_CP_Springer <- function(d1){
+
+  # xlabels <- sort(unique(d1$chill_dayofyear))
+  # ylow = min(d1$value) - 5
+  # ymax = min(260, max(d1$value))
+  ymin <- 0
+  ymax <- 650
+  xmin <- 1
+  xmax <- 250
+   
+  newdf <- data.table(chill_doy_map)
+  # pick every other row so that x-axis ticks are less busy
+  newdf <- newdf[c(rep(c(TRUE, FALSE), (nrow(newdf)/2))), ]
+
+  ggplot(d1, aes(x=chill_dayofyear, y=value, fill=factor(variable))) +
+  labs(x = "DoY in chill calendar", y = "cumulative quantities", fill = "data type") +
+  guides(fill=guide_legend(title="")) + 
+  facet_grid(. ~ time_period ~ location, scales="fixed") +
+  # geom_line(aes(fill=factor(Timeframe), color=factor(Timeframe) )) +
+  stat_summary(geom="ribbon", alpha=0.2,
+               fun =function(z) { quantile(z,0.5) }, 
+               fun.min=function(z) { quantile(z,0)}, 
+               fun.max=function(z) { quantile(z,1) }) +
+
+  stat_summary(geom="ribbon", alpha=0.4,
+               fun=function(z) { quantile(z,0.5) }, 
+               fun.min=function(z) { quantile(z,0.1) }, 
+               fun.max=function(z) { quantile(z,0.9) }) +
+
+  stat_summary(geom="ribbon", alpha=0.8,
+               fun=function(z) { quantile(z,0.5) }, 
+               fun.min=function(z) { quantile(z,0.25) }, 
+               fun.max=function(z) { quantile(z,0.75) }) + 
+
+  stat_summary(geom="line", fun=function(z) {quantile(z,0.5)}) +
+
+  scale_color_manual(values=c("darkgreen", "orange"),
+                     breaks=c("cume_portions", "vert_Cum_dd"),
+                     labels=c("CP accum.", "heat accum."))+
+  
+  scale_fill_manual(values=c("darkgreen", "orange"),
+                    breaks=c("cume_portions", "vert_Cum_dd"),
+                    labels=c("CP accum.", "heat accum.")) +
+  
+  # scale_y_continuous(breaks = xbreaks, label = xbreaks) +
+  scale_x_continuous(breaks = newdf$day_count_since_sept, 
+                     labels = newdf$letter_day) + 
+  geom_hline(aes(yintercept = 73.3), color="red", alpha=0.3) + 
+  # limits = c(ylow, ymax) This shit removes data beyod the limits, use coord_cartesian(xlim = c(-5000, 5000)) 
+  
+  theme(plot.margin = unit(c(t=0 , r=0 , b=0, l=0), "cm"), 
+        panel.grid.major = element_line(size=0.2),
+        panel.spacing=unit(.5, "cm"),
+        legend.text=element_text(size=18, face="bold"),
+        legend.title = element_blank(),
+        legend.position = "bottom",
+        strip.text = element_text(face="bold", size=16, color="black"),
+        axis.text = element_text(size=16, color="black"), # face="bold",
+        axis.text.x = element_text(angle = 90),
+        axis.ticks = element_line(color = "black", size = .2),
+        axis.title.x = element_text(size=18,  face="bold", 
+                                    margin=margin(t=10, r=0, b=0, l=0)),
+        axis.title.y = element_text(size=18, face="bold",
+                                    margin=margin(t=0, r=10, b=0, l=0)),
+        plot.title = element_text(lineheight=.8, face="bold", size=20)
+        ) + # theme_bw() + 
+  coord_cartesian(xlim = c(120, 240), ylim = c(0, 250))
+
+}
+
+
 ThreshCloud_2_rows_forForcing <- function(d1, trigger_dt){
   
   ##"""

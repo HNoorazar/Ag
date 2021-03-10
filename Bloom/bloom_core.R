@@ -1,3 +1,4 @@
+
 convert_zero_to_365 <- function(dt){
   dt$thresh_75[dt$thresh_75==0] <- 365
   dt$thresh_70[dt$thresh_75==0] <- 365
@@ -95,7 +96,7 @@ pick_obs_and_F <- function(dt){
   
   # drop 2006-2025
   F <- dt %>% 
-       filter(chill_season >= "chill_2025-2026")%>% 
+       filter(chill_season >= "chill_2026-2027")%>% 
        data.table()
 
   obs <- pick_observed_by_TP(dt)
@@ -135,7 +136,7 @@ pick_model_hist_by_TP <- function(dt){
 
 pick_observed_by_TP <- function(dt){
   dt <- dt %>% 
-        filter(time_period == "observed") %>% 
+        filter(time_period %in% c("observed", "Observed", "1979-2016")) %>% 
         data.table()
   return(dt)
 }
@@ -172,7 +173,7 @@ convert_doy_to_chill_doy <- function(dt){
   }
   
   for (m in (9:12)){
-    dt$chill_doy[dt$month==m] <- dt$dayofyear[dt$month==m] -244
+    dt$chill_doy[dt$month==m] <- dt$dayofyear[dt$month==m] - 244
   }
   return(dt)
 }
@@ -202,8 +203,14 @@ add_chill_sept_DoY <- function(dt){
                                      month == 12 ~ 12))
   dt <- data.table(dt)
   dt$chill_dayofyear <- 1
-  dt[, chill_dayofyear := cumsum(chill_dayofyear), 
-       by=list(chill_season, model, lat, long)]
+  if ("emission" %in% colnames(dt)){
+    dt[, chill_dayofyear := cumsum(chill_dayofyear), 
+       by=list(chill_season, model, lat, long, emission)]
+  } else {
+    dt[, chill_dayofyear := cumsum(chill_dayofyear), 
+         by=list(chill_season, model, lat, long)]
+  }
+  
   return(dt)
 }
 
