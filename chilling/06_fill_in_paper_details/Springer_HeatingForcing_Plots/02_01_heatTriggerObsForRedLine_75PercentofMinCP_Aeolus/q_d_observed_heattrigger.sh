@@ -43,7 +43,7 @@ module load libxml2/2.9.4
 module load gdal/2.1.2_gcc proj/4.9.2
 module load gcc/7.3.0 r/3.5.1/gcc/7.3.0
 
-Rscript --vanilla /home/hnoorazar/chilling_codes/current_draft/02_01_heatTrigger_75PercentofMinCP/d_observed_heattrigger.R sept
+Rscript --vanilla /home/hnoorazar/chilling_codes/current_draft/02_01_heatTrigger_75PercentofMinCP/d_observed_heattrigger_75Percent.R sept
 
 echo
 echo "----- DONE -----"

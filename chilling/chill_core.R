@@ -6,12 +6,53 @@ options(digits=9)
 # source(source_path)
 ##################################################################
 
+##################################################################
+##################################################################
+##################################################################
+
+Accum_GDD_DoYDetector_basedOnCaneldarYear <- function(data, data_type, cut_off = 55){
+  ###
+  ###   This function is modification of the function heat_trigger_DoYDetector(.)
+  ###
+  ###   This function finds the DoY at which 55 vertical GDD is accumulated.
+  ###   March 2, 2021. HN
+  ###
+
+  data <- na.omit(data)
+  # if (data_type=="modeled"){
+  #   data <- data %>%
+  #          # Only want complete seasons of data
+  #          filter(chill_season != "chill_1949-1950" & chill_season != "chill_2005-2006")
+  #  } else {
+  #   data <- data %>%
+  #           # Only want complete seasons of data
+  #           filter(chill_season != "chill_1978-1979" & chill_season != "chill_2015-2016")
+  # } 
+  data <- data %>% 
+          # Within a season
+          group_by(year, location, model, emission) %>%
+          # Mutate output is the row index of the first 
+          # time where it meets threshold
+          # within the group. (Index is the same as counting 
+          # the start date as day = 1)
+          mutate(heatTriggerThresh = detect_index(.x = vert_Cum_dd_F,
+                                                  .f = chill_thresh,
+                                                  threshold = cut_off)
+                ) %>% 
+          summarise(heatTriggerThresh = unique(heatTriggerThresh), # retain the thresholds
+                    ) %>%
+          data.frame() # to allow for ldply() later
+  return(data)
+}
+##################################################################
+##################################################################
+##################################################################
 grab_coord_heatTrigger <- function(A){
   out_put <- A %>%
              transmute(lat = as.numeric(substr(x = .id, start = 19, stop = 26)),
                        long = as.numeric(substr(x = .id, start = 28, stop = 37)),
                        median_heatTriggerThresh = median_heatTriggerThresh)
-    return (out_put)
+  return (out_put)
 }
 
 get_medians_heatTrigger <- function(a_list){
