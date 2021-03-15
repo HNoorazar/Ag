@@ -158,7 +158,7 @@ plot_bloom_box <- function(dt, colname, ct){
 
             geom_text(data = medians, 
                       aes(label = sprintf("%1.0f", medians$med), 
-                          y=medians$med), 
+                          y = medians$med), 
                           colour = "black", fontface = "bold",
                           size=5, 
                           position=position_dodge(.09),

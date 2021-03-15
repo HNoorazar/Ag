@@ -1,5 +1,6 @@
 #
-#  Here we compute the damn vertDD based on chill_season calendar and pased on
+#  Here we compute the damn vertDD based on 
+#  chill_season calendar and pased on
 #  whenever the damn CP trigger is on
 #
 #
@@ -11,11 +12,13 @@ options(digits=9)
 options(digit=9)
 
 #__________________________________________________________________________________
+
 data_dir <- "/Users/hn/Documents/01_research_data/bloom_4_chill_paper_trigger/"
 param_dir <- "/Users/hn/Documents/00_GitHub/Ag/chilling/parameters/"
 
 #__________________________________________________________________________________
-trigger_dt <- readRDS(paste0(data_dir, "heatTriggers_sept_summary_comp.rds"))
+
+trigger_dt <- readRDS(paste0(data_dir, "lowVariety/heatTriggers_sept_summary_comp_lowVariety.rds"))
 heatAccum <- readRDS(paste0(data_dir, "bloom_01Step_4locations_for_chill.rds"))
 
 heatAccum$location <- paste0(heatAccum$lat, "_", heatAccum$long)
@@ -63,7 +66,7 @@ for (a_model in unique(heatAccum_F_45$model)){
       curr_trigger <- trigger_dt[model == a_model & chill_season == a_chill_yr & 
                                  location == aloc & emission == "RCP 4.5"]
 
-      curr_trigger <- curr_trigger$thresh_55
+      curr_trigger <- curr_trigger$thresh_37half
 
       heatAccum_F_45[model == a_model & chill_season == a_chill_yr & 
                      location == aloc & chill_dayofyear <= curr_trigger, vertdd:=0]
@@ -83,12 +86,11 @@ for (a_model in unique(heatAccum_F_85$model)){
       curr_trigger <- trigger_dt[model == a_model & chill_season == a_chill_yr & 
                                  location == aloc & emission == "RCP 8.5"]
 
-      curr_trigger <- curr_trigger$thresh_55
+      curr_trigger <- curr_trigger$thresh_37half
 
       heatAccum_F_85[model == a_model & chill_season == a_chill_yr & 
                      location == aloc & chill_dayofyear <= curr_trigger, vertdd:=0]
 
-      
     }
   }
 }
@@ -103,12 +105,11 @@ for (a_model in unique(heatAccum_obse$model)){
       curr_trigger <- trigger_dt[model == a_model & chill_season == a_chill_yr & 
                                  location == aloc & emission == "Observed"]
 
-      curr_trigger <- curr_trigger$thresh_55
+      curr_trigger <- curr_trigger$thresh_37half
 
       heatAccum_obse[model == a_model & chill_season == a_chill_yr & 
                      location == aloc & chill_dayofyear <= curr_trigger, vertdd:=0]
 
-      
     }
   }
 }
@@ -150,14 +151,15 @@ View(A)
 
 #__________________________________________________________________________________
 
-saveRDS(heatAccum_new, paste0(data_dir, "triggerBased_vertDD.rds"))
+saveRDS(heatAccum_new, paste0(data_dir, "lowVariety/triggerBased_vertDD_lowVariety.rds"))
 
 #__________________________________________________________________________________
 #__________________________________________________________________________________
 #__________________________________________________________________________________
+#__________________________________________________________________________________
 #
 #
-#       Bloom fit - Not needed
+#       Bloom fit
 #
 heatAccum_F_45 <- heatAccum_new %>% filter(emission %in% c("RCP 4.5")) %>% data.table()
 heatAccum_F_85 <- heatAccum_new %>% filter(emission %in% c("RCP 8.5")) %>% data.table()
@@ -187,7 +189,7 @@ for (a_model in unique(heatAccum_F_45$model)){
 
       curr_dt <- heatAccum_F_45[model == a_model & chill_season == a_chill_yr & location == aloc]
 
-      dist <- pnorm(curr_dt$vert_Cum_dd_F, mean = 342.32, sd = 45.71, lower.tail = TRUE)
+      dist <- pnorm(curr_dt$vert_Cum_dd_F, mean = 342.32, sd =45.71, lower.tail = TRUE)
     
       heatAccum_F_45[model == a_model & chill_season == a_chill_yr & 
                      location == aloc, cripps_pink := dist]
@@ -246,5 +248,5 @@ for (a_model in unique(heatAccum_obse$model)){
 }
 
 triggerBased_vertDD_CrippsBloom <- rbind(heatAccum_obse, heatAccum_F_45, heatAccum_F_85)
-saveRDS(triggerBased_vertDD_CrippsBloom, paste0(data_dir, "triggerBased_vertDD_CrippsBloom_no50cut.rds"))
+saveRDS(triggerBased_vertDD_CrippsBloom, paste0(data_dir, "lowVariety/triggerBased_vertDD_CrippsBloom_no50cut_lowVariety.rds"))
 

@@ -7,6 +7,7 @@ library(ggplot2)
 
 options(digits=9)
 options(digit=9)
+start_time <- Sys.time()
 ############################################################
 ###
 ###             local computer source
@@ -55,13 +56,15 @@ limited_locations <- within(limited_locations, remove(lat, long))
 chill_doy_map <- read.csv(paste0(param_dir, "/chill_DoY_map.csv"), as.is=TRUE)
 
 ########
-######## daily CP data
+######## read data
 ########
 
 daily_CP <- read.csv(paste0(daily_CP_dir, "daily_CP_for_CDF.csv"), as.is=TRUE)
 daily_vertDD <- readRDS(paste0(daily_vertDD_dir, "triggerBased_vertDD.rds"))
 
-# daily_vertDD_2 <- readRDS(paste0(daily_vertDD_dir, "triggerBased_vertDD_CrippsBloom_no50cut.rds"))
+heat_slopes <-  readRDS(paste0(daily_vertDD_dir, "slopes_maxDD_200_HV.rds"))
+heat_slopes[, (c("coef")) := round(.SD, 1), .SDcols=c("coef")]
+heat_slopes$str_slope <- paste0("m = ", heat_slopes$coef)
 
 #____________________________________________________________
 #
@@ -130,13 +133,6 @@ daily_CP <- within(daily_CP, remove("location", "lat", "long"))
 
 emissions <- c("RCP 4.5", "RCP 8.5")
 
-# apple types are for bloom, not thresholds
-apple_types <- c("Cripps Pink")  # , "Gala", "Red Deli" 
-
-# apple, cherry, pear; cherry 14 days shift, pear 7 days shift
-fruit_types <- c("apple", "cherry", "pear") 
-fruit_type <- "apple"
-
 setnames(daily_vertDD, old=c("city"), new=c("location"))
 setnames(daily_CP, old=c("city"), new=c("location"))
 
@@ -172,8 +168,6 @@ daily_vertDD$time_period <- factor(daily_vertDD$time_period,
 
 ####################################################################
 
-start_time <- Sys.time()
-####################################################################
 daily_vertDD_obs <- daily_vertDD %>% filter(time_period == "Historical") %>% data.table()
 daily_CP_obs <- daily_CP %>% filter(time_period == "Historical") %>% data.table()
 
@@ -204,17 +198,24 @@ daily_CP_RCP45 <- rbind(daily_CP_RCP45, daily_CP_obs45)
 
 rm(daily_CP, daily_vertDD)
 
-
-app_tp <- apple_types[1]
 ####################################################################################################
+##
+
+app_tp <- "Cripps Pink"
+
 #
 # This for-loop takes care of RCP 4.5, and next one RCP 8.5.
-# 
+#
 curr_daily_CP <- daily_CP_RCP45
 curr_vertDD <- daily_vertDD_RCP45
+curr_slopes <- heat_slopes %>%
+               filter(emission == "RCP 4.5") %>%
+               data.table()
 
+############################################################
 ##
 ##  pick up needed column so that melts work correctly.
+##
 ##
 needed_cols <- c("location", "emission", "model", "time_period", "chill_dayofyear")
 
@@ -222,48 +223,6 @@ curr_daily_CP <- subset(curr_daily_CP, select = c(needed_cols, "cume_portions"))
 curr_vertDD   <- subset(curr_vertDD,   select = c(needed_cols, "vert_Cum_dd"))
 
 ############################################################
-#
-# Compute the damn stats for the little horizontal lines 
-#
-
-min_cp_forRange <- 73.1
-max_cp_forRange <- 73.5
-
-min_DD_forRange <- 54
-max_DD_forRange <- 56
-
-curr_daily_CP_narr <- curr_daily_CP %>% 
-                      filter(cume_portions >= min_cp_forRange)
-
-curr_daily_CP_narr <- curr_daily_CP_narr %>% 
-                      filter(cume_portions <= max_cp_forRange)
-
-CP_quan_25_75 <- curr_daily_CP_narr %>% 
-                 group_by(location, emission, time_period ) %>% 
-                 summarise(CP_quan_25 = quantile(chill_dayofyear, probs = 0.25),
-                           CP_quan_75 = quantile(chill_dayofyear, probs = 0.75)) %>% 
-                 data.table()
-
-CP_quan_25_75$y_intercept <- 73.3
-CP_quan_25_75$variable <- "cume_portions"
-
-curr_vertDD_narr <- curr_vertDD %>% 
-                    filter(vert_Cum_dd >= min_DD_forRange)
-
-curr_vertDD_narr <- curr_vertDD_narr %>% 
-                    filter(vert_Cum_dd <= max_DD_forRange)
-
-vertDD_quan_25_100 <- curr_vertDD_narr %>% 
-                      group_by(location, emission, time_period ) %>% 
-                      summarise(vertDD_quan_25 = quantile(chill_dayofyear, probs = 0.25)) %>% 
-                       data.table()
-
-vertDD_quan_25_100$vertDD_quan_1 <- vertDD_quan_25_100$vertDD_quan_25 + 1
-
-vertDD_quan_25_100$y_intercept = 55
-vertDD_quan_25_100$variable <- "vert_Cum_dd"
-
-############################################################
 
 curr_dailyCP_melt <- melt(data.table(curr_daily_CP), id = needed_cols)
 curr_vertDD_melt <-  melt(data.table(curr_vertDD) ,  id = needed_cols)
@@ -274,8 +233,10 @@ merged_dt <- rbind(curr_dailyCP_melt, curr_vertDD_melt)
 source(bloom_core_source)
 source(bloom_plot_core_source)
 source(chill_core_source)
-merged_plt <- box_and_LineKirti(CP_quans = CP_quan_25_75, 
-                                vertDD_quants = vertDD_quan_25_100)
+merged_plt <- double_cloud_2_rows_Accum_VertDD_CP_Slopes_100Try(d1=merged_dt, 
+                                                                slopes_dt=curr_slopes, 
+                                                                full_CP_intcpt=73.3, 
+                                                                heat_intcpt=25)
 
 plot_dir <- paste0(plot_base_dir, "/CPAccum_heatAccum/")
 
@@ -285,62 +246,30 @@ if (dir.exists(plot_dir) == F) {
   }
 
 ggsave(plot = merged_plt,
-       filename = paste0("Acum_CPHeat_", gsub(" ", "_", app_tp), "_RCP45_Kirti.png"), 
-       width = 13, height = 5, units = "in", 
+       filename = paste0("00_Acum_CPHeat_", gsub(" ", "_", app_tp), "_RCP45_Slopes.png"), 
+       width = 11, height=10, units = "in", 
        dpi = 400, device = "png",
        path = plot_dir)
 print (plot_dir)
 
-####################################################################
 #
 # This for-loop takes care of RCP 8.5. and previous one RCP 4.5
-# 
 
 curr_daily_CP <- daily_CP_RCP85
 curr_vertDD <- daily_vertDD_RCP85
-
+curr_slopes <- heat_slopes %>%
+               filter(emission == "RCP 8.5") %>%
+               data.table()
+############################################################
 ##
 ##  pick up needed column so that melts work correctly.
+##
 ##
 needed_cols <- c("location", "emission", "model", "time_period", "chill_dayofyear")
 
 curr_daily_CP <-subset(curr_daily_CP, select = c(needed_cols, "cume_portions"))
 curr_vertDD <-subset(curr_vertDD, select = c(needed_cols, "vert_Cum_dd"))
 ############################################################
-#
-# Compute the damn stats for the little horizontal lines 
-#
-curr_daily_CP_narr <- curr_daily_CP %>% 
-                      filter(cume_portions >= min_cp_forRange)
-
-curr_daily_CP_narr <- curr_daily_CP_narr %>% 
-                      filter(cume_portions <= max_cp_forRange)
-
-CP_quan_25_75 <- curr_daily_CP_narr %>% 
-                 group_by(location, emission, time_period ) %>% 
-                 summarise(CP_quan_25 = quantile(chill_dayofyear, probs = 0.25),
-                           CP_quan_75 = quantile(chill_dayofyear, probs = 0.75)) %>% 
-                 data.table()
-
-CP_quan_25_75$y_intercept = 73.3
-CP_quan_25_75$variable <- "cume_portions"
-
-curr_vertDD_narr <- curr_vertDD %>% 
-                    filter(vert_Cum_dd >= min_DD_forRange)
-
-curr_vertDD_narr <- curr_vertDD_narr %>% 
-                    filter(vert_Cum_dd <= max_DD_forRange)
-
-vertDD_quan_25_100 <- curr_vertDD_narr %>% 
-                      group_by(location, emission, time_period ) %>% 
-                      summarise(vertDD_quan_25 = quantile(chill_dayofyear, probs = 0.25)) %>% 
-                      data.table()
-
-vertDD_quan_25_100$vertDD_quan_1 <- vertDD_quan_25_100$vertDD_quan_25 + 1
-vertDD_quan_25_100$y_intercept = 55
-vertDD_quan_25_100$variable <- "vert_Cum_dd"
-
-############################################################
 
 curr_dailyCP_melt <- melt(data.table(curr_daily_CP), id = needed_cols)
 curr_vertDD_melt <-  melt(data.table(curr_vertDD) ,  id = needed_cols)
@@ -351,8 +280,10 @@ merged_dt <- rbind(curr_dailyCP_melt, curr_vertDD_melt)
 source(bloom_core_source)
 source(bloom_plot_core_source)
 source(chill_core_source)
-merged_plt <- box_and_LineKirti(CP_quans = CP_quan_25_75, 
-                                vertDD_quants = vertDD_quan_25_100)
+merged_plt <- double_cloud_2_rows_Accum_VertDD_CP_Slopes_100Try(d1=merged_dt, 
+                                                                slopes_dt=curr_slopes,
+                                                                full_CP_intcpt=73.3, 
+                                                                heat_intcpt=25)
 
 plot_dir <- paste0(plot_base_dir, "/CPAccum_heatAccum/")
 
@@ -362,8 +293,8 @@ if (dir.exists(plot_dir) == F) {
   }
 
 ggsave(plot = merged_plt,
-       filename = paste0("Acum_CPHeat_", gsub(" ", "_", app_tp), "_RCP85_Kirti.png"), 
-       width = 13, height=5, units = "in", 
+       filename = paste0("00_Acum_CPHeat_", gsub(" ", "_", app_tp), "_RCP85_slopes.png"), 
+       width = 11, height=10, units = "in", 
        dpi = 400, device = "png",
        path = plot_dir)
 print (plot_dir)

@@ -10,6 +10,105 @@ options(digits=9)
 ##################################################################
 ##################################################################
 
+process_data_non_overlap_springer <- function(file, time_period) {
+  # if (time_period == "2025_2050"){
+  #   processed_data <- file %>%
+  #                      filter(year >= 2025 & year <= 2050,
+  #                             chill_season != "chill_2025-2026" &
+  #                             chill_season != "chill_2050-2051"
+  #                             )
+  #   } else if (time_period == "2051_2075"){
+  #    processed_data <- file %>%
+  #                      filter(year > 2050 & year <= 2075,
+  #                             chill_season != "chill_2050-2051" &
+  #                             chill_season != "chill_2075-2076"
+  #                             )
+  #   } else if (time_period == "2076_2100") {
+  #     processed_data <- file %>%
+  #                       filter(year > 2075 & year <= 2099,
+  #                              chill_season != "chill_2075-2076" &
+  #                              chill_season != "chill_2099-2100"
+  #                             )
+   
+  #   } else if (time_period == "2005_2024") {
+  #    processed_data <- file %>%
+  #                      filter(year >= 2005 & year <= 2024 ,
+  #                             chill_season != "chill_2005-2006" &
+  #                             chill_season != "chill_2024-2025"
+  #                             )
+  #  }
+  processed_data <- file %>%
+                    # Only want complete seasons of data
+                    filter(chill_season != "chill_2005-2006" &
+                           chill_season != "chill_2099-2100")
+  processed_data <- na.omit(processed_data)
+
+  processed_data <- threshold_func_Springer(processed_data, data_type="modeled")
+  return(processed_data)
+}
+
+
+grab_coord_springer <- function(A){
+  out_put <- A %>%
+             transmute(lat = as.numeric(substr(x = .id, start = 19, stop = 26)),
+                       long = as.numeric(substr(x = .id, start = 28, stop = 37)),
+                       median_37half = median_37half,
+                       median_55 = median_55)
+    return (out_put)
+}
+
+
+get_medians_springer <- function(a_list){
+  medians_data <- ldply(.data = a_list,
+                        .fun = function(x) medians_springer(thresh_37half = x[, "thresh_37half"],
+                                                            thresh_55 = x[, "thresh_55"]
+                                                            ))
+  return (medians_data)
+}
+
+
+# A function that pulls the median values we want
+medians_springer <- function(thresh_37half, thresh_55) {
+  c(median_37half = median(thresh_37half),
+    median_55 = median(thresh_55)
+    )
+}
+
+
+threshold_func_Springer <- function(file, data_type){
+  file <- na.omit(file)
+  if (data_type=="modeled"){
+    data <- file %>%
+           # Only want complete seasons of data
+           filter(chill_season != "chill_1949-1950" & chill_season != "chill_2005-2006")
+   } else {
+    data <- file %>%
+            # Only want complete seasons of data
+            filter(chill_season != "chill_1978-1979" & chill_season != "chill_2015-2016")
+  } 
+  data <- data %>% 
+          # Within a season
+          group_by(chill_season) %>%
+          # Mutate output is the row index of the first 
+          # time where it meets threshold
+          # within the group. (Index is the same as counting 
+          # the start date as day = 1)
+
+          mutate(thresh_37half = detect_index(.x = cume_portions,
+                                              .f = chill_thresh,
+                                               threshold = 37.5), # 37.5 comes from 75% of 50CP
+                 thresh_55 =     detect_index(.x = cume_portions,
+                                              .f = chill_thresh,
+                                              threshold = 55)
+                 ) %>% 
+          summarise(sum = sum(daily_portions),
+                    thresh_37half = unique(thresh_37half), # retain the thresholds
+                    thresh_55 = unique(thresh_55)
+                    ) %>%
+          data.frame() # to allow for ldply() later
+  return(data)
+}
+
 Accum_GDD_DoYDetector_basedOnCaneldarYear <- function(data, data_type, cut_off = 55){
   ###
   ###   This function is modification of the function heat_trigger_DoYDetector(.)
@@ -60,7 +159,6 @@ get_medians_heatTrigger <- function(a_list){
                         .fun = function(x) medians_heatTrigger(heatTriggerThresh = x[, "heatTriggerThresh"]))
   return (medians_data)
 }
-
 
 medians_heatTrigger <- function(heatTriggerThresh) {
   c(median_heatTriggerThresh = median(heatTriggerThresh))

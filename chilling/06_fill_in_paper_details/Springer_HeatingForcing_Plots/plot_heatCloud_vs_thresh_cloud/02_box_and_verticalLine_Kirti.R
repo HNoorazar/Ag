@@ -12,6 +12,9 @@ options(digit=9)
 ###             local computer source
 ###
 ############################################################
+
+start_time <- Sys.time()
+
 bloom_source_dir <- "/Users/hn/Documents/00_GitHub/Ag/Bloom/"
 chill_source_dir <- "/Users/hn/Documents/00_GitHub/Ag/chilling/"
 
@@ -170,26 +173,6 @@ daily_vertDD$time_period <- factor(daily_vertDD$time_period,
                                    levels = tpo, 
                                    order = TRUE)
 
-####################################################################
-# em <- emissions[2]
-# app_tp <- apple_types[1]
-# thresh_cut <- 75
-# loc <- unique(bloom$location)[1]
-
-start_time <- Sys.time()
-#
-#   X-axis needs to be days. So, we need to take median across years.
-#
-# daily_vertDD <- daily_vertDD %>%
-#                 group_by(location, emission, time_period, chill_dayofyear) %>%
-#                 summarise(med_over_model_n_yrs_cumVertDD = median(vert_Cum_dd)) %>%
-#                 data.table()
-
-# daily_CP <- daily_CP %>%
-#             group_by(location, emission, time_period, chill_dayofyear) %>%
-#             summarise(med_over_model_n_yrs_cumCP = median(cume_portions)) %>%
-#             data.table()
-
 
 ####################################################################
 daily_vertDD_obs <- daily_vertDD %>% filter(time_period == "Historical") %>% data.table()
@@ -220,35 +203,30 @@ daily_vertDD_RCP45 <- rbind(daily_vertDD_RCP45, daily_vertDD_obs45)
 daily_CP_RCP85 <- rbind(daily_CP_RCP85, daily_CP_obs85)
 daily_CP_RCP45 <- rbind(daily_CP_RCP45, daily_CP_obs45)
 
-# daily_vertDD_RCP85 <- within(daily_vertDD_RCP85, remove(emission))
-# daily_vertDD_RCP45 <- within(daily_vertDD_RCP45, remove(emission))
-
-# daily_CP_RCP85 <- within(daily_CP_RCP85, remove(emission)) 
-# daily_CP_RCP45 <- within(daily_CP_RCP45, remove(emission))
-
 rm(daily_CP, daily_vertDD)
 
-####################################################################################################
-##
-##  For testing
-##
 
 app_tp <- apple_types[1]
+
+####################################################################################################
+
+y_interceppt <- 73.3
+cpRange_delta <- 0.2
+min_cp_forRange <- y_interceppt - cpRange_delta
+max_cp_forRange <- y_interceppt + cpRange_delta
+
+min_DD_forRange <- 54
+max_DD_forRange <- 56
+
 ####################################################################################################
 #
 # This for-loop takes care of RCP 4.5, and next one RCP 8.5.
 # 
-
-# for (thresh_cut in plot_threshols){
 curr_daily_CP <- daily_CP_RCP45
-
-# for (app_tp in apple_types){
 curr_vertDD <- daily_vertDD_RCP45
 
-############################################################
 ##
 ##  pick up needed column so that melts work correctly.
-##
 ##
 needed_cols <- c("location", "emission", "model", "time_period", "chill_dayofyear")
 
@@ -256,6 +234,43 @@ curr_daily_CP <- subset(curr_daily_CP, select = c(needed_cols, "cume_portions"))
 curr_vertDD   <- subset(curr_vertDD,   select = c(needed_cols, "vert_Cum_dd"))
 
 ############################################################
+#
+# Compute the damn stats for the little horizontal lines 
+#
+
+curr_daily_CP_narr <- curr_daily_CP %>% 
+                      filter(cume_portions >= min_cp_forRange)
+
+curr_daily_CP_narr <- curr_daily_CP_narr %>% 
+                      filter(cume_portions <= max_cp_forRange)
+
+CP_quan_25_75 <- curr_daily_CP_narr %>% 
+                 group_by(location, emission, time_period ) %>% 
+                 summarise(CP_quan_25 = quantile(chill_dayofyear, probs = 0.25),
+                           CP_quan_75 = quantile(chill_dayofyear, probs = 0.75)) %>% 
+                 data.table()
+
+CP_quan_25_75$y_intercept <- y_interceppt
+CP_quan_25_75$variable <- "cume_portions"
+
+curr_vertDD_narr <- curr_vertDD %>% 
+                    filter(vert_Cum_dd >= min_DD_forRange)
+
+curr_vertDD_narr <- curr_vertDD_narr %>% 
+                    filter(vert_Cum_dd <= max_DD_forRange)
+
+vertDD_quan_25_100 <- curr_vertDD_narr %>% 
+                      group_by(location, emission, time_period ) %>% 
+                      summarise(vertDD_quan_25 = quantile(chill_dayofyear, probs = 0.25),
+                                vertDD_quan_1 = quantile(chill_dayofyear, probs = 1)) %>% 
+                       data.table()
+
+vertDD_quan_25_100$vertDD_quan_1 <- vertDD_quan_25_100$vertDD_quan_25 + 1
+
+vertDD_quan_25_100$y_intercept = 55
+vertDD_quan_25_100$variable <- "vert_Cum_dd"
+
+############################################################
 
 curr_dailyCP_melt <- melt(data.table(curr_daily_CP), id = needed_cols)
 curr_vertDD_melt <-  melt(data.table(curr_vertDD) ,  id = needed_cols)
@@ -266,7 +281,8 @@ merged_dt <- rbind(curr_dailyCP_melt, curr_vertDD_melt)
 source(bloom_core_source)
 source(bloom_plot_core_source)
 source(chill_core_source)
-merged_plt <- double_cloud_2_rows_Accum_VertDD_CP_Springer(d1=merged_dt)
+merged_plt <- box_and_LineKirti(CP_quans = CP_quan_25_75, 
+                                vertDD_quants = vertDD_quan_25_100)
 
 plot_dir <- paste0(plot_base_dir, "/CPAccum_heatAccum/")
 
@@ -276,33 +292,63 @@ if (dir.exists(plot_dir) == F) {
   }
 
 ggsave(plot = merged_plt,
-       filename = paste0("Acum_CPHeat_", gsub(" ", "_", app_tp), "_RCP45_", "2rows.png"), 
-       width = 13, height=10, units = "in", 
+       filename = paste0("Acum_CPHeat_", gsub(" ", "_", app_tp), "_RCP45_Kirti.png"), 
+       width = 13, height = 5, units = "in", 
        dpi = 400, device = "png",
        path = plot_dir)
 print (plot_dir)
-# }
-# }
 
+####################################################################
 #
 # This for-loop takes care of RCP 8.5. and previous one RCP 4.5
 # 
-# for (thresh_cut in plot_threshols){
-curr_daily_CP <- daily_CP_RCP85
 
-# for (app_tp in apple_types){
+curr_daily_CP <- daily_CP_RCP85
 curr_vertDD <- daily_vertDD_RCP85
 
-############################################################
 ##
 ##  pick up needed column so that melts work correctly.
-##
 ##
 needed_cols <- c("location", "emission", "model", "time_period", "chill_dayofyear")
 
 curr_daily_CP <-subset(curr_daily_CP, select = c(needed_cols, "cume_portions"))
 curr_vertDD <-subset(curr_vertDD, select = c(needed_cols, "vert_Cum_dd"))
 ############################################################
+#
+# Compute the damn stats for the little horizontal lines 
+#
+curr_daily_CP_narr <- curr_daily_CP %>% 
+                      filter(cume_portions >= min_cp_forRange)
+
+curr_daily_CP_narr <- curr_daily_CP_narr %>% 
+                      filter(cume_portions <= max_cp_forRange)
+
+CP_quan_25_75 <- curr_daily_CP_narr %>% 
+                 group_by(location, emission, time_period ) %>% 
+                 summarise(CP_quan_25 = quantile(chill_dayofyear, probs = 0.25),
+                           CP_quan_75 = quantile(chill_dayofyear, probs = 0.75)) %>% 
+                 data.table()
+
+CP_quan_25_75$y_intercept <- y_interceppt
+CP_quan_25_75$variable <- "cume_portions"
+
+curr_vertDD_narr <- curr_vertDD %>% 
+                    filter(vert_Cum_dd >= min_DD_forRange)
+
+curr_vertDD_narr <- curr_vertDD_narr %>% 
+                    filter(vert_Cum_dd <= max_DD_forRange)
+
+vertDD_quan_25_100 <- curr_vertDD_narr %>% 
+                      group_by(location, emission, time_period ) %>% 
+                      summarise(vertDD_quan_25 = quantile(chill_dayofyear, probs = 0.25),
+                                vertDD_quan_1 = quantile(chill_dayofyear, probs = 1)) %>% 
+                      data.table()
+
+vertDD_quan_25_100$vertDD_quan_1 <- vertDD_quan_25_100$vertDD_quan_25 + 1
+vertDD_quan_25_100$y_intercept = 55
+vertDD_quan_25_100$variable <- "vert_Cum_dd"
+
+############################################################
 
 curr_dailyCP_melt <- melt(data.table(curr_daily_CP), id = needed_cols)
 curr_vertDD_melt <-  melt(data.table(curr_vertDD) ,  id = needed_cols)
@@ -313,7 +359,8 @@ merged_dt <- rbind(curr_dailyCP_melt, curr_vertDD_melt)
 source(bloom_core_source)
 source(bloom_plot_core_source)
 source(chill_core_source)
-merged_plt <- double_cloud_2_rows_Accum_VertDD_CP_Springer(d1=merged_dt)
+merged_plt <- box_and_LineKirti(CP_quans = CP_quan_25_75, 
+                                vertDD_quants = vertDD_quan_25_100)
 
 plot_dir <- paste0(plot_base_dir, "/CPAccum_heatAccum/")
 
@@ -323,13 +370,11 @@ if (dir.exists(plot_dir) == F) {
   }
 
 ggsave(plot = merged_plt,
-       filename = paste0("Acum_CPHeat_", gsub(" ", "_", app_tp), "_RCP85_", "2rows.png"), 
-       width = 13, height=10, units = "in", 
+       filename = paste0("Acum_CPHeat_", gsub(" ", "_", app_tp), "_RCP85_Kirti.png"), 
+       width = 13, height=5, units = "in", 
        dpi = 400, device = "png",
        path = plot_dir)
 print (plot_dir)
-# }
-# }
 
 
 print(Sys.time() - start_time)

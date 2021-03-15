@@ -1,7 +1,155 @@
 # panel.grid.major = element_line(size=0.2), # inside theme
 # panel.grid.minor = element_blank(),
 
-double_cloud_2_rows_Accum_VertDD_CP_Springer <- function(d1){
+double_cloud_2_rows_Accum_VertDD_CP_Slopes_100Try <- function(d1, slopes_dt, full_CP_intcpt=73.3, heat_intcpt=25){
+  
+  #
+  # set the followings in a way that x-axis and y-axis have
+  # the same length so that the damn slopes makes sense visually
+  #
+  ymin <- 0
+  ymax <- 220
+
+  xmin <- 95
+  xmax <- ymax + xmin - 1
+  xmax <- 250
+   
+  newdf <- data.table(chill_doy_map)
+  # pick every other row so that x-axis ticks are less busy
+  newdf <- newdf[c(rep(c(TRUE, FALSE), (nrow(newdf)/2))), ]
+
+  the_thm <- theme(plot.margin = unit(c(t=0 , r=0 , b=0, l=0), "cm"), 
+                   panel.grid.major = element_line(size=0.2),
+                   panel.spacing=unit(.5, "cm"),
+                   legend.text=element_text(size=18, face="bold"),
+                   legend.title = element_blank(),
+                   legend.position = "bottom",
+                   legend.margin=margin(t=-0.1, unit='cm'),
+                   strip.text = element_text(face="bold", size=16, color="black"),
+                   axis.text = element_text(size=16, color="black"), # face="bold",
+                   axis.text.x = element_text(angle = 90),
+                   axis.ticks = element_line(color = "black", size = .2),
+                   axis.title.x = element_text(size=18, face="bold", margin=margin(t=2, r=0, b=0, l=0)),
+                   axis.title.y = element_text(size=18, face="bold", margin=margin(t=0, r=10, b=0, l=0)),
+                   plot.title = element_text(lineheight=.8, face="bold", size=20)
+                   )
+
+  ggplot(d1, aes(x=chill_dayofyear, y=value, fill=factor(variable))) +
+  labs(x = "", y = "cumulative quantities", fill = "data type") +
+  guides(fill=guide_legend(title="")) + 
+  facet_grid(. ~ time_period ~ location, scales="fixed") +
+  # geom_line(aes(fill=factor(Timeframe), color=factor(Timeframe) )) +
+  stat_summary(geom="ribbon", alpha=0.2,
+               fun =function(z) { quantile(z,0.5) }, 
+               fun.min=function(z) { quantile(z,0)}, 
+               fun.max=function(z) { quantile(z,1) }) +
+
+  stat_summary(geom="ribbon", alpha=0.4,
+               fun=function(z) { quantile(z,0.5) }, 
+               fun.min=function(z) { quantile(z,0.1) }, 
+               fun.max=function(z) { quantile(z,0.9) }) +
+
+  stat_summary(geom="ribbon", alpha=0.8,
+               fun=function(z) { quantile(z,0.5) }, 
+               fun.min=function(z) { quantile(z,0.25) }, 
+               fun.max=function(z) { quantile(z,0.75) }) + 
+
+  stat_summary(geom="line", fun=function(z) {quantile(z,0.5)}) +
+
+  scale_color_manual(values=c("darkgreen", "orange"),
+                     breaks=c("cume_portions", "vert_Cum_dd"),
+                     labels=c("CP accum.", "heat accum."))+
+  
+  scale_fill_manual(values=c("darkgreen", "orange"),
+                    breaks=c("cume_portions", "vert_Cum_dd"),
+                    labels=c("CP accum.", "heat accum.")) +
+  
+  # scale_y_continuous(breaks = xbreaks, label = xbreaks) +
+  scale_x_continuous(breaks = newdf$day_count_since_sept, 
+                     labels = newdf$letter_day) + 
+  geom_hline(aes(yintercept = full_CP_intcpt),      size=0.2, color="darkgreen", alpha=0.3) + 
+  geom_hline(aes(yintercept = full_CP_intcpt*0.75), size=0.2, color="darkgreen", alpha=0.3, linetype="dashed") + 
+  geom_hline(aes(yintercept = heat_intcpt),         size=0.2, color="orange",    alpha=0.3) + 
+  the_thm + # theme_bw() + 
+  geom_text(data = slopes_dt,
+            aes(label = sprintf(slopes_dt$str_slope), 
+                x = rep((xmin + 25), length(slopes_dt$str_slope)),
+                y = rep(220,         length(slopes_dt$str_slope))),
+            colour = "black", fontface = "bold",
+            size=5, 
+            inherit.aes = FALSE
+            ) + 
+  coord_cartesian(xlim = c(xmin, xmax), ylim = c(ymin, ymax)) # 
+
+}
+
+
+box_and_LineKirti <- function(CP_quans, vertDD_quants){
+
+  ymin <- 0
+  ymax <- 650
+  xmin <- 1
+  xmax <- 250
+
+  y_breaks <- unique(CP_quans$time_period)
+   
+  newdf <- data.table(chill_doy_map)
+  # pick every other row so that x-axis ticks are less busy
+  newdf <- newdf[c(rep(c(TRUE, FALSE), (nrow(newdf)/2))), ]
+
+  ggplot() + 
+  geom_linerange(data = CP_quans, 
+                 aes(y = time_period, 
+                     x = NULL, 
+                     xmin = CP_quan_25,
+                     xmax = CP_quan_75,
+                     linetype = "CP accum."),
+                 color = "darkgreen", 
+                 size = 4,
+                 show.legend = FALSE
+                 ) +
+
+  geom_linerange(data = vertDD_quants, 
+                 aes(y = time_period, 
+                     x = NULL, 
+                     xmin = vertDD_quan_25,
+                     xmax = vertDD_quan_1,
+                     linetype = "heat accum."), 
+                 color = "orange", 
+                 size = 10,
+                 alpha=0.6,
+                 show.legend = FALSE
+                 ) +
+  labs(x = "", y = "", fill = "data type") +
+  guides(fill=guide_legend(title="")) + 
+  facet_grid(. ~ location, scales="fixed") +
+  # geom_line(aes(fill=factor(Timeframe), color=factor(Timeframe) )) +
+  scale_y_discrete(limits = levels(y_breaks)) + #expand=c(0.2, .1),
+  scale_x_continuous(breaks = newdf$day_count_since_sept, 
+                     labels = newdf$letter_day) + 
+
+  theme(plot.margin = unit(c(t=0 , r=0.4 , b=0, l=-0.2), "cm"), 
+        panel.grid.major = element_line(size=0.2),
+        panel.spacing=unit(.5, "cm"),
+        legend.text=element_text(size=18, face="bold"),
+        legend.title = element_blank(),
+        legend.position = "bottom",
+        strip.text = element_text(face="bold", size=16, color="black"),
+        axis.text = element_text(size=16, color="black"), # face="bold",
+        axis.text.x = element_text(angle = 90),
+        axis.ticks = element_line(color = "black", size = .2),
+        axis.title.x = element_text(size=18,  face="bold", 
+                                    margin=margin(t=10, r=0, b=0, l=0)),
+        axis.title.y = element_text(size=18, face="bold",
+                                    margin=margin(t=0, r=0, b=0, l=0)),
+        plot.title = element_text(lineheight=.8, face="bold", size=20)
+        ) + # theme_bw() + 
+  coord_cartesian(xlim = c(95, 210)) # , ylim = c(0, 250))
+
+}
+
+
+double_cloud_2_rows_Accum_VertDD_CP_Springer_QuantLines <- function(d1, CP_quans, vertDD_quants){
 
   # xlabels <- sort(unique(d1$chill_dayofyear))
   # ylow = min(d1$value) - 5
@@ -48,7 +196,100 @@ double_cloud_2_rows_Accum_VertDD_CP_Springer <- function(d1){
   # scale_y_continuous(breaks = xbreaks, label = xbreaks) +
   scale_x_continuous(breaks = newdf$day_count_since_sept, 
                      labels = newdf$letter_day) + 
-  geom_hline(aes(yintercept = 73.3), color="red", alpha=0.3) + 
+  
+  # stat_summary(aes(colour = variable), geom = "hpline", width = 0.6, size = 1.5) + 
+  geom_linerange(data = CP_quans, 
+                 aes(y = y_intercept, 
+                     x = NULL, 
+                     xmin = CP_quan_25,
+                     xmax = CP_quan_75), 
+                 color = "red", 
+                 size = 1.5,
+                 show.legend = FALSE
+                 ) +
+
+  geom_linerange(data = vertDD_quants, 
+                 aes(y = y_intercept, 
+                     x = NULL, 
+                     xmin = vertDD_quan_25,
+                     xmax = vertDD_quan_1), 
+                 color = "red", 
+                 size = 1.5,
+                 show.legend = FALSE
+                 ) +
+
+  # This shit removes data beyod the limits, use coord_cartesian(xlim = c(-5000, 5000)) 
+  # limits = c(ylow, ymax) 
+  
+  theme(plot.margin = unit(c(t=0 , r=0 , b=0, l=0), "cm"), 
+        panel.grid.major = element_line(size=0.2),
+        panel.spacing=unit(.5, "cm"),
+        legend.text=element_text(size=18, face="bold"),
+        legend.title = element_blank(),
+        legend.position = "bottom",
+        strip.text = element_text(face="bold", size=16, color="black"),
+        axis.text = element_text(size=16, color="black"), # face="bold",
+        axis.text.x = element_text(angle = 90),
+        axis.ticks = element_line(color = "black", size = .2),
+        axis.title.x = element_text(size=18,  face="bold", 
+                                    margin=margin(t=10, r=0, b=0, l=0)),
+        axis.title.y = element_text(size=18, face="bold",
+                                    margin=margin(t=0, r=10, b=0, l=0)),
+        plot.title = element_text(lineheight=.8, face="bold", size=20)
+        ) + # theme_bw() + 
+  coord_cartesian(xlim = c(120, 240), ylim = c(0, 250))
+
+}
+
+
+double_cloud_2_rows_Accum_VertDD_CP_Springer <- function(d1, y_interceptt=73.3){
+
+  # xlabels <- sort(unique(d1$chill_dayofyear))
+  # ylow = min(d1$value) - 5
+  # ymax = min(260, max(d1$value))
+  ymin <- 0
+  ymax <- 650
+  xmin <- 1
+  xmax <- 250
+   
+  newdf <- data.table(chill_doy_map)
+  # pick every other row so that x-axis ticks are less busy
+  newdf <- newdf[c(rep(c(TRUE, FALSE), (nrow(newdf)/2))), ]
+
+  ggplot(d1, aes(x=chill_dayofyear, y=value, fill=factor(variable))) +
+  labs(x = "", y = "cumulative quantities", fill = "data type") +
+  guides(fill=guide_legend(title="")) + 
+  facet_grid(. ~ time_period ~ location, scales="fixed") +
+  # geom_line(aes(fill=factor(Timeframe), color=factor(Timeframe) )) +
+  stat_summary(geom="ribbon", alpha=0.2,
+               fun =function(z) { quantile(z,0.5) }, 
+               fun.min=function(z) { quantile(z,0)}, 
+               fun.max=function(z) { quantile(z,1) }) +
+
+  stat_summary(geom="ribbon", alpha=0.4,
+               fun=function(z) { quantile(z,0.5) }, 
+               fun.min=function(z) { quantile(z,0.1) }, 
+               fun.max=function(z) { quantile(z,0.9) }) +
+
+  stat_summary(geom="ribbon", alpha=0.8,
+               fun=function(z) { quantile(z,0.5) }, 
+               fun.min=function(z) { quantile(z,0.25) }, 
+               fun.max=function(z) { quantile(z,0.75) }) + 
+
+  stat_summary(geom="line", fun=function(z) {quantile(z,0.5)}) +
+
+  scale_color_manual(values=c("darkgreen", "orange"),
+                     breaks=c("cume_portions", "vert_Cum_dd"),
+                     labels=c("CP accum.", "heat accum."))+
+  
+  scale_fill_manual(values=c("darkgreen", "orange"),
+                    breaks=c("cume_portions", "vert_Cum_dd"),
+                    labels=c("CP accum.", "heat accum.")) +
+  
+  # scale_y_continuous(breaks = xbreaks, label = xbreaks) +
+  scale_x_continuous(breaks = newdf$day_count_since_sept, 
+                     labels = newdf$letter_day) + 
+  geom_hline(aes(yintercept = y_interceptt), color="red", alpha=0.3) + 
   # limits = c(ylow, ymax) This shit removes data beyod the limits, use coord_cartesian(xlim = c(-5000, 5000)) 
   
   theme(plot.margin = unit(c(t=0 , r=0 , b=0, l=0), "cm"), 
@@ -273,7 +514,9 @@ double_cloud <- function(d1){
   scale_x_continuous(breaks = xbreaks, label = xbreaks) +
   scale_y_continuous(breaks = chill_doy_map$day_count_since_sept, 
                      labels = chill_doy_map$letter_day
-                     ) + # limits = c(ylow, ymax) This shit removes data beyod the limits, use coord_cartesian(xlim = c(-5000, 5000)) 
+                     ) + 
+# limits = c(ylow, ymax) This shit removes data beyod 
+# the limits, use coord_cartesian(xlim = c(-5000, 5000)) 
   
   theme(panel.grid.major = element_line(size=0.2),
         panel.spacing=unit(.5, "cm"),
@@ -346,7 +589,10 @@ double_cloud_2_rows <- function(d1){
   scale_x_continuous(breaks = xbreaks, label = xbreaks) +
   scale_y_continuous(breaks = chill_doy_map$day_count_since_sept, 
                      labels = chill_doy_map$letter_day
-                     ) + # limits = c(ylow, ymax) This shit removes data beyod the limits, use coord_cartesian(xlim = c(-5000, 5000)) 
+                     ) + 
+  # This shit removes data beyod the limits, use coord_cartesian(xlim = c(-5000, 5000)) 
+  # limits = c(ylow, ymax) 
+
   
   theme(panel.grid.major = element_line(size=0.2),
         panel.spacing=unit(.5, "cm"),
