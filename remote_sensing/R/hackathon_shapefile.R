@@ -14,7 +14,7 @@ options(digit=9)
 
 in_dir_base <- paste0("/Users/hn/Documents/01_research_data/remote_sensing/", 
                       "00_shapeFiles/0002_final_shapeFiles/000_Eastern_WA/")
-hack_dir <- "/Users/hn/Documents/01_research_data/remote_sensing/Hackathon_ShapeFile"
+hack_dir <- "/Users/hn/Documents/01_research_data/remote_sensing/Hackathon_ShapeFile/"
 
 ################################################################################
 yr = 2017
@@ -62,7 +62,7 @@ if (dir.exists(file.path(write_dir)) == F){
 
 writeOGR(obj = Grant_Yakima, 
          dsn = paste0(write_dir, "/Grant_Yakima/"), 
-         layer="tGrant_Yakima", 
+         layer="Grant_Yakima", 
          driver="ESRI Shapefile")
 
 

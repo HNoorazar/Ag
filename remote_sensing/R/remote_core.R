@@ -47,7 +47,7 @@ transfer_projection_to_lat_long <- function(shape_file){
 
 ########################################################################
 
-pick_correct_year <- function(a_shape_file, year){
+pick_correct_year_SF <- function(a_shape_file, year){
   year_chr <- as.character(year)
   a_shape_file <- a_shape_file[grepl(year_chr, a_shape_file$LstSrvD), ]
   a_shape_file$year <- year
@@ -70,7 +70,7 @@ pick_proper_cols_w_notes <- function(a_shape_file){
 #   return(a_shape_file)
 # }
 
-filter_lastSrvyDate <- function(dt, year){
+filter_lastSrvyDate_DataTable <- function(dt, year){
   dt_LstSrvD <- dt[grepl(as.character(year), dt$LstSrvD), ]
   return(dt_LstSrvD)
 }
@@ -112,7 +112,6 @@ filter_out_non_irrigated_datatable <- function(dt){
 filter_out_non_irrigated_shapefile <- function (dt){
   dt@data$Irrigtn <- tolower(dt@data$Irrigtn)
   dt@data$Irrigtn[is.na(dt@data$Irrigtn)] <- "na"
-
 
   dt <- dt[!grepl('none', dt$Irrigtn), ] # toss out those with None in irrigation
   dt <- dt[!grepl('unknown', dt$Irrigtn), ] # toss out Unknown

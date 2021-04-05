@@ -923,7 +923,7 @@ def SG_1yr_panels_clean_sciPy_My_Peaks_SOS_fineGranularity_1Year(dataAB, idx, SG
 
     # annotate  EOS
     for ii in np.arange(0, len(SOS)):
-        style = dict(size=10, color='grey', rotation='vertical')
+        style = dict(size=10, color='green', rotation='vertical')
         ax.text(x = SOS.iloc[ii]['Date'].date(), 
                 y = -0.7, 
                 s = 'DoY=' + str(SOS.iloc[ii]['doy']), 
@@ -938,7 +938,7 @@ def SG_1yr_panels_clean_sciPy_My_Peaks_SOS_fineGranularity_1Year(dataAB, idx, SG
 
     # annotate EOS
     for ii in np.arange(0, len(EOS)):
-        style = dict(size=10, color='grey', rotation='vertical')
+        style = dict(size=10, color='red', rotation='vertical')
         ax.text(x = EOS.iloc[ii]['Date'].date(), 
                 y = -0.7, 
                 s = 'DoY=' + str(EOS.iloc[ii]['doy']), 

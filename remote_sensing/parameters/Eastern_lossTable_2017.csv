@@ -1,0 +1,73 @@
+"CropTyp","acr_sum","acr_sum_lessThan5","acr_sum_lessThan10"
+"barley",2041,11,136
+"barley hay",2326,130,343
+"bean seed",816,11,21
+"bean, dry",47087,376,1029
+"bean, green",1473,11,71
+"beet seed",162,NA,NA
+"bluegrass seed",21127,95,186
+"bromegrass seed",123,2,2
+"buckwheat",5819,55,121
+"cabbage",32,4,14
+"canola",8224,37,59
+"cantaloupe",2,2,2
+"carrot",9789,40,104
+"carrot seed",1107,11,84
+"chickpea",1123,1,32
+"cilantro seed",283,1,17
+"clover hay",17,8,17
+"clover seed",208,NA,19
+"clover/grass hay",74,9,9
+"corn seed",2950,490,762
+"corn, field",203260,1865,5712
+"corn, sweet",48011,371,860
+"corn, unknown",338,14,26
+"cucumber",37,NA,9
+"dill",1129,2,29
+"fescue seed",35,NA,NA
+"flax seed",159,5,5
+"garlic",17,NA,NA
+"grass seed, other",2630,21,91
+"green manure",133,7,13
+"hemp",65,NA,NA
+"kale",9,9,9
+"legume cover",196,5,21
+"lentil",45,NA,NA
+"medicinal herb",659,18,111
+"melon, unknown",8,1,8
+"mustard",971,2,2
+"oat",2057,42,103
+"oat hay",1752,73,242
+"onion",33902,225,603
+"onion seed",398,22,56
+"pea seed",1399,27,43
+"pea, dry",4654,37,97
+"pea, green",27286,79,274
+"pepper",392,9,21
+"potato",160329,669,1932
+"potato seed",444,13,22
+"pumpkin",372,43,99
+"radish seed",164,15,15
+"rosemary",1,1,1
+"rutabaga",13,NA,NA
+"rye",178,NA,NA
+"rye hay",16,NA,NA
+"ryegrass seed",1108,3,10
+"sorghum",249,9,17
+"soybean",427,NA,7
+"spinach",150,13,44
+"squash",1378,33,92
+"sudangrass",3953,68,295
+"sugar beet",2340,11,29
+"sugar beet seed",2344,NA,50
+"sunflower",748,2,10
+"sunflower seed",1600,25,35
+"tobacco",47,NA,NA
+"tomato",37,NA,NA
+"triticale",2368,38,109
+"triticale hay",1765,38,123
+"vegetable, unknown",82,NA,NA
+"watermelon",472,13,19
+"wheat",204151,1588,4612
+"wheat fallow",14281,112,374
+"yellow mustard",1311,11,35

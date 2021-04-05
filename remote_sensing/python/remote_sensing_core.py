@@ -242,8 +242,36 @@ def Null_SOS_EOS_by_DoYDiff(pd_TS, min_season_length=40):
     It seems it is possible to only have 1 SOS with no EOS. (or vice versa).
     In this case we can consider we only have 1 season!
     """
+    """
+    We had the following in the code, which is fine for computing 
+    the tables (since we count the seasons by counting SOS), but, if 
+    there is no SOS and only 1 EOS, then the EOS will not be nullified. and will show
+    up in the plots.
+
     if len(SOS_indexes) == 0 or len(EOS_indexes) == 0:
         return pd_TS_DoYDiff
+    """
+    # if len(SOS_indexes) == 0 or len(EOS_indexes) == 0:
+    #     return pd_TS_DoYDiff
+
+
+    if len(SOS_indexes) == 0 :
+        if len(EOS_indexes) == 0:
+            return pd_TS_DoYDiff
+        else: 
+            if len(EOS_indexes) == 1:
+                EOS_indexes[0] = 0
+            else:
+                raise ValueError('too many EOS and no SOS whatsoever!')
+
+    if len(EOS_indexes) == 0 :
+        if len(SOS_indexes) == 1:
+            return pd_TS_DoYDiff
+        else:
+            raise ValueError('too many SOS and no EOS whatsoever!')
+
+    SOS_indexes = pd_TS_DoYDiff.index[pd_TS_DoYDiff['SOS'] != 0].tolist()
+    EOS_indexes = pd_TS_DoYDiff.index[pd_TS_DoYDiff['EOS'] != 0].tolist()
 
     """
     First we need to fix the prolems such as having 2 SOS and only 1 EOS, or,
