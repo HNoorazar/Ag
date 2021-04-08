@@ -65,8 +65,11 @@ double_SEOS3_73_summ_w_CropSharesPerc <- data.table(double_SEOS3_73_summ_w_CropS
 cols <- c("cropTypeShare")
 double_SEOS3_73_summ_w_CropSharesPerc[,(cols) := round(.SD,2), .SDcols=cols]
 
+
+answer_dir <- paste0("/Users/hn/Documents/01_research_data/remote_sensing/", 
+                     "objectives_answer/list_of_doubleCropped_fields/")
 write.csv(double_SEOS3_73_summ_w_CropSharesPerc, 
-          file = paste0(data_dir, "double_SEOS3_73_summary_with_CropSharesPerc.csv"))
+          file = paste0(answer_dir, "double_SEOS3_73_summary_with_CropSharesPerc.csv"))
 
 #######
 ####### Read the shapefiles, filter out NASS, last survey date, irrigated, perenials and compute area per crop.
@@ -172,7 +175,10 @@ A <- data.table(A)
 cols <- c("CropPecen_doubleCropped")
 A[,(cols) := round(.SD,2), .SDcols=cols]
 
+
+answer_dir <- paste0("/Users/hn/Documents/01_research_data/remote_sensing/", 
+                     "objectives_answer/list_of_doubleCropped_fields/")
 write.csv(A, 
-          file = paste0(data_dir, "double_SEOS3_73_summary_w_Q1.csv"))
+          file = paste0(answer_dir, "double_SEOS3_73_summary_w_Q1.csv"))
 
 

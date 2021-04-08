@@ -103,11 +103,12 @@ for (year in years){
                                                     by = "CropTyp")
 
   
+  out_dir <- "/Users/hn/Documents/01_research_data/remote_sensing/AcrLoss_filter_smallFields/"
   write.csv(Eastern_lossTable, 
-            paste0(param_dir, "Eastern_lossTable_", year, ".csv"), row.names = F)
+            paste0(out_dir, "Eastern_lossTable_", year, ".csv"), row.names = F)
 
   write.csv(Eastern_SurvCorrect_lossTable, 
-            paste0(param_dir, "Eastern_SurvCorrect_lossTable_", year, ".csv"), row.names = F)
+            paste0(out_dir, "Eastern_SurvCorrect_lossTable_", year, ".csv"), row.names = F)
 
 }
 

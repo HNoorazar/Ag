@@ -261,6 +261,9 @@ def Null_SOS_EOS_by_DoYDiff(pd_TS, min_season_length=40):
         else: 
             if len(EOS_indexes) == 1:
                 EOS_indexes[0] = 0
+                pd_TS_DoYDiff.EOS = 0
+                return pd_TS_DoYDiff
+
             else:
                 raise ValueError('too many EOS and no SOS whatsoever!')
 
