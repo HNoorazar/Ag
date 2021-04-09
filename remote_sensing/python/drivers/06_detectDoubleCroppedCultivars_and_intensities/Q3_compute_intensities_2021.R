@@ -115,7 +115,7 @@ for (year in c(2016, 2017, 2018)){
 
         numerator_per_corp <- curr_2cropped_fields %>% 
                               group_by(CropTyp)%>% 
-                              summarise(acrSum_numer=sum(ExctAcr)) %>%
+                              summarise(acrSum_num=sum(ExctAcr)) %>%
                               data.table()
 
         #####
@@ -164,7 +164,7 @@ for (year in c(2016, 2017, 2018)){
         intensity_perCounty <- data.table(intensity_perCounty)
         intensity_perCountyCrop <- data.table(intensity_perCountyCrop)
         intensity_perCrop <- data.table(intensity_perCrop)
-        
+
         intensity_perCounty[,(cols) := round(.SD,2), .SDcols=cols]
         intensity_perCountyCrop[,(cols) := round(.SD,2), .SDcols=cols]
         intensity_perCrop[,(cols) := round(.SD,2), .SDcols=cols]
@@ -180,6 +180,9 @@ for (year in c(2016, 2017, 2018)){
         write.csv(intensity_perCrop, 
                   paste0(output_dir, "/perCrop/", a_Crop, ".csv"), row.names = F)
 
+        rm(intensity_perCrop, intensity_perCountyCrop, intensity_perCounty)
+        rm(numerator_per_county, numerator_per_county_corp, numerator_per_corp)
+        rm(curr_denominator_perCounty, curr_denominator_perCountycrop, curr_denominator_perCrop)
 
       }
     }
