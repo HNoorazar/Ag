@@ -978,6 +978,9 @@ find_NN_info_biofix_county_avgs <- function(ICV, historical_dt, future_dt, n_nei
 
 
 find_NN_info_biofix <- function(ICV, historical_dt, future_dt, n_neighbors, numeric_cols, non_numeric_cols){
+  #
+  # non numeric columns should be at the beginning of the data frame
+  #
 
   historical_dt <- subset(historical_dt, select=c(non_numeric_cols, numeric_cols))
   future_dt <- subset(future_dt, select=c(non_numeric_cols, numeric_cols))
@@ -1063,18 +1066,18 @@ find_NN_info_biofix <- function(ICV, historical_dt, future_dt, n_neighbors, nume
       
     # standard deviation of 1951-1990 interannual 
     # variability in each principal component, ignoring missing years
-    Zj_sd <- apply(Zj[, 4:(PCs + 3), drop=F], MARGIN = 2, FUN = sd, na.rm=T)
+    Zj_sd <- apply(Zj[, (1+length(non_numeric_cols)):(PCs + length(non_numeric_cols)), drop=F], MARGIN = 2, FUN = sd, na.rm=T)
     
     # standardize the analog pool   
-    X_prime <- sweep(X[, 4:(PCs + 3)], MARGIN=2, Zj_sd, FUN = `/`)
+    X_prime <- sweep(X[, (1+length(non_numeric_cols)):(PCs + length(non_numeric_cols))], MARGIN=2, Zj_sd, FUN = `/`)
     X_prime <- cbind(X[, non_numeric_cols], X_prime)
     
     # standardize the projected conditions
-    Yj_prime <- sweep(Yj[, 4:(PCs + 3)], MARGIN=2, Zj_sd, FUN = `/`)
+    Yj_prime <- sweep(Yj[, (1+length(non_numeric_cols)):(PCs + length(non_numeric_cols))], MARGIN=2, Zj_sd, FUN = `/`)
     Yj_prime <- cbind(Yj[, non_numeric_cols], Yj_prime)
     
-    NN_list <- get.knnx(data = X_prime[, 4:(PCs+3)], 
-                        query= Yj_prime[, 4:(PCs+3)], 
+    NN_list <- get.knnx(data = X_prime[, (1+length(non_numeric_cols)):(PCs+length(non_numeric_cols))], 
+                        query= Yj_prime[, (1+length(non_numeric_cols)):(PCs+length(non_numeric_cols))], 
                         k=n_neighbors, algorithm="brute")
     #
     # Step 3: find sigma dissimilarities

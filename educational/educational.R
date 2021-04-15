@@ -145,7 +145,8 @@ data = data.table(day_count_since_sept = convert_vect,
                   letter_day = letter_vect
                   )
 
-write.table(data, file = "/Users/hn/Documents/GitHub/Ag/chill_DoY_map.csv", 
+write.table(data, 
+            file = "/Users/hn/Documents/GitHub/Ag/chill_DoY_map.csv", 
             row.names=FALSE, na="", col.names=TRUE, sep=",")
 
 data = data.table(future_fip = c(target_fip, target_fip, target_fip),
