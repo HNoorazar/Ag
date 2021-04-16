@@ -19,17 +19,13 @@ options(digits=9)
 #                Terminal arguments and parameters
 
 ####################################################################################################
+args = commandArgs(trailingOnly=TRUE)
+emission = args[1] # rcp45 rcp85
 
-precip = args[1] # w_precip # no_recip
-gen_3 = args[2]  # w_gen3   # no_gen3
-model_ty = args[3] # Do a full name of models
-emission = args[4] # rcp45 rcp85
-
-n_nghs = 47841
-
-main_in <- file.path("/data/hydro/users/Hossein/analog/03_analogs/location_level/")
-in_dir <- file.path(main_in, gen_3, precip, n_nghs, emission, "/")
-out_dir <- file.path(in_dir, "merged/")
+main_in <- file.path("/data/hydro/users/Hossein/sids_projects/analog/")
+in_dir <- paste0(main_in, "01_analogs_perLocModel/")
+out_dir <- paste0(main_in, "02_analogs_merged/")
+if (dir.exists(out_dir) == F) { dir.create(path = out_dir, recursive = T) }
 
 setwd(in_dir)
 getwd()
