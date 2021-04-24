@@ -4,6 +4,32 @@ library(dplyr)
 options(digits=9)
 options(digit=9)
 
+
+
+add_CH_DoY <- function(data){
+  ################################
+  ####
+  #### Remove out-of-boundary years
+  ####
+  #
+  # Toss unwanted data
+  #
+  data <- data.table(data)
+  data$month <- month(data$Date)
+  data <- data %>% filter(month %in% c(9, 10, 11, 12, 1, 2, 3, 4, 5))
+  data <- data %>% filter(!(year == min(data$year) & month %in% c(1, 2, 3, 4, 5)))
+  data <- data %>% filter(!(year == max(data$year) & month %in% c(9, 10, 11, 12)))
+  
+  data <- within(data, remove(month))
+  data <- data.table(data)
+  
+  data <- data.table(data)
+  data$CH_DoY <- 1 # dummy
+  data[, CH_DoY := cumsum(CH_DoY), by=list(location, model, emission, hardiness_year)]
+  data <- data.table(data)
+  return(data)
+}
+
 hardiness_model <- function(data, 
                             input_params = input_params,
                             variety_params = variety_params){
