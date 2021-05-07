@@ -1,0 +1,193 @@
+CropTyp,CropGrp,dblCrop_potentials,Exclude from CI_MikeStyle
+alfalfa hay,Hay/Silage,PastureGrassHay,
+alfalfa seed,Seed,PastureGrassHay,
+alfalfa/grass hay,Vegetable,PastureGrassHay,
+alfalfa/grass hay,Hay/Silage,PastureGrassHay,
+alkali bee bed,Other,Ignore,Toss
+allium,Flower Bulb,Annual,
+almond,Orchard,Perennial,
+apple,Orchard,Perennial,
+apricot,Orchard,Perennial,
+artichoke,Vegetable,Annual,
+asparagus,Vegetable,Perennial,
+barley,Cereal Grain,Annual,
+barley hay,Vegetable,Annual,
+barley hay,Hay/Silage,Annual,
+bean seed,Seed,Annual,
+"bean, dry",Vegetable,Annual,
+"bean, garbanzo",Vegetable,Annual,
+"bean, green",Vegetable,Annual,
+beet,,Annual,
+beet seed,Seed,Annual,
+"berry, unknown",Berry,Perennial,
+blueberry,Berry,Perennial,
+bluegrass seed,Seed,,
+bluegrass seed,Cereal Grain,,
+broccoli,Vegetable,Annual,
+broccoli seed,,Annual,
+bromegrass seed,Seed,,
+brussels sprouts,Vegetable,Annual,
+brussels sprouts seed,Seed,Annual,
+buckwheat,Cereal Grain,Annual,
+cabbage,Vegetable,Annual,
+cabbage seed,Vegetable,Annual,
+cabbage seed,Seed,Annual,
+cabbage seed,Cereal Grain,Annual,
+camelina,Oilseed,Annual,
+caneberry,Berry,Perennial,
+canola,Vegetable,Annual,
+canola,Oilseed,Annual,
+cantaloupe,Melon,Annual,
+carrot,Vegetable,Annual,
+carrot seed,Seed,Annual,
+cauliflower,Vegetable,Annual,
+"cereal grain, unknown",Cereal Grain,Annual,
+cherry,Orchard,Perennial,
+chestnut,Orchard,Perennial,
+chickpea,Vegetable,,
+christmas tree,Commercial Tree,ignore,Toss
+cilantro seed,Seed,Annual,
+clover hay,Hay/Silage,,
+clover seed,Seed,,
+clover/grass hay,Hay/Silage,,
+conifer seed,Seed,ignore,Toss
+corn seed,Seed,Annual,
+"corn, field",Vegetable,Annual,
+"corn, field",Hay/Silage,Annual,
+"corn, field",Cereal Grain,Annual,
+"corn, sweet",Vegetable,Annual,
+"corn, unknown",Cereal Grain,Annual,
+cranberry,Berry,Perennial,
+crp/conservation,Vineyard,ignore,Toss
+crp/conservation,Other,ignore,Toss
+crp/conservation,Cereal Grain,ignore,Toss
+cucumber,Vegetable,Annual,
+currant,Berry,Perennial,
+daffodil,Flower Bulb,ignore,Toss
+dahlia,Flower Bulb,ignore,Toss
+Dandelion,,ignore,Toss
+developed,Other,ignore,Toss
+developed,Developed,ignore,Toss
+dill,Oilseed,,
+driving range,Turfgrass,ignore,Toss
+fallow,Other,ignore,Toss
+fallow,Cereal Grain,ignore,Toss
+"fallow, idle",Other,ignore,Toss
+"fallow, tilled",Other,ignore,Toss
+fescue seed,Seed,,
+filbert,Orchard,Perennial,
+flax,Oilseed,,
+flax seed,Seed,Annual,
+garlic,Vegetable,Annual,
+golf course,Turfgrass,ignore,Toss
+"grape, juice",Vineyard,Perennial,
+"grape, table",Vineyard,Perennial,
+"grape, unknown",Vineyard,Perennial,
+"grape, wine",Vineyard,Perennial,
+grass hay,Hay/Silage,PastureGrassHay,
+grass seed,Seed,,
+"grass seed, other",Seed,,
+green manure,Green Manure,,
+"hay/silage, unknown",Hay/Silage,PastureGrassHay,
+hemp,Seed,Annual,
+"Herb, Medicinal",,Annual,
+"herb, unknown",Herb,Annual,
+hops,Herb,Perennial,
+iris,Flower Bulb,ignore,Toss
+kale,Vegetable,Annual,
+kiwi,Berry,ignore,Toss
+leek,Vegetable,,
+legume cover,Green Manure,,
+lentil,Vegetable,Annual,
+lettuce,Vegetable,Annual,
+marijuana,Herb,ignore,Toss
+market crops,Vegetable,ignore,Toss
+medicinal herb,Herb,Annual,
+"melon, unknown",Melon,Annual,
+mint,Herb,Perennial,
+mint,Cereal Grain,Perennial,
+Misc. Grass Seed,,,
+mustard,Oilseed,Annual,
+mustard seed,Seed,Annual,
+nectarine/peach,Orchard,Perennial,
+"nursery, caneberry",Nursery,ignore,Toss
+"nursery, greenhouse",Nursery,ignore,Toss
+"nursery, holly",Nursery,ignore,Toss
+"nursery, lavender",Nursery,ignore,Toss
+"nursery, lilac",Nursery,ignore,Toss
+"nursery, orchard/vineyard",Nursery,ignore,Toss
+"nursery, ornamental",Nursery,ignore,Toss
+"nursery, silviculture",Nursery,ignore,Toss
+oat,Cereal Grain,Annual,
+oat hay,Hay/Silage,Annual,
+onion,Vegetable,Annual,
+onion seed,Seed,Annual,
+"orchard, unknown",Orchard,Perennial,
+parsley,Vegetable,Annual,
+pasture,Pasture,Perennial,Toss
+pasture,Other,Perennial,
+pea seed,Seed,Annual,
+"pea, dry",Vegetable,Annual,
+"pea, green",Vegetable,Annual,
+pea/vetch,Green Manure,Annual,
+Peanut,,ignore,Toss
+pear,Orchard,Perennial,
+peony,Flower Bulb,ignore,Toss
+pepper,Vegetable,Annual,
+plum,Orchard,Perennial,
+poplar,Commercial Tree,ignore,Toss
+potato,Vegetable,Annual,
+potato seed,Seed,Annual,
+pumpkin,Vegetable,Annual,
+quinoa,Cereal Grain,Annual,
+radish,Vegetable,Annual,
+radish seed,Seed,Annual,
+reclamation seed,Seed,ignore,Toss
+research station,other,ignore,Toss
+rhubarb,Vegetable,Perennial,
+rosemary,Herb,,
+rutabaga,Vegetable,,
+rye,Cereal Grain,Annual,
+rye hay,Hay/Silage,Annual,
+ryegrass seed,Seed,Annual,
+safflower seed,Seed,Annual,
+"seed, other",Seed,Annual,
+"seed, unknown",Seed,Annual,
+shellfish,Shellfish,ignore,Toss
+silviculture,Commercial Tree,ignore,Toss
+sod farm,Turfgrass,ignore,Toss
+sorghum,Hay/Silage,Annual,
+soybean,Oilseed,Annual,
+spinach,Vegetable,Annual,
+spinach seed,Seed,Annual,
+squash,Vegetable,Annual,
+strawberry,Berry,Perennial,
+sudangrass,Hay/Silage,Annual,
+sugar beet,Vegetable,Annual,
+sugar beet seed,Seed,Annual,
+sunflower,Oilseed,Annual,
+sunflower seed,Seed,Annual,
+swiss chard seed,Seed,Annual,
+tarragon,Herb,Annual,
+tea,Herb,,
+timothy,Hay/Silage,PastureGrassHay,
+timothy,Cereal Grain,PastureGrassHay,
+tobacco,Herb,,
+tomato,Vegetable,Annual,
+triticale,Cereal Grain,Annual,
+triticale hay,Hay/Silage,Annual,
+tulip,Flower Bulb,ignore,Toss
+tulip,Cereal Grain,ignore,Toss
+unknown,Unknown,ignore,Toss
+unknown,Other,ignore,Toss
+"vegetable, unknown",Vegetable,Annual,
+walnut,Orchard,Perennial,
+watermelon,Melon,Annual,
+wheat,Vegetable,Annual,
+wheat,Cereal Grain,Annual,
+wheat fallow,Other,Annual,
+wheat fallow,Cereal Grain,Annual,
+wildlife feed,Other,ignore,Toss
+yarrow seed,Seed,ignore,Toss
+yellow mustard,Green Manure,,
+yew,,,Toss

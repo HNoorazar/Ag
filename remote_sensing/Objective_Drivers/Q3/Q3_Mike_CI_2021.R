@@ -87,7 +87,7 @@ for (year in c(2016, 2017, 2018)){
         curr_2cropped_fields <- filter_lastSrvyDate_DataTable(curr_2cropped_fields, year)
         #  print (dim(curr_2cropped_fields))
         surveyDateName = "correctSurveyDate"
-      }else{
+        }else{
         surveyDateName = "wrongSurveyDate"
       }
 
@@ -193,6 +193,16 @@ for (year in c(2016, 2017, 2018)){
         intensity_perCountyCrop[,(cols) := round(.SD,2), .SDcols=cols]
         intensity_perCrop[,(cols) := round(.SD,2), .SDcols=cols]
 
+
+        setnames(intensity_perCounty, old=c("crp_intens"), new=c("dbl_crop_Perc"))
+        setnames(intensity_perCountyCrop, old=c("crp_intens"), new=c("dbl_crop_Perc"))
+        setnames(intensity_perCrop, old=c("crp_intens"), new=c("dbl_crop_Perc"))
+
+        intensity_perCounty$crp_intens <- 1 + intensity_perCounty$dbl_crop_Perc
+        intensity_perCountyCrop$crp_intens <- 1 + intensity_perCountyCrop$dbl_crop_Perc
+        intensity_perCrop$crp_intens <- 1 + intensity_perCrop$dbl_crop_Perc
+
+
         ####
         #### add Mike's CI to ours
         #### 
@@ -202,7 +212,6 @@ for (year in c(2016, 2017, 2018)){
         intensity_perCounty <- data.table(intensity_perCounty)
         extended_cols <- c("irr_acreage", "acrSum_num", "crp_intens", "CI_avg")
         intensity_perCounty[,(extended_cols) := round(.SD,2), .SDcols=extended_cols]
-
 
         #####
         #####  Write the outputs on the disk

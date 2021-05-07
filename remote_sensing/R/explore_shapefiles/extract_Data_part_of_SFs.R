@@ -20,7 +20,7 @@ data_dir <- paste0("/Users/hn/Documents/01_research_data/",
                    "01_true_shapefiles_separate_years/")
 
 out_dir <- paste0("/Users/hn/Documents/01_research_data/", 
-                  "remote_sensing/01_Data_part_not_filtered/")
+                  "remote_sensing/01_Data_part_not_filtered_2ndTry/")
 
 if (dir.exists(file.path(out_dir)) == F){
   dir.create(path=file.path(out_dir), recursive=T)
@@ -33,7 +33,7 @@ for (yr in years){
   WSDA <- readOGR(paste0(data_dir, "WSDACrop_" , yr, "/WSDACrop_", yr, ".shp"),
                   layer = paste0("WSDACrop_", yr) ,
                   GDAL1_integer64_policy = TRUE)
-  WSDA <- WSDA@data
+  WSDA <- data.table(WSDA@data)
 
   write.csv(WSDA, file = paste0(out_dir, "WSDA_DataTable_", yr, ".csv"), row.names=FALSE)
 

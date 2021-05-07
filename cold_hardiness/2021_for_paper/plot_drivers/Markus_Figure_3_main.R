@@ -1,3 +1,5 @@
+rm(list=ls())
+rm(list=ls())
 library(data.table)
 library(ggplot2)
 library(dplyr)
@@ -116,9 +118,9 @@ a_plt <- ggplot() +
                                         'Riesling' = 'slateblue1')) +
                              labs(color = 'grape variety') + 
           scale_x_continuous(breaks = CH_DoY$day_count_since_sept, labels= CH_DoY$letter_day) + 
-          labs(y = "predicted HC                          temperature") + 
+          labs(y = "predicted CH                          temperature") + 
           # ggtitle(paste0(unique(weather$location), ", ", unique(CH_dt$emission), ", ", unique(CH_dt$time_period))) +
-          facet_grid(. ~ location  ~ emission ~ time_period) +
+          facet_grid(. ~ emission ~ location ~ time_period) +
           theme(panel.grid.major = element_line(size=0.2),
                 panel.spacing=unit(.5, "cm"),
                 legend.text=element_text(size=12, face="bold"),
@@ -136,7 +138,7 @@ a_plt <- ggplot() +
 
 
 ggsave(plot = a_plt,
-       filename = "HC.pdf",
+       filename = "HC_emissionFirst.pdf",
        width = 10, height = 35, units = "in", 
        dpi = 400, device = "pdf",
        path = output_dir)
