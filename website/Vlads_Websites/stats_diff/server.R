@@ -48,9 +48,11 @@ shinyServer(function(input, output, session) {
       mask <- mask & stats$model == model
     df <- stats[mask, ]
     names(df)[names(df) == col] <- 'val'
+    
+    
     df <- merge(df[c('model', 'lat', 'long', 'location', 'val')], hist[c('location', col)], all.x=T)
     df$val <- df$val - df[, col]
-    df <- aggregate(val ~ lat + long + location, data=df, mean)
+    df <- aggregate(val ~ lat+long+location, data=df, mean)
     
     if (grepl('slope', col))
       col <- 'slope'

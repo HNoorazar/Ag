@@ -19,6 +19,11 @@ data_dt <- data_dt %>%
            slice(which.min(thresh_55)) %>%
            data.table()
 
+
+data_dt %>% group_by(CropTyp) %>% summarise(count = n_distinct(ID))
+
+
+
 data_dt[ , .SD[which.min(chill_dayofyear)], 
            by = list(lat, long, model, chill_season)]
 

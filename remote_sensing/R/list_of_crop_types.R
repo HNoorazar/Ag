@@ -13,9 +13,7 @@ options(digits=9)
 options(digit=9)
 
 param_dir <- "/Users/hn/Documents/00_GitHub/Ag/remote_sensing/parameters/"
-data_dir <- "/Users/hn/Documents/01_research_data/remote_sensing/01_Data_part_not_filtered_2ndTry/"
-
-
+data_dir <- "/Users/hn/Documents/01_research_data/remote_sensing/01_Data_part_not_filtered/"
 
 crop_types <- data.table()
 years <- c(2018, 2017, 2016, 2015)
