@@ -46,6 +46,7 @@ limited_locations$location <- paste0(limited_locations$lat, "_", limited_locatio
 limited_locations <- within(limited_locations, remove(lat, long))
 
 chill_doy_map <- read.csv(paste0(param_dir, "/chill_DoY_map.csv"), as.is=TRUE)
+
 ########
 ######## data
 ########

@@ -31,8 +31,8 @@ model_map <- function(data, model_name, scenario_name, month_col, min, max) {
   data %>% filter(model == model_name,
   	              scenario == scenario_name | scenario == "historical") %>%
            ggplot() +
-           geom_polygon(data = states_cluster, aes(x = long, y = lat, group = group),
-                        fill = "grey", color = "black") +
+           geom_polygon(data=states_cluster, aes(x = long, y = lat, group = group),
+                        fill="grey", color="black") +
             # aes_string to allow naming of column in function 
            geom_point(aes_string(x = "long", y = "lat",
                                  color = month_col), alpha = 0.4) +

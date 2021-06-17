@@ -20,7 +20,6 @@ source(source_path)
 param_dir <- "/Users/hn/Documents/00_GitHub/Ag/chilling/parameters/"
 locations_wanted <- read.csv(paste0(param_dir, "LocationGroups_NoMontana.csv"), header=T, as.is=T)
 
-
 ########################## Needs Google API stuff.
 # # getting the map
 # mapgilbert <- get_map(location = c(lon = mean(locations_wanted$lon), lat = mean(locations_wanted$lat)), zoom = 4,
