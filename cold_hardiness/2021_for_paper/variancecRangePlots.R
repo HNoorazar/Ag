@@ -22,8 +22,8 @@ if (dir.exists(output_dir) == F) {dir.create(path = output_dir, recursive = T)}
 #    Parameter setup
 #
 plotColumns <- c("CDI")
-plot_w=16
-plot_h=8
+plot_w = 16
+plot_h = 8
 
 ##############################################################################################################
 #
@@ -33,6 +33,11 @@ states <- map_data("state")
 
 for (fname in file_names){
   data <- read.csv(paste0(data_dir, fname), as.is=TRUE) %>% data.table()
+  
+  print(colnames(data))
+  data <- data.table(within(data, remove("X", "X.1")))
+  data <- data.table(unique(data))
+
   setnames(data, old=c("range",       "scenario"), 
                  new=c("time_period", "emission"))
 
@@ -104,7 +109,7 @@ for (fname in file_names){
                      strip.text = element_text(size=12, face="bold"))
 
     ggsave(filename = paste(grape_variety, vari, "variance.pdf", sep="_"),
-           plot =  currMap              , 
+           plot=currMap,
            width=plot_w, height=plot_h, units = "in", 
            dpi=400, device = "pdf",
            path=output_dir)
