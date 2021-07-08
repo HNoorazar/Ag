@@ -33,7 +33,7 @@ source(chill_core_source)
 in_dir <- "/Users/hn/Documents/01_research_data/bloom/"
 param_dir <- paste0(bloom_source_dir, "parameters/")
 
-plot_base_dir <- "/Users/hn/Documents/01_research_data/Ag_Papers/Chill_Paper/01_Springer_1/"
+plot_base_dir <- "/Users/hn/Documents/01_research_data/Ag_Papers_data/Chill_Paper/01_Springer_1/"
 
 daily_CP_dir <- "/Users/hn/Documents/01_research_data/chilling/01_data/"
 daily_vertDD_dir <- "/Users/hn/Documents/01_research_data/bloom_4_chill_paper_trigger/lowVariety/"

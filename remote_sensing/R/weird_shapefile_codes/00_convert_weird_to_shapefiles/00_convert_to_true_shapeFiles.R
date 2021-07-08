@@ -34,7 +34,6 @@ gdb <- path.expand(weird_2012_2018_dir)
 
 WSDACrop_2015 <- readOGR(gdb, "WSDACrop_2015")
 
-
 # multiple incompatible geometries
 WSDACrop_2016 <- readOGR(gdb, "WSDACrop_2016")
 # WSDACrop_2018 <- readOGR(gdb, "WSDACrop_2018")

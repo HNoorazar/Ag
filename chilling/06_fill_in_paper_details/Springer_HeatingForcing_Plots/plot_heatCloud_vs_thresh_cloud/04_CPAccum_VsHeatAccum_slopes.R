@@ -19,7 +19,7 @@ chill_source_dir <- "/Users/hn/Documents/00_GitHub/Ag/chilling/"
 in_dir <- "/Users/hn/Documents/01_research_data/bloom/"
 param_dir <- paste0(bloom_source_dir, "parameters/")
 
-plot_base_dir <- "/Users/hn/Documents/01_research_data/Ag_Papers/Chill_Paper/01_Springer_1/"
+plot_base_dir <- "/Users/hn/Documents/01_research_data/Ag_Papers_data/Chill_Paper/01_Springer_1/"
 
 daily_CP_dir <- "/Users/hn/Documents/01_research_data/chilling/01_data/"
 daily_vertDD_dir <- "/Users/hn/Documents/01_research_data/bloom_4_chill_paper_trigger/"
@@ -63,7 +63,7 @@ daily_CP <- read.csv(paste0(daily_CP_dir, "daily_CP_for_CDF.csv"), as.is=TRUE)
 daily_vertDD <- readRDS(paste0(daily_vertDD_dir, "triggerBased_vertDD.rds"))
 
 heat_slopes <-  readRDS(paste0(daily_vertDD_dir, "slopes_maxDD_200_HV.rds"))
-heat_slopes[, (c("coef")) := round(.SD, 1), .SDcols=c("coef")]
+heat_slopes[, (c("coef")):=round(.SD, 1), .SDcols=c("coef")]
 heat_slopes$str_slope <- paste0("m = ", heat_slopes$coef)
 
 #____________________________________________________________
