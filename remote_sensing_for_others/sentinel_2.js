@@ -301,6 +301,10 @@ var WA1 = ee.Geometry.Polygon([[xmin, ymin], [xmin, ymax], [xmed, ymax], [xmed, 
 var WA2 = ee.Geometry.Polygon([[xmed, ymin], [xmed, ymax], [xmax, ymax], [xmax, ymin], [xmed, ymin]]);
 var WA = [WA1,WA2];
 
+Map.centerObject(WA1, 5);
+Map.addLayer(WA1, {color: 'red'}, 'geodesic polygon');
+Map.addLayer(WA2, {color: 'blue'}, 'geodesic polygon');
+
 var SF_regions = ee.FeatureCollection(WA);
 var reduction_geometry = ee.FeatureCollection(SF);
 
