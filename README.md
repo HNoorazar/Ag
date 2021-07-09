@@ -28,3 +28,19 @@
      Detect which fields are apple, cherry, pear, etc. Detect which fields are being used to double crop. 
 
 ------------------------------------------------------------------------
+
+### Remote Sensing For Others
+The repository `remote_sensing_for_others` includes code for other members of Kirti's group.
+
+1. The code `sentinel_2.js` in the aformentioned repo is an example of Google Earth Engine (GEE) code
+that pulls some data from Sentinel-2!
+2. Some functions in that code will not work with Landsat and one needs to adapt.
+3. The state of Washington in that code is divided into two big regions. Adapt according to your needs.
+4. Some of my Python codes in `remote_sensing` repository is written for 1.5 years worth of data. If your time series are longer or shorter you need to modify those functions as well.
+
+
+
+
+
+
+
