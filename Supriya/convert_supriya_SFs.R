@@ -68,6 +68,7 @@ ggsave(filename = paste0("map_IDb_Canyon_Grid_100m_map.pdf"),
        path=SF_dir)
 
 
+setnames(IDb_Canyon_Grid_100m@data, old=c("id"), new=c("grid_id"))
 writeOGR(obj = IDb_Canyon_Grid_100m, 
          dsn = paste0(SF_dir, "/new_IDb_Canyon_Grid_100m/"), 
          layer="new_IDb_Canyon_Grid_100m", 
@@ -77,8 +78,8 @@ writeOGR(obj = IDb_Canyon_Grid_100m,
 #####
 
 IDb_Canyon_Grid_1km <- readOGR(paste0(SF_dir, "IDb_Canyon_Grid_1km/IDb_Canyon_Grid_1km.shp"),
-                            layer = "IDb_Canyon_Grid_1km", 
-                            GDAL1_integer64_policy = TRUE)
+                               layer = "IDb_Canyon_Grid_1km", 
+                               GDAL1_integer64_policy = TRUE)
 
 IDb_Canyon_Grid_1km_map <- ggplot() +
                            geom_polygon(data = states_cluster, aes(x=long, y=lat, group=group), fill = "grey", color = "black") +
@@ -93,7 +94,7 @@ ggsave(filename = paste0("map_IDb_Canyon_Grid_1km_map.pdf"),
        dpi=400, device = "pdf",
        path=SF_dir)
 
-
+setnames(IDb_Canyon_Grid_1km@data, old=c("id"), new=c("grid_id"))
 writeOGR(obj = IDb_Canyon_Grid_1km, 
          dsn = paste0(SF_dir, "/new_IDb_Canyon_Grid_1km/"), 
          layer="new_IDb_Canyon_Grid_1km", 
