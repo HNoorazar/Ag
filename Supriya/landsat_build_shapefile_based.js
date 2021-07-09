@@ -1,9 +1,37 @@
 
-// var SF_grids = ee.FeatureCollection(SF_table);
-// print("Number of polygons in shapefile is", SF_table.size());
+var SF_grids = ee.FeatureCollection(SF_grids_table_1km);
+print("Number of polygons in shapefile is", SF_grids.size());
+print (SF_grids);
 
-var SF_cnty = ee.FeatureCollection(SF_county);
+/////
+///// Idaho Polygon
+/////
+var xmin = -117.1;
+var xmax = -115.7;
 
+var ymin = 43.2;
+var ymax = 43.93;
+
+var xmed = (xmin + xmax) / 2.0;
+var ymed = (xmin + xmax) / 2.0;
+
+/////
+///// Other polygons?
+/////
+
+var rectangle_1 = ee.Geometry.Polygon([[xmin, ymin], [xmin, ymax], [xmed, ymax], [xmed, ymin], [xmin, ymin]]);
+var big_rectangle = [rectangle_1];
+
+
+var SF_regions = ee.FeatureCollection(big_rectangle);
+var reduction_geometry = ee.FeatureCollection(SF_grids);
+
+//
+// Visualize the rectangle, Display the polygons by adding them to the map.
+//
+Map.centerObject(rectangle_1, 7);
+Map.addLayer(SF_grids, {color: 'blue'}, 'geodesic polygon');
+Map.addLayer(rectangle_1, {color: 'FF0000'}, 'geodesic polygon');
 
 ////////////////////////////////////////////////////////////////////////////////////////
 ///
@@ -180,48 +208,6 @@ function mosaic_and_reduce_IC_mean(an_IC, a_feature, start_date, end_date){
   return(reduced);
 }
 
-////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-//
-// Define a point of interest. Use the UI Drawing Tools to import a point
-// geometry and name it "point" or set the point coordinates with the
-// ee.Geometry.Point() function as demonstrated here.
-
-var point = ee.Geometry.Point([-116.4, 43.565]);
-var pointBuffer = point.buffer({'distance': 1000}); // Apply the buffer method to the Point object.
-pointBuffer = ee.Feature(pointBuffer); // convert the polygon type to a ee.Feature.
-print ("pointBuffer:", pointBuffer);
-print ("pointBuffer.geometry():", pointBuffer.geometry());
-
-Map.centerObject(point, 11);
-Map.addLayer(pointBuffer, {color: 'red'});
-
-////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-var ROI = pointBuffer.geometry();
-
-// var cloudy_NDVI = l5.filterBounds(ROI).map(addNDVI);
-// var chart = ui.Chart.image.series({
-//   imageCollection: cloudy_NDVI.select('NDVI'),
-//   region: ROI,
-//   reducer: ee.Reducer.mean(),
-//   scale: 500
-// }).setOptions({title: 'Cloudy NDVI (Buffer)'});
-// print(chart);
-
-
-
-// var cloudlessNDVI = l5.filterBounds(ROI)
-//                       .map(clean_clouds_from_one_image_landsat)
-//                       .map(addNDVI);
-
-// var chart_cloudlessNDVI = ui.Chart.image.series({
-//   imageCollection: cloudlessNDVI.select('NDVI'),
-//   region: ROI,
-//   reducer: ee.Reducer.mean(),
-//   scale: 10
-// }).setOptions({title: 'Cloudless NDVI (Buffer)'});
-// print ("chart_cloudlessNDVI", chart_cloudlessNDVI);
-
 
 /////////////////////////////////////////////////////////////////////
 ///
@@ -229,66 +215,21 @@ var ROI = pointBuffer.geometry();
 ///
 /////////////////////////////////////////////////////////////////////
 
-var extracted_cloudless_NDVI = extract_landsat_IC(pointBuffer, start_date, end_date);
-
-// print ("extracted_cloudless_NDVI:", extracted_cloudless_NDVI);
-// print (ui.Chart.image.series({
-//   imageCollection: extracted_cloudless_NDVI.select('NDVI'),
-//   region: ROI,
-//   reducer: ee.Reducer.mean(),
-//   scale: 10
-// }).setOptions({title: 'Cloudless NDVI (Buffer)'}));
+var wstart_date = start_date;
+var wend_date = end_date;
 
 
+var imageC = extract_landsat_IC(SF_regions, wstart_date, wend_date);
+var reduced = mosaic_and_reduce_IC_mean(imageC, reduction_geometry, start_date, end_date);
 
-/////////////////////////////////////////////////////////////////////
-///
-///     Expand Mosaic Function Below
-///
-/////////////////////////////////////////////////////////////////////
-//
-// Below, the reduction_geometry, will be the "a_feature" input of Mosaic function.
-//          var reduced = mosaic_and_reduce_IC_mean(imageC, reduction_geometry, wstart_date, wend_date);
-//
-
-var reduced = mosaic_and_reduce_IC_mean(extracted_cloudless_NDVI, pointBuffer, start_date, end_date);
-
-// var reduced = extracted_cloudless_NDVI.map(function(image){
-//                           return image.reduceRegions({
-//                                                       collection:ROI,
-//                                                       reducer:ee.Reducer.mean(), 
-//                                                       scale: 10
-//                                                     });
-//                                         }
-//                         ).flatten();
-
-print ("reduced", reduced);
-
-/////////////////////////////////////////////////////////////////////
-///
-///     Expand Mosaic Function Above
-///
-/////////////////////////////////////////////////////////////////////
-
-var outfile_name = 'buffer_region_reduced_' + cloud_perc + 'cloud';
+var outfile_name = 'landsat_1km_SF' + cloud_perc + 'cloud';
 Export.table.toDrive({
   collection: reduced,
   description:outfile_name,
   folder:"Supriya",
   fileNamePrefix: outfile_name,
   fileFormat: 'CSV',
-  selectors:["system_start_time", "image_year", "doy", "NDVI"]
+  selectors:["grid_id", "system_start_time", "image_year", "doy", "NDVI"]
 });
-
-
-
-////////////////////////////////////////////////////////////////////////////////////////////////
-////////////
-////////////   Change region of interest to the shapefile
-////////////
-////////////////////////////////////////////////////////////////////////////////////////////////
-
-
-
 
 
