@@ -28,3 +28,6 @@
      Detect which fields are apple, cherry, pear, etc. Detect which fields are being used to double crop. 
 
 ------------------------------------------------------------------------
+
+### Remote Sensing For Others
+The repository `remote_sensing_for_others` includes code for other members of Kirti's group.
