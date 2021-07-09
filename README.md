@@ -32,10 +32,10 @@
 ### Remote Sensing For Others
 The repository `remote_sensing_for_others` includes code for other members of Kirti's group.
 
-The code `sentinel_2.js` in the aformentioned repo is an example of Google Earth Engine (GEE) code
+1. The code `sentinel_2.js` in the aformentioned repo is an example of Google Earth Engine (GEE) code
 that pulls some data from Sentinel-2!
 
-Some functions in that code will not work with Landsat and one needs to adapt.
+2. Some functions in that code will not work with Landsat and one needs to adapt.
 
 
 
