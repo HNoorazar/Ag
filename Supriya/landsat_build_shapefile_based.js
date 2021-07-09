@@ -72,6 +72,42 @@ function add_Date_Time_collection(colss){
 
 ////////////////////////////////////////////////
 ///
+///     add Year (Perhaps can be ommited and obtained in python from `system_start_time`)
+///
+
+function addYear_to_image(image){
+  var year = image.date().get('year');
+  var yearBand = ee.Image.constant(year).uint16().rename('image_year');
+  return image.addBands(yearBand);
+}
+
+function addYear_to_collection(collec){
+  var C = collec.map(addYear_to_image);
+  return C;
+}
+
+////////////////////////////////////////////////
+///
+/// add Day of Year (Perhaps can be ommited and obtained in python from `system_start_time`)
+///
+
+function addDoY_to_image(image){
+  // var doy = image.date().getRelative('day', 'year');
+  var doy = ee.Date(image.get('system:time_start')).getRelative('day', 'year');
+  var doyBand = ee.Image.constant(doy).uint16().rename('doy');
+  doyBand = doyBand.updateMask(image.select('B1').mask()); // Why this is a problem in landsat????
+
+  return image.addBands(doyBand);
+}
+
+function addDoY_to_collection(collec){
+  var C = collec.map(addDoY_to_image);
+  return C;
+}
+
+
+////////////////////////////////////////////////
+///
 ///         Do the Job function
 ///
 
@@ -91,8 +127,11 @@ function extract_landsat_IC(a_feature, start_date, end_date){
                  //.filter(ee.Filter.lte('CLOUDY_PIXEL_PERCENTAGE', cloud_perc))
                  .sort('system:time_start', true);
     
-  imageC = add_NDVI_collection(imageC); // add NDVI as a band
+  imageC = add_NDVI_collection(imageC);   // add NDVI as a band
+  imageC = addYear_to_collection(imageC); // add year as a band
+  imageC = addDoY_to_collection(imageC);  // add DoY as a band
   imageC = add_Date_Time_collection(imageC);
+  
   imageC = imageC.map(function(im){return(im.set(newDict))});
   return imageC;
 }
@@ -129,18 +168,17 @@ var ROI = pointBuffer.geometry();
 
 
 
-var cloudlessNDVI = l5.filterBounds(ROI)
-                      .map(clean_clouds_from_one_image_landsat)
-                      .map(addNDVI);
+// var cloudlessNDVI = l5.filterBounds(ROI)
+//                       .map(clean_clouds_from_one_image_landsat)
+//                       .map(addNDVI);
 
-var chart_cloudlessNDVI = ui.Chart.image.series({
-  imageCollection: cloudlessNDVI.select('NDVI'),
-  region: ROI,
-  reducer: ee.Reducer.mean(),
-  scale: 10
-}).setOptions({title: 'Cloudless NDVI (Buffer)'});
-
-print (chart_cloudlessNDVI);
+// var chart_cloudlessNDVI = ui.Chart.image.series({
+//   imageCollection: cloudlessNDVI.select('NDVI'),
+//   region: ROI,
+//   reducer: ee.Reducer.mean(),
+//   scale: 10
+// }).setOptions({title: 'Cloudless NDVI (Buffer)'});
+// print ("chart_cloudlessNDVI", chart_cloudlessNDVI);
 
 
 /////////////////////////////////////////////////////////////////////
@@ -159,33 +197,29 @@ print (ui.Chart.image.series({
   scale: 10
 }).setOptions({title: 'Cloudless NDVI (Buffer)'}));
 
-  
-  
-// var reduced = extracted_cloudless_NDVI.map(function(image){
-//                           return image.reduceRegions({
-//                                                       collection:ROI,
-//                                                       reducer:ee.Reducer.mean(), 
-//                                                       scale: 10
-//                                                     });
-//                                         }
-//                         ).flatten();
+
+var reduced = extracted_cloudless_NDVI.map(function(image){
+                          return image.reduceRegions({
+                                                      collection:ROI,
+                                                      reducer:ee.Reducer.mean(), 
+                                                      scale: 10
+                                                    });
+                                        }
+                        ).flatten();
                         
 
-// print (l5.filterBounds(ROI)
-//         .map(clean_clouds_from_one_image_landsat)
-//         .map(addNDVI));
+print ("reduced", reduced);
 
 
-// print (reduced);
-// var outfile_name = 'buffer_region_reduced_' + cloud_perc + 'cloud';
-// Export.table.toDrive({
-//   collection: reduced,
-//   description:outfile_name,
-//   folder:"Supriya",
-//   fileNamePrefix: outfile_name,
-//   fileFormat: 'CSV',
-//   selectors:["NDVI"]
-// });
+var outfile_name = 'buffer_region_reduced_' + cloud_perc + 'cloud';
+Export.table.toDrive({
+  collection: reduced,
+  description:outfile_name,
+  folder:"Supriya",
+  fileNamePrefix: outfile_name,
+  fileFormat: 'CSV',
+  selectors:["system_start_time", "image_year", "doy", "NDVI"]
+});
 
 
 
