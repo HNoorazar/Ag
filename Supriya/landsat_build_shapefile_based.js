@@ -105,18 +105,12 @@ function addDoY_to_collection(collec){
   return C;
 }
 
-
 ////////////////////////////////////////////////
 ///
 ///         Do the Job function
 ///
 
 function extract_landsat_IC(a_feature, start_date, end_date){
-  
-  // var cloudlessNDVI = l5.filterBounds(ROI)
-  //                     .map(clean_clouds_from_one_image_landsat)
-  //                     .map(addNDVI);
-  
   var geom = a_feature.geometry(); // a_feature is a feature collection
   var newDict = {'original_polygon_1': geom};
   var imageC = ee.ImageCollection(satellite_collection)
@@ -124,7 +118,7 @@ function extract_landsat_IC(a_feature, start_date, end_date){
                  .filterBounds(geom)
                  .map(clean_clouds_from_one_image_landsat)
                  .map(function(image){return image.clip(geom)})
-                 //.filter(ee.Filter.lte('CLOUDY_PIXEL_PERCENTAGE', cloud_perc))
+                 //.filter(ee.Filter.lte('CLOUDY_PIXEL_PERCENTAGE', cloud_perc)) // does not work in landsat
                  .sort('system:time_start', true);
     
   imageC = add_NDVI_collection(imageC);   // add NDVI as a band
@@ -137,6 +131,54 @@ function extract_landsat_IC(a_feature, start_date, end_date){
 }
 
 
+function mosaic_and_reduce_IC_mean(an_IC, a_feature, start_date, end_date){
+  an_IC = ee.ImageCollection(an_IC);
+  //print('mosaic_start_date:', start_date);
+  //var reduction_geometry = ee.Feature(ee.Geometry(an_IC.get('original_polygon')));
+  var reduction_geometry = a_feature;
+  var start_date_DateType = ee.Date(start_date);
+  var end_date_DateType = ee.Date(end_date);
+  //######**************************************
+  // Difference in days between start and end_date
+
+  var diff = end_date_DateType.difference(start_date_DateType, 'day');
+
+  // Make a list of all dates
+  var range = ee.List.sequence(0, diff.subtract(1)).map(function(day){
+                                    return start_date_DateType.advance(day,'day')});
+
+  // Funtion for iteraton over the range of dates
+  function day_mosaics(date, newlist) {
+    // Cast
+    date = ee.Date(date);
+    newlist = ee.List(newlist);
+
+    // Filter an_IC between date and the next day
+    var filtered = an_IC.filterDate(date, date.advance(1, 'day'));
+
+    var image = ee.Image(filtered.mosaic()); // Make the mosaic
+
+    // Add the mosaic to a list only if the an_IC has images
+    return ee.List(ee.Algorithms.If(filtered.size(), newlist.add(image), newlist));
+  }
+
+  // Iterate over the range to make a new list, and then cast the list to an imagecollection
+  var newcol = ee.ImageCollection(ee.List(range.iterate(day_mosaics, ee.List([]))));
+  //print("newcol 1", newcol);
+  //######**************************************
+
+  var reduced = newcol.map(function(image){
+                            return image.reduceRegions({
+                                                        collection:reduction_geometry,
+                                                        reducer:ee.Reducer.mean(), 
+                                                        scale: 10//,
+                                                        //tileScale: 16
+                                                      });
+                                          }
+                        ).flatten();
+  
+  return(reduced);
+}
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 //
@@ -188,28 +230,45 @@ var ROI = pointBuffer.geometry();
 /////////////////////////////////////////////////////////////////////
 
 var extracted_cloudless_NDVI = extract_landsat_IC(pointBuffer, start_date, end_date);
-print ("extracted_cloudless_NDVI:", extracted_cloudless_NDVI);
 
-print (ui.Chart.image.series({
-  imageCollection: extracted_cloudless_NDVI.select('NDVI'),
-  region: ROI,
-  reducer: ee.Reducer.mean(),
-  scale: 10
-}).setOptions({title: 'Cloudless NDVI (Buffer)'}));
+// print ("extracted_cloudless_NDVI:", extracted_cloudless_NDVI);
+// print (ui.Chart.image.series({
+//   imageCollection: extracted_cloudless_NDVI.select('NDVI'),
+//   region: ROI,
+//   reducer: ee.Reducer.mean(),
+//   scale: 10
+// }).setOptions({title: 'Cloudless NDVI (Buffer)'}));
 
 
-var reduced = extracted_cloudless_NDVI.map(function(image){
-                          return image.reduceRegions({
-                                                      collection:ROI,
-                                                      reducer:ee.Reducer.mean(), 
-                                                      scale: 10
-                                                    });
-                                        }
-                        ).flatten();
-                        
+
+/////////////////////////////////////////////////////////////////////
+///
+///     Expand Mosaic Function Below
+///
+/////////////////////////////////////////////////////////////////////
+//
+// Below, the reduction_geometry, will be the "a_feature" input of Mosaic function.
+//          var reduced = mosaic_and_reduce_IC_mean(imageC, reduction_geometry, wstart_date, wend_date);
+//
+
+var reduced = mosaic_and_reduce_IC_mean(extracted_cloudless_NDVI, pointBuffer, start_date, end_date);
+
+// var reduced = extracted_cloudless_NDVI.map(function(image){
+//                           return image.reduceRegions({
+//                                                       collection:ROI,
+//                                                       reducer:ee.Reducer.mean(), 
+//                                                       scale: 10
+//                                                     });
+//                                         }
+//                         ).flatten();
 
 print ("reduced", reduced);
 
+/////////////////////////////////////////////////////////////////////
+///
+///     Expand Mosaic Function Above
+///
+/////////////////////////////////////////////////////////////////////
 
 var outfile_name = 'buffer_region_reduced_' + cloud_perc + 'cloud';
 Export.table.toDrive({
