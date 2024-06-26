@@ -6,7 +6,7 @@
 #       extension: .py
 #       format_name: percent
 #       format_version: '1.3'
-#       jupytext_version: 1.14.5
+#       jupytext_version: 1.15.2
 #   kernelspec:
 #     display_name: Python 3 (ipykernel)
 #     language: python
@@ -105,7 +105,6 @@ print ("No. unique crops in all_fields_correct_year is:", len(all_fields.CropTyp
 all_fields_irr = nc.filter_out_nonIrrigated(all_fields)
 all_fields_correct_year_irr = nc.filter_out_nonIrrigated(all_fields_correct_year)
 
-
 print ("all_fields.shape:", all_fields.shape)
 print ("all_fields_irr.shape:", all_fields_irr.shape)
 print ("")
@@ -124,7 +123,6 @@ del(all_fields, all_fields_correct_year)
 all_fields_irr = all_fields_irr[~(all_fields_irr['CropTyp'].str.contains('nursery'))]
 all_fields_correct_year_irr = \
                   all_fields_correct_year_irr[~(all_fields_correct_year_irr['CropTyp'].str.contains('nursery'))]
-
 
 # toss unwanted crops
 all_fields_irr = all_fields_irr[~(all_fields_irr.CropTyp.isin(unwanted_crop))]
@@ -211,12 +209,6 @@ print ("After tossing low-count-fields, # unique crops is [%(ncrops)d]." % {"ncr
 # pepper = all_fields_correct_year_irr[all_fields_correct_year_irr.CropTyp == "pepper"]
 # print (pepper.shape)
 
-# %%
-
-# %%
-
-# %%
-
 # %% [markdown]
 # # TOSS NASS
 
@@ -248,15 +240,15 @@ all_fields_correct_year_irr_noNass.head(2)
 sorted(all_fields_correct_year_irr_noNass.CropTyp.unique())
 
 # %%
-out_name = "/Users/hn/Documents/01_research_data/NASA/train_Split_SFs/" + \
-           "all_fields_correct_year_irr_noNass.csv"
+out_name = "/Users/hn/Documents/01_research_data/NASA/" + "all_fields_correct_year_irr_noNass.csv"
 all_fields_correct_year_irr_noNass.to_csv(out_name, index = False)
 
 # %%
+print (all_fields_correct_year_irr_noNass.shape)
+print (all_fields_irr.shape)
 
 # %%
-
-# %%
+all_fields_irr.head(2)
 
 # %%
 # number_of_fields_to_pick = all_fields_correct_year_irr_noNass.shape[0] // 10
@@ -291,8 +283,10 @@ not_chosen_dt = all_fields_correct_year_irr_noNass[\
 # print (chosen_peppers.shape)
 
 # %%
+print (randomly_chosen_dt.shape)
 
 # %%
+6340 - 5261
 
 # %% [markdown]
 # # Go through crops and make sure 50 of each is chosen!!!
@@ -347,20 +341,12 @@ randomly_chosen_dt.loc[alfa_idx, "CropTyp"].unique()
 randomly_chosen_dt[randomly_chosen_dt.ExctAcr<10].shape
 
 # %%
+randomly_chosen_dt.reset_index(inplace=True, drop=True)
 
 # %%
 randomly_chosen_dt.sort_values(by=['CropTyp', 'ID', 'county'], inplace=True)
-
 out_name = output_dir + "evaluation_set.csv"
-randomly_chosen_dt.to_csv(out_name, index = False)
-
-# %%
-
-# %%
-
-# %%
-
-# %%
+# randomly_chosen_dt.to_csv(out_name, index = False)
 
 # %% [markdown]
 # # Move the randomly chosen plots to new directory for labeling
@@ -374,8 +360,6 @@ file_directory = dir_base + "ground_truth_tables/"
 
 plot_directory_base = dir_base + "confusions_plots/plots/plots_fine_granularity/ALLYCF_plots_fine_gran/"
 plot_directory_postfix = "_regular_irrigated_only_EVI_SOS3_EOS3/"
-
-
 
 # %%
 years = [2018] # 
