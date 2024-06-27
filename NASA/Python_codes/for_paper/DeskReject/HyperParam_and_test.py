@@ -119,7 +119,7 @@ DL_preds_test.head(2)
 # %%
 test_results = {}
 for a_train_ID in sorted(DL_preds_test.train_ID.unique()):
-    a_test_set = DL_preds_test[DL_preds_test.train_ID == a_train_ID].copy()    
+    a_test_set = DL_preds_test[DL_preds_test.train_ID == a_train_ID].copy()
     curr_best_params = best_params["train_ID" + str(a_train_ID)]
     
     best_cut = curr_best_params["cut"]
@@ -152,14 +152,15 @@ for a_train_ID in sorted(DL_preds_test.train_ID.unique()):
                         "PA":round((A2P2) / (A2P1 + A2P2), 3),
                         "err_count" : error_count,
                         "A2P2": A2P2,
-                        "A2P1":A2P1,
+                        "A2P1": A2P1,
                         "A1P1": A1P1,
                         "A1P2":A1P2, 
-                        "kappa": kappa(A2P2, A1P2, A1P1, A2P1)
+                        "kappa": kappa(A2P2, A1P2, A1P1, A2P1),
+                        "a_test_set_df" : a_test_set_SR
                        }
-    
-    
     test_results["train_ID" + str(a_train_ID)] = curr_test_result
+
+# %%
 
 # %%
 for a_key in test_results.keys():
@@ -170,6 +171,10 @@ for a_key in test_results.keys():
 
 # %%
 # 0.679 0.737 0.76 0.806  0.826 .92
+
+# %%
+test_results_DL = test_results.copy()
+test_results_DL
 
 # %% [markdown]
 # ### Non-DL MLs
@@ -254,6 +259,7 @@ test_results_SVM = {}
 test_results_KNN = {}
 test_results_RF = {}
 counter = 0
+
 for a_ML in ["RF", "SVM", "KNN"]:
     pred_col = a_ML + "_NDVI_SG_preds"
     best_param_name = "best_params_" + a_ML
@@ -300,7 +306,9 @@ for a_ML in ["RF", "SVM", "KNN"]:
                             "A2P2": A2P2,
                             "A2P1":A2P1,
                             "A1P1": A1P1,
-                            "A1P2":A1P2, "kappa": kappa(A2P2, A1P2, A1P1, A2P1)
+                            "A1P2":A1P2, 
+                            "kappa": kappa(A2P2, A1P2, A1P1, A2P1),
+                            "a_test_set_df" : a_test_set_SR
                            }
 
         if a_ML == "SVM":
@@ -337,10 +345,29 @@ for a_key in test_results_RF.keys():
     print ("==========================================================================")
 
 # %%
+ML_test_results.keys()
 
 # %%
+ML_test_results["test_results_SVM"]["train_ID6"]["a_test_set_df"]
 
 # %%
+ML_test_results["test_results_DL"] = test_results_DL
+
+# %%
+ML_test_results.keys()
+
+# %%
+import pickle
+from datetime import datetime
+dir_ = "/Users/hn/Documents/01_research_data/NASA/Amin/"
+filename = dir_ + "5_OverSampled_TestResults.sav"
+
+export_ = {"ML_test_results": ML_test_results, 
+           "source_code" : "HyperParam_and_test",
+           "Author": "HN",
+           "Date" : datetime.now().strftime('%Y-%m-%d %H:%M:%S')}
+
+pickle.dump(export_, open(filename, 'wb'))
 
 # %%
 

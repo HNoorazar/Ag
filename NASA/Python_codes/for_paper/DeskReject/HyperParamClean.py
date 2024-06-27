@@ -5,7 +5,7 @@
 #       extension: .py
 #       format_name: percent
 #       format_version: '1.3'
-#       jupytext_version: 1.14.5
+#       jupytext_version: 1.15.2
 #   kernelspec:
 #     display_name: Python 3 (ipykernel)
 #     language: python
@@ -39,6 +39,9 @@ del(DL_preds_train)
 DL_preds_test = DL_preds[DL_preds.train_test == "test"].copy()
 DL_preds_test.reset_index(drop=True, inplace=True)
 DL_preds_test.head(2)
+
+# %%
+DL_preds_test.train_ID.unique()
 
 # %%
 test_results = {}
@@ -83,8 +86,8 @@ for a_key in test_results.keys():
     print ("==========================================================================")
 
 
-# %%
-# Hyper by test set:
+# %% [markdown]
+# # Hyper by test set:
 
 # %%
 cuts_ = [0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9]
