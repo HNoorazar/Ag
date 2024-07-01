@@ -228,23 +228,24 @@ print (slaughter["Date"])
 
 # %%
 beef_slaught_complete_yrs = slaughter["beef_slaught_complete_yrs_tall"]
+beef_slaught_complete_yrs.rename(columns={"slaughter_count": "slaughter"}, inplace=True)
 beef_slaught_complete_yrs.head(2)
 
 # %%
-regions = beef_slaught_complete_yrs["region"].unique()
+regions = list(beef_slaught_complete_yrs["region"].unique())
 regions
 
 # %% [markdown]
 # ### Compute annual slaughter
 
 # %%
-monthly_slaughter = beef_slaught_complete_yrs[["year", "region", "slaughter_count"]].copy()
-monthly_slaughter.dropna(subset=["slaughter_count"], inplace=True)
+monthly_slaughter = beef_slaught_complete_yrs[["year", "region", "slaughter"]].copy()
+monthly_slaughter.dropna(subset=["slaughter"], inplace=True)
 monthly_slaughter.reset_index(drop=True, inplace=True)
 monthly_slaughter.head(2)
 
 # %%
-annual_slaughter = monthly_slaughter.groupby(["region", "year"])["slaughter_count"].sum().reset_index()
+annual_slaughter = monthly_slaughter.groupby(["region", "year"])["slaughter"].sum().reset_index()
 annual_slaughter.head(2)
 
 # %%
@@ -421,7 +422,7 @@ region_slaughter_inventory.head(2)
 fig, axs = plt.subplots(2, 1, figsize=(10, 6), sharex=True, gridspec_kw={"hspace": 0.15, "wspace": 0.05})
 (ax1, ax2) = axs;
 ax1.grid(axis="both", which="both"); ax2.grid(axis="both", which="both")
-y_var = "slaughter_count"
+y_var = "slaughter"
 for a_region in high_inv_regions:
     df = region_slaughter_inventory[region_slaughter_inventory["region"] == a_region].copy()
     ax1.plot(df.year, df[y_var], 
@@ -463,7 +464,7 @@ for a_region in low_inv_regions:
     ax2.plot(df.year, df[y_var], color = col_dict[a_region], linewidth=3,
              label = y_var[:3].title() + ". " +  a_region.replace("_", " ").title()); #
 
-y_var = "slaughter_count"
+y_var = "slaughter"
 for a_region in high_inv_regions:
     df = region_slaughter_inventory.copy()
     df = df[df["region"] == a_region].copy()
@@ -508,39 +509,62 @@ print (region_slaughter_inventory.shape)
 # There might be missing years!
 
 # %%
+region_slaughter_inventory.head(2)
+
+# %%
+region_inventory_Jan1_means = region_slaughter_inventory.groupby(["region"])["inventory_Jan1"].mean().reset_index()
+
+region_inventory_Jan1_means.rename(columns={"inventory_Jan1": "inventory_Jan1_mean"}, inplace=True)
+region_inventory_Jan1_means.head(2)
+
+# %%
+print (region_slaughter_inventory.shape)
+region_slaughter_inventory = pd.merge(region_slaughter_inventory, region_inventory_Jan1_means, 
+                                      on="region", how="left")
+print (region_slaughter_inventory.shape)
+
+region_slaughter_inventory.head(2)
+
+# %%
+
+# %%
 inventory_annal_diff = pd.DataFrame()
 for a_region in regions:
     curr_df = region_slaughter_inventory[region_slaughter_inventory["region"] == a_region].copy()
-    curr_df = curr_df[['region', 'year', 'inventory_Jan1']].copy()
+    curr_df = curr_df[['region', 'year', 'inventory_Jan1', 'inventory_Jan1_mean']].copy()
     curr_df.sort_values("year", inplace=True)
-    curr_region_diff = pd.DataFrame(columns=["region", "year", "inventory_delta"])
-    for a_year in curr_df.year.unique():
+    curr_region_diff = pd.DataFrame(columns=["region", "year", "inventory_delta", 'inventory_Jan1_mean'])
+    for a_year in sorted(curr_df.year.unique()):
         curr_df_yr = curr_df[curr_df.year.isin([a_year, a_year-1])].copy()
         if len(curr_df_yr) == 2:
-            curr_diff = curr_df_yr.iloc[1]["inventory_Jan1"] - \
-                                              curr_df_yr.iloc[0]["inventory_Jan1"]
+            I_year = curr_df_yr.loc[curr_df_yr["year"] == a_year, "inventory_Jan1"].item()
+            I_past_year = curr_df_yr.loc[curr_df_yr["year"] == a_year-1, "inventory_Jan1"].item()
+            curr_diff = I_year - I_past_year
+
+            perc_change = (curr_diff / I_past_year) * 100
+            perc_change_rel_2_mean = (curr_diff / curr_df_yr.iloc[0]["inventory_Jan1_mean"]) * 100
             
             d = pd.DataFrame.from_dict({'region': [a_region], 
                                         'year': [str(a_year) + "_" + str(a_year-1)], 
-                                        'inventory_delta': [curr_diff]})
+                                        'inventory_delta': [curr_diff],
+                                        "inv_perc_change" : [perc_change],
+                                        "inv_perc_change_rel_2_mean" : [perc_change_rel_2_mean]
+                                       })
             
             curr_region_diff = pd.concat([curr_region_diff, d])
     
     inventory_annal_diff = pd.concat([inventory_annal_diff, curr_region_diff])
 
-inventory_annal_diff = inventory_annal_diff[["region", "year", "inventory_delta"]]
+inventory_annal_diff = inventory_annal_diff[["region", "year", 
+                                             "inventory_delta", "inv_perc_change",
+                                             "inv_perc_change_rel_2_mean"]]
 
 inventory_annal_diff.reset_index(drop=True, inplace=True)
 inventory_annal_diff["inventory_delta"] = inventory_annal_diff["inventory_delta"].astype(int)
 inventory_annal_diff.reset_index(drop=True, inplace=True)
-inventory_annal_diff.head(2)
 
-# %%
 inventory_annal_diff.rename(columns={"year": "diff_years"}, inplace=True)
 inventory_annal_diff.head(2)
-
-# %%
-inventory_annal_diff[inventory_annal_diff["inventory_delta"] < 0].shape
 
 # %%
 inventory_annal_diff[(inventory_annal_diff["region"]== "region_6") & 
@@ -558,7 +582,7 @@ axs.plot(df["diff_years"], df.inventory_delta, linewidth=1,color="dodgerblue")
 axs.scatter(df["diff_years"], df.inventory_delta, label="inventory delta " +  region)
 
 plt.xticks(rotation=90);
-# axs.plot(df.year, df.slaughter_count, linewidth=3, label="slaughter "+ region, 
+# axs.plot(df.year, df.slaughter, linewidth=3, label="slaughter "+ region, 
 #          color="dodgerblue", linestyle="dashed");
 space = 1
 axs.xaxis.set_major_locator(ticker.MultipleLocator(space)) 
@@ -600,7 +624,7 @@ for a_region in low_inv_regions:
     ax2.plot(df["year"], df[y_var], color = col_dict[a_region], linewidth=3,
              label = y_var[:3].title() + ". " +  a_region.replace("_", " ").title()); #
 
-y_var = "slaughter_count"
+y_var = "slaughter"
 
 for a_region in high_inv_regions:
     df = region_slaughter_inventory.copy()
@@ -690,7 +714,7 @@ region_slaughter_inventory.head(4)
 
 # %%
 inventory_annal_diff = pd.merge(inventory_annal_diff, 
-                                region_slaughter_inventory[['region', 'year', 'slaughter_count']], 
+                                region_slaughter_inventory[['region', 'year', 'slaughter']], 
                                 on=["region", "year"], how="left")
 
 inventory_annal_diff.head(2)
@@ -733,7 +757,7 @@ inventory_annal_diff.index
 
 A = inventory_annal_diff.copy()
 A = A[A.inventory_delta < 0].copy()
-A = A[abs(A["inventory_delta"]) < A["slaughter_count"]].copy()
+A = A[abs(A["inventory_delta"]) < A["slaughter"]].copy()
 A.reset_index(drop=True, inplace=True)
 slr_more_than_inv_decline = A.copy()
 del(A)
@@ -744,7 +768,7 @@ slr_more_than_inv_decline.head(2)
 # %%
 A = inventory_annal_diff.copy()
 A = A[A.inventory_delta < 0].copy()
-A = A[abs(A["inventory_delta"]) > A["slaughter_count"]].copy()
+A = A[abs(A["inventory_delta"]) > A["slaughter"]].copy()
 A.reset_index(drop=True, inplace=True)
 slr_less_than_inv_decline = A.copy()
 del(A)
@@ -755,7 +779,7 @@ slr_less_than_inv_decline.head(2)
 # %%
 A = inventory_annal_diff.copy()
 A = A[A.inventory_delta < 0].copy()
-A = A[abs(A["inventory_delta"]) == A["slaughter_count"]].copy()
+A = A[abs(A["inventory_delta"]) == A["slaughter"]].copy()
 A.reset_index(drop=True, inplace=True)
 slr_equal_inv_decline = A.copy()
 del(A)
@@ -847,5 +871,246 @@ annual_slaughter[(annual_slaughter["region"] == "region_1_region_2") &
 
 # %%
 inventory_annal_diff.head(2)
+
+# %%
+inventory_annal_diff.head(2)
+
+# %%
+inventory_annal_diff.inventory_delta.min()
+
+# %%
+inventory_annal_diff.inventory_delta.max()
+
+# %%
+print (inventory_annal_diff.shape)
+inventory_annal_diff.dropna(how="any", inplace=True)
+inventory_annal_diff.shape
+
+# %%
+fig, axs = plt.subplots(1, 1, figsize=(5*0.7, 5), sharex=True, gridspec_kw={"hspace":0.15, "wspace":0.05})
+axs.grid(axis="y", which="both")
+axs.grid(axis="x", which="major")
+axs.set_axisbelow(True)
+
+region = "region_6"
+df = inventory_annal_diff.copy()
+df = df[df["region"] == region].copy()
+
+axs.scatter(df["inventory_delta"], df["slaughter_count"], label=region.replace("_", " ").title())
+# plt.xticks(rotation=90);
+axs.set_xlabel("inventory change")
+axs.set_ylabel("slaughter")
+
+# plt.title("inventory deltas")
+plt.legend(loc = "best");
+
+# %%
+l = 5
+fig, axs = plt.subplots(1, 1, figsize=(l*0.7, l), sharex=True, gridspec_kw={"hspace":0.15, "wspace":0.05})
+
+axs.grid(axis="y", which="both")
+axs.grid(axis="x", which="major")
+axs.set_axisbelow(True) 
+
+region = "region_6"
+df = inventory_annal_diff.copy()
+df = df[df["region"] == region].copy()
+
+axs.scatter(-df["inventory_delta"], df["slaughter_count"], label=region.replace("_", " ").title())
+# plt.xticks(rotation=90);
+axs.set_xlabel("negative inventory change")
+axs.set_ylabel("slaughter")
+
+plt.legend(loc = "best");
+
+# %%
+len(inventory_annal_diff.region.unique())
+
+# %%
+fig, ax = plt.subplots(3, 3, figsize=(15, 15), gridspec_kw={'hspace': 0.1, 'wspace': .15});
+
+scale_1000 = 1e3
+
+region_count = -1
+for ii in [0, 1, 2]:
+    for jj in [0, 1, 2]:
+        region_count += 1
+        region = regions[region_count]
+        ax[ii][jj].grid(True);
+        df = inventory_annal_diff.copy()
+        df = df[df["region"] == region].copy()
+        
+        ax[ii][jj].scatter(-df["inventory_delta"], df["slaughter_count"], c = col_dict[region],
+                           label=region.replace("_", " ").title())
+        if region_count >= 6 :
+            ax[ii][jj].set_xlabel("negative inventory change (1000 heads)")
+        if region_count in [0, 3, 6]:
+            ax[ii][jj].set_ylabel("slaughter (1000 heads)");
+        ax[ii][jj].legend(loc = "best");
+#        ax[ii][jj].set_yticklabels(ax[ii][jj].get_yticklabels(), rotation=0); # makes 10^6 go away!!!
+        ticks_y = ticker.FuncFormatter(lambda x, pos: '{0:g}'.format(x/scale_1000))
+        ax[ii][jj].yaxis.set_major_formatter(ticks_y)
+        
+        ticks_x = ticker.FuncFormatter(lambda x, pos: '{0:g}'.format(x/scale_1000))
+        ax[ii][jj].xaxis.set_major_formatter(ticks_x)
+        ax[ii][jj].set_axisbelow(True)
+        
+fig_name = plot_dir + "regionsSla_NegInvt_Scatter_" + datetime.now().strftime('%Y-%m-%d time-%H.%M') + ".pdf"
+plt.savefig(fname=fig_name, dpi=100, bbox_inches="tight")
+
+# %%
+
+# %%
+fig, ax = plt.subplots(3, 3, figsize=(15, 15), gridspec_kw={'hspace': 0.1, 'wspace': .15});
+
+region_count = -1
+
+scale_1000 = 1e3
+
+for ii in [0, 1, 2]:
+    for jj in [0, 1, 2]:
+        region_count += 1
+        region = regions[region_count]
+        ax[ii][jj].grid(True);
+        df = inventory_annal_diff.copy()
+        df = df[df["region"] == region].copy()
+        
+        ax[ii][jj].scatter(df["inventory_delta"], df["slaughter_count"], c = col_dict[region],
+                           label=region.replace("_", " ").title())
+        if region_count >= 6 :
+            ax[ii][jj].set_xlabel("inventory change (1000 heads)")
+        if region_count in [0, 3, 6]:
+            ax[ii][jj].set_ylabel("slaughter (1000 heads)");
+        ax[ii][jj].legend(loc = "best");
+#        ax[ii][jj].set_yticklabels(ax[ii][jj].get_yticklabels(), rotation=0); # makes 10^6 go away!!!
+        ticks_y = ticker.FuncFormatter(lambda x, pos: '{0:g}'.format(x/scale_1000))
+        ax[ii][jj].yaxis.set_major_formatter(ticks_y)
+        
+        ticks_x = ticker.FuncFormatter(lambda x, pos: '{0:g}'.format(x/scale_1000))
+        ax[ii][jj].xaxis.set_major_formatter(ticks_x)
+        ax[ii][jj].set_axisbelow(True)
+        
+fig_name = plot_dir + "regionsSla_Invt_Scatter_" + datetime.now().strftime('%Y-%m-%d time-%H.%M') + ".pdf"
+plt.savefig(fname=fig_name, dpi=100, bbox_inches="tight")
+
+# %%
+# fig, ax = plt.subplots(3, 3, figsize=(15, 15), gridspec_kw={'hspace': 0.1, 'wspace': .15});
+
+# region_count = -1
+
+# scale_1000 = 1e3
+
+# for ii in [0, 1, 2]:
+#     for jj in [0, 1, 2]:
+#         region_count += 1
+#         region = regions[region_count]
+#         ax[ii][jj].grid(True);
+#         df = inventory_annal_diff.copy()
+#         df = df[df["region"] == region].copy()
+        
+#         ax[ii][jj].scatter(df["inventory_delta"], df["slaughter_count"], c = col_dict[region],
+#                            label=region.replace("_", " ").title())
+#         if region_count >= 6 :
+#             ax[ii][jj].set_xlabel("inventory change")
+#         if region_count in [0, 3, 6]:
+#             ax[ii][jj].set_ylabel("slaughter");
+#         ax[ii][jj].legend(loc = "best");
+        
+# fig_name = plot_dir + "AAA" + datetime.now().strftime('%Y-%m-%d time-%H.%M') + ".pdf"
+# plt.savefig(fname=fig_name, dpi=100, bbox_inches="tight")
+
+# %% [markdown]
+# # National Level
+#
+# gets rid of movements.
+
+# %%
+region_slaughter_inventory.head(2)
+
+# %%
+national_slaughter = region_slaughter_inventory.groupby(["year"])["slaughter_count"].sum().reset_index()
+national_inv = region_slaughter_inventory.groupby(["year"])["inventory_Jan1"].sum().reset_index()
+
+national_inv_slaut = pd.merge(national_slaughter, national_inv, how="outer", on="year")
+
+print (national_inv_slaut.shape)
+national_inv_slaut.head(2)
+
+# %%
+national_inv_annal_diff = pd.DataFrame()
+for a_year in sorted(national_inv_slaut.year.unique()):
+    curr_df_yr = national_inv_slaut[national_inv_slaut.year.isin([a_year, a_year-1])].copy()
+    if len(curr_df_yr) == 2:
+        curr_diff = curr_df_yr.iloc[1]["inventory_Jan1"] - \
+                    curr_df_yr.iloc[0]["inventory_Jan1"]
+
+        d = pd.DataFrame.from_dict({'year': [str(a_year) + "_" + str(a_year-1)], 
+                                    'inventory_delta': [curr_diff]})
+
+        national_inv_annal_diff = pd.concat([national_inv_annal_diff, d])
+
+national_inv_annal_diff = national_inv_annal_diff[["year", "inventory_delta"]]
+
+national_inv_annal_diff.reset_index(drop=True, inplace=True)
+national_inv_annal_diff["inventory_delta"] = national_inv_annal_diff["inventory_delta"].astype(int)
+national_inv_annal_diff.reset_index(drop=True, inplace=True)
+national_inv_annal_diff.rename(columns={"year": "diff_years"}, inplace=True)
+
+
+national_inv_annal_diff["year"] = national_inv_annal_diff["diff_years"].str.split("_", expand=True)[1]
+national_inv_annal_diff["year"] = national_inv_annal_diff["year"].astype(int)
+
+print (national_inv_annal_diff.shape)
+national_inv_annal_diff.head(2)
+
+# %%
+national_inv_annal_diff = pd.merge(national_inv_annal_diff, 
+                                   national_inv_slaut[['year', 'slaughter_count']], 
+                                   on=["year"], how="left")
+
+national_inv_annal_diff.head(2)
+
+# %% [markdown]
+# We can see above that even on national level the inventory change and slaughter are not identical.
+
+# %%
+
+# %%
+fig, axs = plt.subplots(1, 2, figsize=(10, 5), sharex=True, gridspec_kw={"hspace":0.15, "wspace":0.15})
+(ax1, ax2) = axs;
+
+ax1.grid(True); ax2.grid(True)
+ax1.set_axisbelow(True); ax2.set_axisbelow(True)
+
+df = national_inv_annal_diff.copy()
+
+ax1.scatter(df["inventory_delta"], df["slaughter_count"], label="National")
+ax1.set_xlabel("inventory change")
+ax1.set_ylabel("slaughter")
+ax1.legend(loc = "best");
+
+ax2.scatter(-df["inventory_delta"], df["slaughter_count"], label="National")
+ax2.set_xlabel("negative inventory change")
+ax2.legend(loc = "best");
+
+fig_name = plot_dir + "National_Sla_Invt_Scatter_" + datetime.now().strftime('%Y-%m-%d time-%H.%M') + ".pdf"
+plt.savefig(fname=fig_name, dpi=100, bbox_inches="tight")
+
+# %% [markdown]
+# ### Slaughter % change relative to average of that region
+
+# %%
+region_slaughter_inventory.head(2)
+
+# %% [markdown]
+# #### Compute regional slaughter averages.
+
+# %%
+# %who
+
+# %%
+slaughter_means = annual_slaughter.groupby(["region"])["slaughter_count"].mean().reset_index()
+slaughter_means.rename(columns={"slaughter_count": "slaughter_mean"}, inplace=True)
+slaughter_means
 
 # %%
