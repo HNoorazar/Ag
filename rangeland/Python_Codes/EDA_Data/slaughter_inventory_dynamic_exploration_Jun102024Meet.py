@@ -923,6 +923,9 @@ df_ = slr_less_than_inv_decline[(slr_less_than_inv_decline.region == "region_8")
 abs(df_["inventory_delta"].item()) - df_["slaughter"].item()
 
 # %%
+del(slr_equal_inv_decline, slr_less_than_inv_decline, slr_more_than_inv_decline)
+
+# %%
 explore_df = annual_diff_df[(annual_diff_df["region"].isin(graph_dict["region_8"])) &
                                   (annual_diff_df["year"] == target_year)].copy()
 
@@ -1037,6 +1040,25 @@ fig_name = plot_dir + "regionsSla_NegInvt_Scatter_" + datetime.now().strftime('%
 plt.savefig(fname=fig_name, dpi=100, bbox_inches="tight")
 
 # %%
+font = {'size' : 18}
+matplotlib.rc('font', **font)
+
+tick_legend_FontSize = 14
+
+params = {"legend.fontsize": tick_legend_FontSize * 1.2,  # medium, large
+          # 'figure.figsize': (6, 4),
+          "axes.labelsize": tick_legend_FontSize * 1.2,
+          "axes.titlesize": tick_legend_FontSize * 1.2,
+          "xtick.labelsize": tick_legend_FontSize * 1.1,  #  * 0.75
+          "ytick.labelsize": tick_legend_FontSize * 1.1,  #  * 0.75
+          "axes.titlepad": 10}
+
+plt.rc("font", family="Palatino")
+plt.rcParams["xtick.bottom"] = True
+plt.rcParams["ytick.left"] = True
+plt.rcParams["xtick.labelbottom"] = True
+plt.rcParams["ytick.labelleft"] = True
+plt.rcParams.update(params)
 
 # %%
 fig, ax = plt.subplots(3, 3, figsize=(15, 15), gridspec_kw={'hspace': 0.1, 'wspace': .15});
@@ -1175,12 +1197,140 @@ fig_name = plot_dir + "National_Sla_Invt_Scatter_" + datetime.now().strftime('%Y
 plt.savefig(fname=fig_name, dpi=100, bbox_inches="tight")
 
 # %% [markdown]
-# # Regional diffs
+# ### Regional diffs (% and relative)
+
+# %%
+annual_diff_df.head(5)
+
+# %%
+list(annual_diff_df.columns)
+
+# %%
+x_vars = ['inv_perc_change', 'inv_perc_change_rel2mean']
+y_vars = ['slt_perc_change', 'slt_perc_change_rel2mean']
+
+# %%
+scale_1000 = 1
+
+for x_var in x_vars:
+    for y_var in y_vars:
+        fig, ax = plt.subplots(3, 3, figsize=(15, 15), gridspec_kw={'hspace': 0.1, 'wspace': .15});
+        region_count = -1
+        
+        for ii in [0, 1, 2]:
+            for jj in [0, 1, 2]:
+                region_count += 1
+                region = regions[region_count]
+                ax[ii][jj].grid(True);
+                df = annual_diff_df.copy()
+                df = df[df["region"] == region].copy()
+
+                ax[ii][jj].scatter(df[x_var], df[y_var], c = col_dict[region],
+                                   label=region.replace("_", " ").title())
+                
+                if x_var == "inv_perc_change":
+                    x_label_ = "inventory change %" #  (1000 heads)
+                else:
+                    x_label_ = "inventory change relative to mean %" # (1000 heads)
+                
+                if y_var == "slt_perc_change":
+                    y_label_ = "slaughter change %" # (1000 heads)
+                else:
+                    y_label_ = "slaughter change relative to mean %" # (1000 heads)
+                    
+                    
+                if region_count >= 6 :
+                    ax[ii][jj].set_xlabel(x_label_)
+                if region_count in [0, 3, 6]:
+                    ax[ii][jj].set_ylabel(y_label_);
+                    
+                ax[ii][jj].legend(loc = "best");
+                ticks_y = ticker.FuncFormatter(lambda x, pos: '{0:g}'.format(x/scale_1000))
+                ax[ii][jj].yaxis.set_major_formatter(ticks_y)
+
+                ticks_x = ticker.FuncFormatter(lambda x, pos: '{0:g}'.format(x/scale_1000))
+                ax[ii][jj].xaxis.set_major_formatter(ticks_x)
+                ax[ii][jj].set_axisbelow(True)
+        curr_time = datetime.now().strftime('%Y-%m-%d time-%H.%M')
+        fig_name = plot_dir + x_var + "_" + y_var + "_" + curr_time + ".pdf"
+        plt.savefig(fname=fig_name, dpi=100, bbox_inches="tight")
+        plt.close()
 
 # %%
 
 # %%
 
 # %%
+font = {'size' : 14}
+matplotlib.rc('font', **font)
+
+tick_legend_FontSize = 14
+
+params = {"legend.fontsize": tick_legend_FontSize * 1.2,  # medium, large
+          # 'figure.figsize': (6, 4),
+          "axes.labelsize": tick_legend_FontSize * 1.2,
+          "axes.titlesize": tick_legend_FontSize * 1.2,
+          "xtick.labelsize": tick_legend_FontSize * 1.1,  #  * 0.75
+          "ytick.labelsize": tick_legend_FontSize * 1.1,  #  * 0.75
+          "axes.titlepad": 10}
+
+plt.rc("font", family="Palatino")
+plt.rcParams["xtick.bottom"] = True
+plt.rcParams["ytick.left"] = True
+plt.rcParams["xtick.labelbottom"] = True
+plt.rcParams["ytick.labelleft"] = True
+plt.rcParams.update(params)
+
+# %%
+scale_1000 = 1
+
+fig, ax = plt.subplots(2, 2, figsize=(9.5, 12), gridspec_kw={'hspace': 0.05, 'wspace': .05});
+region_count = -1
+region = "region_6"
+df = annual_diff_df.copy()
+df = df[df["region"] == region].copy()
+
+for ii in [0, 1]:
+    for jj in [0, 1]:
+        x_var = x_vars[jj]
+        y_var = y_vars[ii]
+        region_count += 1
+        ax[ii][jj].grid(True);
+        ax[ii][jj].scatter(df[x_var], df[y_var], c = col_dict[region], s = 14,
+                           label=region.replace("_", " ").title())
+
+        if x_var == "inv_perc_change":
+            x_label_ = "inventory change %" #  (1000 heads)
+        else:
+            x_label_ = "inventory change relative to mean %" # (1000 heads)
+
+        if y_var == "slt_perc_change":
+            y_label_ = "slaughter change %" # (1000 heads)
+        else:
+            y_label_ = "slaughter change relative to mean %" # (1000 heads)
+
+        if region_count in [2, 3]:
+            ax[ii][jj].set_xlabel(x_label_)
+            ticks_x = ticker.FuncFormatter(lambda x, pos: '{0:g}'.format(x/scale_1000))
+            ax[ii][jj].xaxis.set_major_formatter(ticks_x)
+            ax[ii][jj].set_axisbelow(True)
+        else:
+            ax[ii][jj].set_xticklabels([])
+        
+        if region_count in [0, 2]:
+            ax[ii][jj].set_ylabel(y_label_);
+            ticks_y = ticker.FuncFormatter(lambda x, pos: '{0:g}'.format(x/scale_1000))
+            ax[ii][jj].yaxis.set_major_formatter(ticks_y)
+        else:
+            ax[ii][jj].set_yticklabels([])
+
+        ax[ii][jj].legend(loc = "best");
+
+curr_time = datetime.now().strftime('%Y-%m-%d time-%H.%M')
+fig_name = plot_dir + "inv_slt_relChanges_R6TX" + ".pdf"
+plt.savefig(fname=fig_name, dpi=100, bbox_inches="tight")
+
+# %%
+# https://stackoverflow.com/questions/2176424/hiding-axis-text-in-matplotlib-plots
 
 # %%
