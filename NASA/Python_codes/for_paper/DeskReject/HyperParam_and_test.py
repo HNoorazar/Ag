@@ -357,17 +357,32 @@ ML_test_results["test_results_DL"] = test_results_DL
 ML_test_results.keys()
 
 # %%
+# %who
+
+# %%
+
+# %%
 import pickle
 from datetime import datetime
 dir_ = "/Users/hn/Documents/01_research_data/NASA/Amin/"
 filename = dir_ + "5_OverSampled_TestResults.sav"
 
 export_ = {"ML_test_results": ML_test_results, 
+           "areas" : meta,
            "source_code" : "HyperParam_and_test",
            "Author": "HN",
            "Date" : datetime.now().strftime('%Y-%m-%d %H:%M:%S')}
 
 pickle.dump(export_, open(filename, 'wb'))
+
+# %%
+A = pd.read_pickle("/Users/hn/Downloads/five_OverSam_TestRes_and_InclusionProb.sav")
+
+# %%
+A.keys()
+
+# %%
+A["source_code"]
 
 # %%
 
