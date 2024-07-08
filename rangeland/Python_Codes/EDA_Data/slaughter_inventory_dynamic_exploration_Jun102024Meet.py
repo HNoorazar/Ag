@@ -439,47 +439,30 @@ region_slaughter_inventory.head(2)
 # %%
 
 # %%
-fig, axs = plt.subplots(
-    2, 1, figsize=(10, 6), sharex=True, gridspec_kw={"hspace": 0.15, "wspace": 0.05}
-)
+fig, axs = plt.subplots(2, 1, figsize=(10, 6), sharex=True, gridspec_kw={"hspace": 0.15, "wspace": 0.05})
 (ax1, ax2) = axs
 ax1.grid(axis="both", which="both")
 ax2.grid(axis="both", which="both")
 y_var = "inventory_Jan1"
 for a_region in high_inv_regions:
-    df = region_slaughter_inventory[
-        region_slaughter_inventory["region"] == a_region
-    ].copy()
-    ax1.plot(
-        df.year,
-        df[y_var],
-        color=col_dict[a_region],
-        linewidth=3,
-        label=y_var[:3].title() + ". " + a_region.replace("_", " ").title(),
-    )
-    #
+    df = region_slaughter_inventory[region_slaughter_inventory["region"] == a_region].copy()
+    ax1.plot(df.year, df[y_var], color=col_dict[a_region],
+             linewidth=3, label=y_var[:3].title() + ". " + a_region.replace("_", " ").title())
     ax1.legend(loc="best")
 
 
 for a_region in low_inv_regions:
-    df = region_slaughter_inventory[
-        region_slaughter_inventory["region"] == a_region
-    ].copy()
-    ax2.plot(
-        df.year,
-        df[y_var],
-        color=col_dict[a_region],
-        linewidth=3,
-        label=y_var[:3].title() + ". " + a_region.replace("_", " ").title(),
-    )
-    #
+    df = region_slaughter_inventory[region_slaughter_inventory["region"] == a_region].copy()
+    ax2.plot(df.year, df[y_var], color=col_dict[a_region],
+              linewidth=3, label=y_var[:3].title() + ". " + a_region.replace("_", " ").title())
+    ax2.scatter(df.year, df[y_var])
     ax2.legend(loc="best")
 
 space = 5
 ax1.xaxis.set_major_locator(ticker.MultipleLocator(space))
 
 fig_name = plot_dir + "inventory_TS_" + datetime.now().strftime("%Y-%m-%d time-%H.%M") + ".pdf"
-plt.savefig(fname=fig_name, dpi=100, bbox_inches="tight")
+# plt.savefig(fname=fig_name, dpi=100, bbox_inches="tight")
 
 # %%
 region_slaughter_inventory.head(2)
@@ -1416,7 +1399,7 @@ for a_year in natl_slaughter_inventory.year.unique():
     curr_df = natl_slaughter_inventory[natl_slaughter_inventory["year"] == a_year]
     if len(curr_df["region"]) < 9:
         natl_slaughter_inventory = natl_slaughter_inventory[natl_slaughter_inventory["year"] != a_year].copy()
-        
+
 
 # %%
 national_slaughter = (natl_slaughter_inventory.groupby(["year"])["slaughter"].sum().reset_index())
@@ -1635,31 +1618,35 @@ plt.rcParams["ytick.labelleft"] = True
 plt.rcParams.update(params)
 
 # %%
+national_inv_annual_diff["slaughter"] = national_inv_annual_diff["slaughter"].astype(float)
+national_inv_annual_diff["inventory_delta"] = national_inv_annual_diff["inventory_delta"].astype(float)
+
+# %%
 df = national_inv_annual_diff.copy()
-figure_scale = (df["inventory_delta"].max() - df["inventory_delta"].min()) / \
-                               (df["slaughter"].max() - df["slaughter"].min()) 
+
+x_min = df["inventory_delta"].min()
+x_max = df["inventory_delta"].max()
+figure_scale = (x_max  - x_min) / (df["slaughter"].max() - df["slaughter"].min()) 
 science_im_size = 5.5
 
 fig, ax1 = plt.subplots(1, 1, figsize=(science_im_size, science_im_size*figure_scale), 
                         sharex=True, gridspec_kw={"hspace": 0.15, "wspace": 0.15})
-
-ax1.grid(True); 
-ax1.set_axisbelow(True);
-
-
+ax1.grid(True); ax1.set_axisbelow(True);
 ax1.scatter(df["inventory_delta"], df["slaughter"], label="National")
+
+# regression line
+df = national_inv_annual_diff.copy()
+b, a = np.polyfit(df["inventory_delta"].values, df["slaughter"].values, deg=1)
+x_min = df["inventory_delta"].values.min()
+xseq = np.linspace(x_min, x_max, num=20)
+ax1.plot(xseq, a + b * xseq, linewidth=3)
+
 ax1.set_xlabel("inventory change")
 ax1.set_ylabel("slaughter")
 ax1.legend(loc="best")
 
-ax2.scatter(-df["inventory_delta"], df["slaughter"], label="National")
-ax2.set_xlabel("negative inventory change")
-ax2.legend(loc="best")
-
 time_ =  datetime.now().strftime("%Y-%m-%d time-%H.%M")
 fig_name = plot_dir + "National_Sla_Invt.pdf"
-# plt.savefig(fname=fig_name, dpi=100, bbox_inches="tight")
-
-# %%
+plt.savefig(fname=fig_name, dpi=100, bbox_inches="tight")
 
 # %%
