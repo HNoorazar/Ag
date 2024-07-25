@@ -59,7 +59,7 @@ meta.head(2)
 
 # %%
 training_set_dir = "/Users/hn/Documents/01_research_data/NASA/ML_data_Oct17/"
-ground_truth_labels = pd.read_csv(training_set_dir+"groundTruth_labels_Oct17_2022.csv")
+ground_truth_labels = pd.read_csv(training_set_dir + "groundTruth_labels_Oct17_2022.csv")
 print ("Unique Votes: ", ground_truth_labels.Vote.unique())
 print (len(ground_truth_labels.ID.unique()))
 ground_truth_labels.head(2)
@@ -269,7 +269,7 @@ for an_ID in list(DL_predictions_.ID.unique()):
 
 # %%
 training_set_dir = "/Users/hn/Documents/01_research_data/NASA/ML_data_Oct17/"
-ground_truth_labels = pd.read_csv(training_set_dir+"groundTruth_labels_Oct17_2022.csv")
+ground_truth_labels = pd.read_csv(training_set_dir + "groundTruth_labels_Oct17_2022.csv")
 print ("Unique Votes: ", ground_truth_labels.Vote.unique())
 print (len(ground_truth_labels.ID.unique()))
 ground_truth_labels.head(2)

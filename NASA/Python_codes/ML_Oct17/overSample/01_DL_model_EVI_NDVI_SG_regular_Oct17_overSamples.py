@@ -6,7 +6,7 @@
 #       extension: .py
 #       format_name: percent
 #       format_version: '1.3'
-#       jupytext_version: 1.14.5
+#       jupytext_version: 1.15.2
 #   kernelspec:
 #     display_name: Python 3 (ipykernel)
 #     language: python
@@ -27,10 +27,8 @@ from datetime import date
 from random import seed
 from random import random
 
-import time
 import scipy, scipy.signal
-import os, os.path
-import shutil
+import os, os.path, sys, time, shutil
 import matplotlib
 import matplotlib.pyplot as plt
 
@@ -43,23 +41,16 @@ from tensorflow.keras.utils import to_categorical
 from keras.models import Sequential
 from keras.applications.vgg16 import VGG16
 from keras.models import Model
-from keras.layers import Dense
-from keras.layers import Flatten
+from keras.layers import Dense, Conv2D, MaxPooling2D, Flatten
 import tensorflow as tf
 # from keras.optimizers import SGD
 
-from keras.layers import Conv2D
-from keras.layers import MaxPooling2D
-
 # from keras.optimizers import gradient_descent_v2
 # SGD = gradient_descent_v2.SGD(...)
-
 from tensorflow.keras.optimizers import SGD
 from keras.preprocessing.image import ImageDataGenerator
-import os
 
 import h5py
-import sys
 sys.path.append('/Users/hn/Documents/00_GitHub/Ag/NASA/Python_codes/')
 import NASA_core as nc
 import NASA_plot_core as rcp

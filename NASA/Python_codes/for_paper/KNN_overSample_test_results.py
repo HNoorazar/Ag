@@ -6,7 +6,7 @@
 #       extension: .py
 #       format_name: percent
 #       format_version: '1.3'
-#       jupytext_version: 1.14.5
+#       jupytext_version: 1.15.2
 #   kernelspec:
 #     display_name: Python 3 (ipykernel)
 #     language: python
@@ -18,14 +18,12 @@ import numpy as np
 import pandas as pd
 
 from datetime import date, datetime
-import time
+import time, random
 
-import random
 from random import seed
 from random import random
 
-import os, os.path
-import shutil
+import os, os.path, sys, shutil
 
 import matplotlib
 import matplotlib.pyplot as plt
@@ -34,9 +32,7 @@ import matplotlib.dates as mdates
 from matplotlib.dates import MonthLocator, DateFormatter
 
 from pylab import imshow
-import pickle
-import h5py
-import sys
+import pickle, h5py
 
 # %%
 nasa_data_base_dir = "/Users/hn/Documents/01_research_data/NASA/"
@@ -128,5 +124,7 @@ print (EVI_SG_SR4.shape)
 
 # %%
 CSV_files_0.shape
+
+# %%
 
 # %%

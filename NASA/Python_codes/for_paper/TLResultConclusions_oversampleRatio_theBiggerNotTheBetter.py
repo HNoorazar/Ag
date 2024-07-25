@@ -21,10 +21,8 @@ import numpy as np
 import pandas as pd
 from datetime import date
 from random import seed, random
-import math
-import time
-import scipy, scipy.signal
-import shutil
+import scipy, scipy.signal, math
+import shutil, time
 import matplotlib
 import matplotlib.pyplot as plt
 
@@ -34,22 +32,18 @@ from matplotlib.image import imread
 from matplotlib import pyplot
 # from keras.utils import to_categorical
 from tensorflow.keras.utils import to_categorical
-from keras.models import Sequential
+from keras.models import Sequential, Model
 from keras.applications.vgg16 import VGG16
-from keras.models import Model
-from keras.layers import Dense
-from keras.layers import Flatten
+
+from keras.layers import Dense, Flatten, Conv2D, MaxPooling2D
 import tensorflow as tf
 # from keras.optimizers import SGD
-
-from keras.layers import Conv2D
-from keras.layers import MaxPooling2D
 
 # from keras.optimizers import gradient_descent_v2
 # SGD = gradient_descent_v2.SGD(...)
 
 from tensorflow.keras.optimizers import SGD
-from keras.preprocessing.image import ImageDataGenerator
+from keras.src.legacy.preprocessing.image import ImageDataGenerator
 
 import h5py
 import os, os.path, sys
@@ -58,7 +52,10 @@ import NASA_core as nc
 # import NASA_plot_core as rcp
 
 # %%
+
+# %%
 in_dir = "/Users/hn/Documents/01_research_data/NASA/ML_data_Oct17/01_TL_results/overSamples/"
+in_dir = "/Users/hn/Documents/01_research_data/NASA/ML_data_Oct17/01_TL_results/good/overSamples/"
 
 # %%
 in_dir_file_list = sorted(os.listdir(in_dir))
@@ -97,6 +94,9 @@ columns_ = ["ratio", "SG_EVI", "SG_NDVI", "regular_NDVI", "regular_EVI"]
 best_on_test = pd.DataFrame(columns=columns_, index=np.arange(len(ratios_)))
 best_on_test.ratio = ratios_
 best_on_test
+
+# %%
+SG_NDVI
 
 # %%
 for file in SG_NDVI:
@@ -290,10 +290,10 @@ plot_dir = "/Users/hn/Documents/01_research_data/NASA/for_paper/plots/"
 os.makedirs(plot_dir, exist_ok=True)
 
 file_name = plot_dir + "overSample_ratio_DL_err.pdf"
-plt.savefig(fname = file_name, dpi=400, bbox_inches='tight', transparent=False);
+# plt.savefig(fname = file_name, dpi=400, bbox_inches='tight', transparent=False);
 
 file_name = plot_dir + "overSample_ratio_DL_err.png"
-plt.savefig(fname = file_name, dpi=400, bbox_inches='tight', transparent=False);
+# plt.savefig(fname = file_name, dpi=400, bbox_inches='tight', transparent=False);
 
 # %%
 best_on_test_accuracy = best_on_test.copy()
@@ -367,10 +367,10 @@ plot_dir = "/Users/hn/Documents/01_research_data/NASA/for_paper/plots/"
 os.makedirs(plot_dir, exist_ok=True)
 
 file_name = plot_dir + "overSample_ratio_DL_Acc.pdf"
-plt.savefig(fname = file_name, dpi=400, bbox_inches='tight', transparent=False);
+# plt.savefig(fname = file_name, dpi=400, bbox_inches='tight', transparent=False);
 
 file_name = plot_dir + "overSample_ratio_DL_Acc.png"
-plt.savefig(fname = file_name, dpi=400, bbox_inches='tight', transparent=False);
+# plt.savefig(fname = file_name, dpi=400, bbox_inches='tight', transparent=False);
 
 # %%
 

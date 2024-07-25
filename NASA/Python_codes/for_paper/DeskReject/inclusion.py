@@ -134,19 +134,38 @@ in_df.head(2)
 # %%
 print (in_df.shape)
 in_df = pd.merge(in_df, numer, on="CropTyp", how="outer")
-print (in_df.shape)
 in_df = pd.merge(in_df, denom, on="CropTyp", how="outer")
 print (in_df.shape)
 in_df.head(2)
 
 # %%
 in_df["inclusion_prob"] = in_df["numer"] / in_df["denom"]
-
-# %%
+in_df = in_df.round(3)
 in_df.head(2)
 
 # %%
+GT_wMeta.head(2)
+
+# %%
+numer_acr = pd.DataFrame(GT_wMeta.groupby(["CropTyp"])["ExctAcr"].sum()).reset_index()
+numer_acr.rename(columns={"ExctAcr": "numer_acr"}, inplace=True)
+numer_acr.head(2)
+
+# %%
+denom_acr = pd.DataFrame(pool.groupby(["CropTyp"])["ExctAcr"].sum()).reset_index()
+denom_acr.rename(columns={"ExctAcr": "denom_acr"}, inplace=True)
+denom_acr.head(2)
+
+# %%
+in_df = pd.merge(in_df, numer_acr, on="CropTyp", how="outer")
+in_df = pd.merge(in_df, denom_acr, on="CropTyp", how="outer")
+in_df = in_df.round(3)
 in_df.head(2)
+
+# %%
+# I need to comment this out after fixing original ID
+# out_name = "/Users/hn/Documents/01_research_data/Amin/inclusion.csv"
+# in_df.to_csv(out_name, index = False)
 
 # %%
 pool.head(2)
@@ -178,15 +197,6 @@ print (pool_Franklin.SF_year.unique())
 print (pool_Yakima.SF_year.unique())
 print (pool_Grant.SF_year.unique())
 print (pool_Walla.SF_year.unique())
-
-# %%
-in_df = in_df.round(3)
-
-# out_name = "/Users/hn/Documents/01_research_data/Amin/inclusion.csv"
-# in_df.to_csv(out_name, index = False)
-
-# %%
-in_df.head(2)
 
 # %%
 import pickle
@@ -223,33 +233,43 @@ for _key in five_OverSam_TestRes.keys():
                       pool[["ID", "CropTyp"]], how="left", on="ID")
 
 # %%
+five_OverSam_TestRes[_key][train_ID]["a_test_set_df"].head(2)
+
+# %%
 five_OverSam_TestRes.keys()
 
 # %%
 five_OverSam_TestRes['inclusion_prob'] = in_df
 
 # %%
-# %who
+five_OverSam_TestRes.keys()
 
 # %%
 GT_wMeta.shape
 
 # %%
+five_OverSam_TestRes.keys()
 
 # %%
+five_OverSam_TestRes["inclusion_prob"]
+
+# %%
+five_OverSam_TestRes["test_results_SVM"]["train_ID0"]["a_test_set_df"]
 
 # %%
 import pickle
 from datetime import datetime
 dir_ = "/Users/hn/Documents/01_research_data/NASA/Amin/"
-filename = dir_ + "five_OverSam_TestRes_and_InclusionProb.sav"
+filename = dir_ + "six_OverSam_TestRes_and_InclusionProb.sav"
 
-export_ = {"five_OverSam_TestRes": five_OverSam_TestRes,
+export_ = {"six_OverSam_TestRes": five_OverSam_TestRes,
            "field_info" : GT_wMeta,
            "source_code" : "inclusion.ipynb",
            "Author": "HN",
            "Date" : datetime.now().strftime('%Y-%m-%d %H:%M:%S')}
 
 pickle.dump(export_, open(filename, 'wb'))
+
+# %%
 
 # %%

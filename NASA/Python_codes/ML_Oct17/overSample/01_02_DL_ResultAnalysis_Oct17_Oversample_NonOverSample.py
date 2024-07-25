@@ -22,37 +22,32 @@ import pandas as pd
 from datetime import date
 from random import seed
 from random import random
-import math
-import time
-import scipy, scipy.signal
-import os, os.path
-import shutil
+import scipy, scipy.signal, math
+import time, os, os.path, shutil, sys
 import matplotlib
 import matplotlib.pyplot as plt
 
 from pylab import imshow
 from matplotlib.image import imread
+
 # vgg16 model used for transfer learning on the dogs and cats dataset
 from matplotlib import pyplot
-# from keras.utils import to_categorical
+
+from keras.utils import to_categorical
 from tensorflow.keras.utils import to_categorical, load_img, img_to_array
 from keras.applications.vgg16 import VGG16
 from keras.models import Model, Sequential, load_model
 
 import tensorflow as tf
-# from keras.optimizers import SGD
-
+from keras.optimizers import SGD
 from keras.layers import Conv2D, Flatten, Dense, MaxPooling2D
-
 # from keras.optimizers import gradient_descent_v2
 # SGD = gradient_descent_v2.SGD(...)
-
 from tensorflow.keras.optimizers import SGD
-# from keras.preprocessing.image import ImageDataGenerator
+from tensorflow.keras.optimizers import SGD
 from tensorflow.keras.preprocessing.image import ImageDataGenerator
 
 import h5py
-import sys
 sys.path.append('/Users/hn/Documents/00_GitHub/Ag/NASA/Python_codes/')
 import NASA_core as nc
 # import NASA_plot_core as rcp
@@ -301,6 +296,7 @@ for VI_idx in VI_idxs:
 print ("---------  cell is done ---------")
 
 # %%
+out_dir
 
 # %% [markdown]
 # # OverSample Analysis
@@ -515,5 +511,7 @@ out_dir
 import tensorflow
 
 # %%
+"03_" + smooth_type + "_" + VI_idx + "_TL_Acreage_TFPR_SRatio_" + \
+                        str(3) + ".csv"
 
 # %%

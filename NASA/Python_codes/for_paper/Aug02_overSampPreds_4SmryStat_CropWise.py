@@ -5,7 +5,7 @@
 #       extension: .py
 #       format_name: percent
 #       format_version: '1.3'
-#       jupytext_version: 1.14.5
+#       jupytext_version: 1.15.2
 #   kernelspec:
 #     display_name: Python 3 (ipykernel)
 #     language: python
@@ -28,9 +28,7 @@ import numpy as np
 import pandas as pd
 
 from datetime import date
-import time
-
-import random
+import time, random
 from random import seed, random
 
 import matplotlib
@@ -207,6 +205,14 @@ sorted(list(SF_data_LSD_large_irr_includeHay.county.unique()))
 all_preds_overSample = pd.read_csv(pred_dir_base + "all_preds_overSample.csv")
 all_preds_overSample = all_preds_overSample[all_preds_overSample.ExctAcr > 10]
 # sorted(list(all_preds_overSample.Irrigtn.unique()))
+
+# %%
+all_preds_overSample.head(2)
+
+# %%
+all_preds_overSample.shape
+
+# %%
 
 # %%
 preds_LSD_large_irr_noHay = all_preds_overSample[all_preds_overSample.ID.isin(\

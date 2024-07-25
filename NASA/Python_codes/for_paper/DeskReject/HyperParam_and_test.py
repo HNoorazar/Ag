@@ -149,7 +149,7 @@ for a_train_ID in sorted(DL_preds_test.train_ID.unique()):
     
     curr_test_result = {"acc" : round(accuracy, 3),
                         "UA": round((A2P2) / (A1P2 + A2P2), 3),
-                        "PA":round((A2P2) / (A2P1 + A2P2), 3),
+                        "PA" : round((A2P2) / (A2P1 + A2P2), 3),
                         "err_count" : error_count,
                         "A2P2": A2P2,
                         "A2P1": A2P1,
@@ -161,6 +161,7 @@ for a_train_ID in sorted(DL_preds_test.train_ID.unique()):
     test_results["train_ID" + str(a_train_ID)] = curr_test_result
 
 # %%
+a_train_ID
 
 # %%
 for a_key in test_results.keys():
@@ -348,7 +349,7 @@ for a_key in test_results_RF.keys():
 ML_test_results.keys()
 
 # %%
-ML_test_results["test_results_SVM"]["train_ID6"]["a_test_set_df"]
+ML_test_results["test_results_SVM"]["train_ID1"]["a_test_set_df"]
 
 # %%
 ML_test_results["test_results_DL"] = test_results_DL
@@ -356,10 +357,213 @@ ML_test_results["test_results_DL"] = test_results_DL
 # %%
 ML_test_results.keys()
 
-# %%
-# %who
+# %% [markdown]
+# # Original Split
 
 # %%
+dir_base = "/Users/hn/Documents/01_research_data/NASA/"
+meta_dir = dir_base + "/parameters/"
+SF_data_dir   = dir_base + "/data_part_of_shapefile/"
+pred_dir_base = dir_base + "/RegionalStatData/"
+pred_dir = pred_dir_base + "02_ML_preds_oversampled/"
+
+all_preds_overSample = pd.read_csv(pred_dir_base + "all_preds_overSample.csv")
+all_preds_overSample = all_preds_overSample[all_preds_overSample.ExctAcr > 10]
+all_preds_overSample.head(2)
+
+# %%
+pred_cols = [x for x in all_preds_overSample.columns if 'NDVI' in x]
+pred_cols = [x for x in pred_cols if 'SG' in x]
+pred_cols
+all_preds_overSample = all_preds_overSample[["ID", "CropTyp"] + pred_cols].copy()
+
+# %%
+test_IDs = list(test_results_KNN["train_ID1"]["a_test_set_df"]["ID"])
+all_preds_overSample = all_preds_overSample[all_preds_overSample.ID.isin(test_IDs)].copy()
+all_preds_overSample.reset_index(drop=True, inplace=True)
+all_preds_overSample.head(3)
+
+# %%
+ML_test_results["test_results_SVM"]["train_ID1"].keys()
+
+# %%
+A = ML_test_results["test_results_SVM"]["train_ID1"]["a_test_set_df"]
+A.head(2)
+
+# %%
+original_split_test_SVM = all_preds_overSample.copy()
+original_split_test_SVM = original_split_test_SVM[["ID", "SVM_NDVI_SG_preds"]].copy()
+original_split_test_SVM = pd.merge(original_split_test_SVM, A[["ID", "Vote"]], on="ID", how="left")
+original_split_test_SVM["train_test"] = "test"
+original_split_test_SVM["train_ID"] = 0
+original_split_test_SVM.head(2)
+
+# %%
+pred_col = "SVM_NDVI_SG_preds"
+error_count = (original_split_test_SVM.Vote != original_split_test_SVM[pred_col]).sum()
+accuracy = (len(original_split_test_SVM) - error_count) / len(original_split_test_SVM)
+
+A2P2_df = original_split_test_SVM[original_split_test_SVM.Vote==2]
+A2P2 = (A2P2_df.Vote == A2P2_df[pred_col]).sum()
+A2P1 = len(A2P2_df) - A2P2
+
+A1P1_df = original_split_test_SVM[original_split_test_SVM.Vote==1]
+A1P1 = (A1P1_df.Vote == A1P1_df[pred_col]).sum()
+A1P2 = len(A1P1_df) - A1P1
+
+if A2P2!=0 or A1P2 != 0:
+    UA = round(A2P2 / (A1P2 + A2P2), 3)
+else:
+    UA = "NA"
+
+original_split_test_SVM_dict = {"acc" : round(accuracy, 3),
+                                "UA": UA,
+                                "PA": round(A2P2 / (A2P1 + A2P2), 3),
+                                "err_count" : error_count,
+                                "A2P2": A2P2,
+                                "A2P1":A2P1,
+                                "A1P1": A1P1,
+                                "A1P2":A1P2, 
+                                "kappa": kappa(A2P2, A1P2, A1P1, A2P1),
+                                "a_test_set_df" : original_split_test_SVM
+                               }
+
+# %%
+
+# %%
+original_split_test_RF = all_preds_overSample.copy()
+original_split_test_RF = original_split_test_RF[["ID", "RF_NDVI_SG_preds"]].copy()
+original_split_test_RF = pd.merge(original_split_test_RF, A[["ID", "Vote"]], on="ID", how="left")
+original_split_test_RF["train_test"] = "test"
+original_split_test_RF["train_ID"] = 0
+original_split_test_RF.head(2)
+
+# %%
+pred_col = "RF_NDVI_SG_preds"
+error_count = (original_split_test_RF.Vote != original_split_test_RF[pred_col]).sum()
+accuracy = (len(original_split_test_RF) - error_count) / len(original_split_test_RF)
+
+A2P2_df = original_split_test_RF[original_split_test_RF.Vote==2]
+A2P2 = (A2P2_df.Vote == A2P2_df[pred_col]).sum()
+A2P1 = len(A2P2_df) - A2P2
+
+A1P1_df = original_split_test_RF[original_split_test_RF.Vote==1]
+A1P1 = (A1P1_df.Vote == A1P1_df[pred_col]).sum()
+A1P2 = len(A1P1_df) - A1P1
+
+if A2P2!=0 or A1P2 != 0:
+    UA = round(A2P2 / (A1P2 + A2P2), 3)
+else:
+    UA = "NA"
+
+original_split_test_RF_dict = {"acc" : round(accuracy, 3),
+                                "UA": UA,
+                                "PA": round(A2P2 / (A2P1 + A2P2), 3),
+                                "err_count" : error_count,
+                                "A2P2": A2P2,
+                                "A2P1":A2P1,
+                                "A1P1": A1P1,
+                                "A1P2":A1P2, 
+                                "kappa": kappa(A2P2, A1P2, A1P1, A2P1),
+                                "a_test_set_df" : original_split_test_RF
+                               }
+
+# %%
+
+# %%
+original_split_test_KNN = all_preds_overSample.copy()
+original_split_test_KNN = original_split_test_KNN[["ID", "KNN_NDVI_SG_preds"]].copy()
+original_split_test_KNN = pd.merge(original_split_test_KNN, A[["ID", "Vote"]], on="ID", how="left")
+original_split_test_KNN["train_test"] = "test"
+original_split_test_KNN["train_ID"] = 0
+original_split_test_KNN.head(2)
+
+# %%
+pred_col = "KNN_NDVI_SG_preds"
+error_count = (original_split_test_KNN.Vote != original_split_test_KNN[pred_col]).sum()
+accuracy = (len(original_split_test_KNN) - error_count) / len(original_split_test_KNN)
+
+A2P2_df = original_split_test_KNN[original_split_test_KNN.Vote==2]
+A2P2 = (A2P2_df.Vote == A2P2_df[pred_col]).sum()
+A2P1 = len(A2P2_df) - A2P2
+
+A1P1_df = original_split_test_KNN[original_split_test_KNN.Vote==1]
+A1P1 = (A1P1_df.Vote == A1P1_df[pred_col]).sum()
+A1P2 = len(A1P1_df) - A1P1
+
+if A2P2!=0 or A1P2 != 0:
+    UA = round(A2P2 / (A1P2 + A2P2), 3)
+else:
+    UA = "NA"
+
+original_split_test_KNN_dict = {"acc" : round(accuracy, 3),
+                                "UA": UA,
+                                "PA": round(A2P2 / (A2P1 + A2P2), 3),
+                                "err_count" : error_count,
+                                "A2P2": A2P2,
+                                "A2P1":A2P1,
+                                "A1P1": A1P1,
+                                "A1P2":A1P2, 
+                                "kappa": kappa(A2P2, A1P2, A1P1, A2P1),
+                                "a_test_set_df" : original_split_test_KNN
+                               }
+
+# %%
+
+# %%
+original_split_test_DL = all_preds_overSample.copy()
+original_split_test_DL = original_split_test_DL[["ID", "DL_NDVI_SG_prob_point3"]].copy()
+original_split_test_DL = pd.merge(original_split_test_DL, A[["ID", "Vote"]], on="ID", how="left")
+original_split_test_DL["train_test"] = "test"
+original_split_test_DL["train_ID"] = 0
+original_split_test_DL.head(2)
+
+# %%
+pred_col = "DL_NDVI_SG_prob_point3"
+error_count = (original_split_test_DL.Vote != original_split_test_DL[pred_col]).sum()
+accuracy = (len(original_split_test_DL) - error_count) / len(original_split_test_DL)
+
+A2P2_df = original_split_test_DL[original_split_test_DL.Vote==2]
+A2P2 = (A2P2_df.Vote == A2P2_df[pred_col]).sum()
+A2P1 = len(A2P2_df) - A2P2
+
+A1P1_df = original_split_test_DL[original_split_test_DL.Vote==1]
+A1P1 = (A1P1_df.Vote == A1P1_df[pred_col]).sum()
+A1P2 = len(A1P1_df) - A1P1
+
+if A2P2!=0 or A1P2 != 0:
+    UA = round(A2P2 / (A1P2 + A2P2), 3)
+else:
+    UA = "NA"
+
+original_split_test_DL_dict = {"acc" : round(accuracy, 3),
+                                "UA": UA,
+                                "PA": round(A2P2 / (A2P1 + A2P2), 3),
+                                "err_count" : error_count,
+                                "A2P2": A2P2,
+                                "A2P1":A2P1,
+                                "A1P1": A1P1,
+                                "A1P2":A1P2, 
+                                "kappa": kappa(A2P2, A1P2, A1P1, A2P1),
+                                "a_test_set_df" : original_split_test_DL
+                               }
+
+# %%
+ML_test_results.keys()
+
+# %%
+ML_test_results["test_results_SVM"]["train_ID0"] = original_split_test_SVM_dict
+ML_test_results["test_results_RF"]["train_ID0"] = original_split_test_RF_dict
+ML_test_results["test_results_KNN"]["train_ID0"] = original_split_test_KNN_dict
+ML_test_results["test_results_DL"]["train_ID0"] = original_split_test_DL_dict
+
+# %%
+meta_dir = "/Users/hn/Documents/01_research_data/NASA/parameters/"
+meta = pd.read_csv(meta_dir+"evaluation_set.csv")
+# meta_moreThan10Acr=meta[meta.ExctAcr>10]
+print (meta.shape)
+# print (meta_moreThan10Acr.shape)
+meta.head(2)
 
 # %%
 import pickle
@@ -376,13 +580,18 @@ export_ = {"ML_test_results": ML_test_results,
 pickle.dump(export_, open(filename, 'wb'))
 
 # %%
-A = pd.read_pickle("/Users/hn/Downloads/five_OverSam_TestRes_and_InclusionProb.sav")
+ML_test_results["test_results_SVM"]["train_ID0"]["a_test_set_df"].head(2)
 
 # %%
-A.keys()
+ML_test_results["test_results_RF"]["train_ID0"]["a_test_set_df"].head(2)
 
 # %%
-A["source_code"]
+ML_test_results["test_results_DL"]["train_ID0"]["a_test_set_df"].head(2)
+
+# %%
+ML_test_results["test_results_KNN"]["train_ID0"]["a_test_set_df"].head(2)
+
+# %%
 
 # %%
 
