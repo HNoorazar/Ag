@@ -267,3 +267,43 @@ for an_ID in list(DL_predictions_.ID.unique()):
 # %%
 
 # %%
+
+# %%
+
+# %%
+
+# %% [markdown]
+# # Test and see if p=0.3 was the correct one used in the paper:
+
+# %%
+training_set_dir = "/Users/hn/Documents/01_research_data/NASA/ML_data_Oct17/"
+ground_truth_labels = pd.read_csv(training_set_dir + "groundTruth_labels_Oct17_2022.csv")
+print ("Unique Votes: ", ground_truth_labels.Vote.unique())
+print (len(ground_truth_labels.ID.unique()))
+ground_truth_labels.head(2)
+
+test20 = pd.read_csv(training_set_dir + "test20_split_2Bconsistent_Oct17.csv")
+
+print (test20.shape)
+test20.head(2)
+
+DL_predictions_ = pd.DataFrame()
+for a_file in DL_csv_files:
+    DL_predictions_ = pd.concat([DL_predictions_, pd.read_csv(dir_ + a_file)])
+
+DL_predictions_["ID"] = DL_predictions_["filename"].str.split(".jpg", expand=True)[0]
+DL_predictions_= DL_predictions_[["ID", "prob_single", "prob_point3"]].copy()
+DL_predictions_.head(2)
+
+DL_predictions_test = DL_predictions_[DL_predictions_.ID.isin(list(test20.ID))].copy()
+print (DL_predictions_test.shape)
+DL_predictions_test.head(2)
+
+DL_predictions_test = pd.merge(DL_predictions_test, test20, on="ID", how="left")
+DL_predictions_test.head(2)
+
+DL_predictions_test["preds"] = 1
+DL_predictions_test.loc[DL_predictions_test.prob_point3=="double", "preds"] = 2
+
+DL_predictions_test.head(2)
+DL_predictions_test[DL_predictions_test.Vote == DL_predictions_test.preds].shape

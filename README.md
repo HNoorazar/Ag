@@ -28,3 +28,6 @@
      Detect which fields are apple, cherry, pear, etc. Detect which fields are being used to double crop. 
 
 ------------------------------------------------------------------------
+## Disclaimer
+These codes are releases as is and the Author is not responsible if packages/libraries are updated or if Google Earth Engine limits its free resources leading to the current code to break down.
+
