@@ -5,7 +5,7 @@
 #       extension: .py
 #       format_name: percent
 #       format_version: '1.3'
-#       jupytext_version: 1.14.5
+#       jupytext_version: 1.15.2
 #   kernelspec:
 #     display_name: Python 3 (ipykernel)
 #     language: python
@@ -13,28 +13,25 @@
 # ---
 
 # %%
-import csv
+import csv, re
 import numpy as np
 import pandas as pd
 from math import factorial
 
-import datetime
+import datetime, time
 from datetime import date
-import datetime
-import time
+
 
 import scipy
-import os, os.path
+import os, os.path, sys
 from os import listdir
 from os.path import isfile, join
 
-import re
+
 # from pprint import pprint
 import matplotlib.pyplot as plt
 import matplotlib.dates as mdates
 import seaborn as sb
-
-import sys
 
 
 # search path for modules

@@ -16,6 +16,7 @@ from patsy import cr
 from pprint import pprint
 import matplotlib.pyplot as plt
 import seaborn as sb
+from collections import defaultdict
 
 import os, os.path, sys
 
@@ -38,6 +39,48 @@ from tensorflow.keras.utils import to_categorical, load_img, img_to_array
 ###
 
 ###########################################################
+
+
+def dict_to_df(master_dictionary):
+    """
+    Author: Amin Norouzi Kandlati
+    Extract all unique first and second keys
+
+    Arguments
+    ---------
+    master_dictionary : dictionary
+        This dictionary includes
+
+
+    Returns
+    -------
+    """
+    strata = set()
+    columns = set()
+
+    for key in master_dictionary.keys():
+        strata.add(key[0])
+        columns.add(key[1])
+
+    # Convert to sorted lists
+    strata = sorted(strata)
+    columns = sorted(columns)
+
+    # Create a list to store each row as a dictionary
+    rows = []
+
+    # Populate the list with rows
+    for s in strata:
+        row = {"strata": s}
+        for c in columns:
+            row[c] = master_dictionary.get((s, c), [None])[
+                0
+            ]  # Get the first value from the list or None if key doesn't exist
+        rows.append(row)
+
+    # Convert the list of rows into a DataFrame
+    df = pd.DataFrame(rows, columns=["strata"] + columns)
+    return df
 
 
 def regularize_a_field_annual_basis(
