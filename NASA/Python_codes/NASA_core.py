@@ -38,7 +38,145 @@ from tensorflow.keras.utils import to_categorical, load_img, img_to_array
 ### here.
 ###
 
+
 ###########################################################
+def number_of_strata(test_df, m_dict):
+    """
+    Author : Amin Norouzi Kandelati
+    """
+    # Numbers of strata 2
+    for strata in test_df["CropTyp"].unique():
+        strata_subset = {
+            key: value for key, value in id_dict.items() if key[1] == strata
+        }
+        A_n_star_h_list = [
+            value[2] for key, values in strata_subset.items() for value in values
+        ]
+        A_n_star_h = sum(A_n_star_h_list)
+
+        idx = acr_data[acr_data["CropTyp"] == strata].idx[0]
+        # Now use .at to access the specific value
+        A_N_star_h = acr_data.at[idx, "denom_acr"]
+        N_star_h = acr_data.at[idx, "denom"]
+
+        m_dict[(strata, "n_star_h")].append(len(A_n_star_h_list))
+        m_dict[(strata, "A_n_star_h")].append(A_n_star_h)
+        m_dict[(strata, "A_N_star_h")].append(A_N_star_h)
+        m_dict[(strata, "N_star_h")].append(N_star_h)
+    return m_dict
+
+
+def amin_numer_sum_for_acc_intervals(numer_strata_list, m_dict):
+    """
+    Author : Amin Norouzi Kandelati
+    """
+    for strata in np.unique(np.array(numer_strata_list)):
+        strata_subset = {
+            key: value for key, value in cc_dict.items() if key[1] == strata
+        }
+
+        A_yu_list = [
+            value[2]
+            for key, values in strata_subset.items()
+            for value in values
+            if key[0][0] == key[0][1]
+        ]
+        yu_IDs = np.array(
+            [
+                value[0]
+                for key, values in strata_subset.items()
+                for value in values
+                if key[0][0] == key[0][1]
+            ]
+        )
+        A_yu = sum(A_yu_list)
+
+        # Sample variance (based on counts not area)
+        y_bar_h_count = len(A_yu_list) / m_dict[(strata, "n_star_h")][0]
+        sy_h_2 = (len(A_yu_list) - y_bar_h_count) ** 2 / m_dict[(strata, "n_star_h")][0]
+
+        m_dict[(strata, "n_yu")].append(len(A_yu_list))
+        m_dict[(strata, "yu_IDs")].append(yu_IDs)
+        m_dict[(strata, "y_bar_h")].append(A_yu / m_dict[(strata, "A_n_star_h")][0])
+        m_dict[(strata, "y_bar_h_count")].append(y_bar_h_count)
+        m_dict[(strata, "sy_h_2")].append(sy_h_2)
+        m_dict[(strata, "Y_bar")].append(
+            m_dict[(strata, "A_N_star_h")][0] * m_dict[(strata, "y_bar_h")][0]
+        )
+    return m_dict
+
+
+def amin_denom_sum_for_acc_intervals(denom_strata_list, m_dict):
+    """
+    Author : Amin Norouzi Kandelati
+    """
+    for strata in np.unique(np.array(denom_strata_list)):
+        strata_subset = {
+            key: value for key, value in c_dict.items() if key[1] == strata
+        }
+
+        A_xu_list = [
+            value[2] for key, values in strata_subset.items() for value in values
+        ]
+        xu_IDs = np.array(
+            [value[0] for key, values in strata_subset.items() for value in values]
+        )
+        A_xu = sum(A_xu_list)
+
+        # Sample variance (based on counts not area)
+        x_bar_h_count = len(A_xu_list) / m_dict[(strata, "n_star_h")][0]
+        sx_h_2 = (len(A_xu_list) - x_bar_h_count) ** 2 / m_dict[(strata, "n_star_h")][0]
+
+        m_dict[(strata, "n_xu")].append(len(A_xu_list))
+        m_dict[(strata, "xu_IDs")].append(xu_IDs)
+        m_dict[(strata, "x_bar_h")].append(A_xu / m_dict[(strata, "A_n_star_h")][0])
+        m_dict[(strata, "x_bar_h_count")].append(x_bar_h_count)
+        m_dict[(strata, "sx_h_2")].append(sx_h_2)
+        m_dict[(strata, "X_bar")].append(
+            m_dict[(strata, "A_N_star_h")][0] * m_dict[(strata, "x_bar_h")][0]
+        )
+    return m_dict
+
+
+def user_acc_variance(UAV_df):
+    """
+    Author : Amin Norouzi Kandelati
+    """
+    v_sum_list = []
+    for strata in UAV_df["strata"].unique():  # 5
+        A_N_star_h = UAV_df.loc[UAV_df["strata"] == strata, "A_N_star_h"].values[0]
+        A_n_star_h = UAV_df.loc[UAV_df["strata"] == strata, "A_n_star_h"].values[0]
+        sy_h_2 = UAV_df.loc[UAV_df["strata"] == strata, "sy_h_2"].values[0]
+        sx_h_2 = UAV_df.loc[UAV_df["strata"] == strata, "sx_h_2"].values[0]
+        s_xy_h = UAV_df.loc[UAV_df["strata"] == strata, "s_xy_h"].values[0]
+
+        v_sum_list.append(
+            A_N_star_h**2
+            * (1 - A_n_star_h / A_N_star_h)
+            * (sy_h_2 + users_acc**2 * sx_h_2 - 2 * users_acc * s_xy_h)
+            / A_n_star_h
+        )
+    return v_sum_list
+
+
+def s_xy_h(m_df):
+    """
+    Author : Amin Norouzi Kandelati
+    """
+    for strata in m_df["strata"].unique():  # 4
+        yu = m_df.loc[m_df["strata"] == strata, "yu_0_1"].values[0]
+        xu = m_df.loc[m_df["strata"] == strata, "xu_0_1"].values[0]
+        ybar_h = m_df.loc[m_df["strata"] == strata, "y_bar_h_count"].values[0]
+        xbar_h = m_df.loc[m_df["strata"] == strata, "x_bar_h_count"].values[0]
+        n_star_h = m_df.loc[m_df["strata"] == strata, "n_star_h"].values[0]
+
+        s_xy_h = sum((yu - ybar_h) * (xu - xbar_h) / n_star_h - 1)
+        m_df.loc[m_df["strata"] == strata, "s_xy_h"] = s_xy_h
+
+        # Calculate X_hat
+        A_N_star_h = m_df.loc[m_df["strata"] == strata, "A_N_star_h"].values[0]
+        m_df.loc[m_df["strata"] == strata, "x_hat"] = A_N_star_h * xbar_h
+        return m_df
 
 
 def dict_to_df(master_dictionary):

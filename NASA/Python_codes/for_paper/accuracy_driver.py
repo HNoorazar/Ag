@@ -77,7 +77,7 @@ N = sum(data["six_OverSam_TestRes"]["inclusion_prob"]["denom"])
 # %%
 acr_data = data["six_OverSam_TestRes"]["inclusion_prob"]
 master_dict = defaultdict(list)
-# Numbers of strata
+# Numbers of strata 1
 for strata in test_set["CropTyp"].unique():
     strata_subset = {key: value for key, value in id_dict.items() if key[1] == strata}
     A_n_star_h_list = [
@@ -85,7 +85,7 @@ for strata in test_set["CropTyp"].unique():
     ]
     A_n_star_h = sum(A_n_star_h_list)
 
-    idx = acr_data[acr_data["CropTyp"] == strata].idx[0]
+    idx = acr_data[acr_data["CropTyp"] == strata].index[0]
     # Now use .at to access the specific value
     A_N_star_h = acr_data.at[idx, "denom_acr"]
     N_star_h = acr_data.at[idx, "denom"]
@@ -128,10 +128,12 @@ master_df = nc.dict_to_df(master_dict)
 master_df = master_df.dropna()
 
 # %%
+# It seems we can get rid of this cell altogether.
+
 Y_bar_list = []
 v_list = []
 v_list_countbased = []
-for strata in master_df["strata"].unique():
+for strata in master_df["strata"].unique(): # 1
     A_N_star_h = master_df.loc[master_df["strata"] == strata, "A_N_star_h"].values[0]
     A_n_star_h = master_df.loc[master_df["strata"] == strata, "A_n_star_h"].values[0]
     sy_h_2 = master_df.loc[master_df["strata"] == strata, "sy_h_2"].values[0]
@@ -140,35 +142,32 @@ for strata in master_df["strata"].unique():
     Y_bar_list.append(A_N_star_h * y_bar_h)
 
     v_list.append(A_N_star_h**2 * (1 - A_n_star_h / A_N_star_h) * sy_h_2 / A_n_star_h)
-
-
-# %%
+    
 Overall_acc = sum(Y_bar_list) / A_N
 print("Overall Accuracy = ", Overall_acc)
 
-# %%
 # Variance of overall accuracy
 v_o = (1 / (A_N**2)) * sum(v_list)
 
-# %%
 # v_o_countbased = (1 / N**2) * sum(v_list_countbased)
 print("Area-based Variance of overall accuracy = ", v_o)
 # print("Count-based Variance of overall accuracy = ", v_o_countbased)
 
+
 # %%
-master_df
+master_df.head(3)
 
 # %% [markdown]
 # ### User's and Producer's Accuracy
 
 # %%
-c = 2  # We have two classes: 1 and 2
+c = 2  # We have ony two classes
 
 for c in [1, 2]:
     ######################################################################
-    ######################################################################
+    #
     # USER'S ACCURACY AND SE
-    ######################################################################
+    #
     ######################################################################
     # Filter for instances that are mapped as c.
     c_dict = {key: value for key, value in id_dict.items() if key[0][0] == c}
@@ -183,103 +182,21 @@ for c in [1, 2]:
     cc_strata_list = [key[1] for key, _ in cc_dict.items()]  # numerator
     c_strata_list = [key[1] for key, _ in c_dict.items()]  # denominator
 
-    # ##### Calculate numerator sum
+    # numerator sum
     acr_data = data["six_OverSam_TestRes"]["inclusion_prob"]
 
     master_dict = defaultdict(list)
-    # Numbers of strata
-    for strata in test_set["CropTyp"].unique():
-        strata_subset = {
-            key: value for key, value in id_dict.items() if key[1] == strata
-        }
-        A_n_star_h_list = [
-            value[2] for key, values in strata_subset.items() for value in values
-        ]
-        A_n_star_h = sum(A_n_star_h_list)
-
-        idx = acr_data[acr_data["CropTyp"] == strata].idx[0]
-        # Now use .at to access the specific value
-        A_N_star_h = acr_data.at[idx, "denom_acr"]
-        N_star_h = acr_data.at[idx, "denom"]
-
-        master_dict[(strata, "n_star_h")].append(len(A_n_star_h_list))
-        master_dict[(strata, "A_n_star_h")].append(A_n_star_h)
-        master_dict[(strata, "A_N_star_h")].append(A_N_star_h)
-        master_dict[(strata, "N_star_h")].append(N_star_h)
-
-    for strata in np.unique(np.array(cc_strata_list)):
-        strata_subset = {
-            key: value for key, value in cc_dict.items() if key[1] == strata
-        }
-
-        A_yu_list = [
-            value[2]
-            for key, values in strata_subset.items()
-            for value in values
-            if key[0][0] == key[0][1]
-        ]
-        yu_IDs = np.array(
-            [
-                value[0]
-                for key, values in strata_subset.items()
-                for value in values
-                if key[0][0] == key[0][1]
-            ]
-        )
-        A_yu = sum(A_yu_list)
-
-        # Sample variance (based on counts not area)
-        y_bar_h_count = len(A_yu_list) / master_dict[(strata, "n_star_h")][0]
-        sy_h_2 = (len(A_yu_list) - y_bar_h_count) ** 2 / master_dict[
-            (strata, "n_star_h")
-        ][0]
-
-        master_dict[(strata, "n_yu")].append(len(A_yu_list))
-        master_dict[(strata, "yu_IDs")].append(yu_IDs)
-        master_dict[(strata, "y_bar_h")].append(
-            A_yu / master_dict[(strata, "A_n_star_h")][0]
-        )
-        master_dict[(strata, "y_bar_h_count")].append(y_bar_h_count)
-        master_dict[(strata, "sy_h_2")].append(sy_h_2)
-        master_dict[(strata, "Y_bar")].append(
-            master_dict[(strata, "A_N_star_h")][0] * master_dict[(strata, "y_bar_h")][0]
-        )
+    # Numbers of strata 2 # why there are two of these? and the line below it
+    master_dict = nc.number_of_strata(test_set, m_dict= master_dict)
+    master_dict = nc.amin_numer_sum_for_acc_intervals(numer_strata_list, m_dict)
 
     ###########  Calculate denominator sum  ###########
-    for strata in np.unique(np.array(c_strata_list)):
-        strata_subset = {
-            key: value for key, value in c_dict.items() if key[1] == strata
-        }
-
-        A_xu_list = [
-            value[2] for key, values in strata_subset.items() for value in values
-        ]
-        xu_IDs = np.array(
-            [value[0] for key, values in strata_subset.items() for value in values]
-        )
-        A_xu = sum(A_xu_list)
-
-        # Sample variance (based on counts not area)
-        x_bar_h_count = len(A_xu_list) / master_dict[(strata, "n_star_h")][0]
-        sx_h_2 = (len(A_xu_list) - x_bar_h_count) ** 2 / master_dict[
-            (strata, "n_star_h")
-        ][0]
-
-        master_dict[(strata, "n_xu")].append(len(A_xu_list))
-        master_dict[(strata, "xu_IDs")].append(xu_IDs)
-        master_dict[(strata, "x_bar_h")].append(
-            A_xu / master_dict[(strata, "A_n_star_h")][0]
-        )
-        master_dict[(strata, "x_bar_h_count")].append(x_bar_h_count)
-        master_dict[(strata, "sx_h_2")].append(sx_h_2)
-        master_dict[(strata, "X_bar")].append(
-            master_dict[(strata, "A_N_star_h")][0] * master_dict[(strata, "x_bar_h")][0]
-        )
-
+    # Why there are two of these?
+    master_dict = nc.amin_denom_sum_for_acc_intervals(denom_strata_list=c_strata_list, m_dict=master_dict)
     master_dict = {key: master_dict[key] for key in sorted(master_dict.keys())}
     master_dict = defaultdict(list, master_dict)
 
-    # put yu and xu of 0 - 1s in the master dict
+    # put yu and xu of 0 - 1s in the master dict # 1
     xu_id = {
         key[0]: np.array(sorted(value))
         for key, values in master_dict.items()
@@ -309,22 +226,7 @@ for c in [1, 2]:
     master_df = master_df.dropna()
 
     # Calculate s_xy_h
-    for strata in master_df["strata"].unique():
-        yu = master_df.loc[master_df["strata"] == strata, "yu_0_1"].values[0]
-        xu = master_df.loc[master_df["strata"] == strata, "xu_0_1"].values[0]
-        ybar_h = master_df.loc[master_df["strata"] == strata, "y_bar_h_count"].values[0]
-        xbar_h = master_df.loc[master_df["strata"] == strata, "x_bar_h_count"].values[0]
-        n_star_h = master_df.loc[master_df["strata"] == strata, "n_star_h"].values[0]
-
-        s_xy_h = sum((yu - ybar_h) * (xu - xbar_h) / n_star_h - 1)
-        master_df.loc[master_df["strata"] == strata, "s_xy_h"] = s_xy_h
-
-        # Calculate X_hat
-        A_N_star_h = master_df.loc[master_df["strata"] == strata, "A_N_star_h"].values[
-            0
-        ]
-        x_hat = A_N_star_h * xbar_h
-        master_df.loc[master_df["strata"] == strata, "x_hat"] = x_hat
+    master_df = nc.s_xy_h(master_df)
 
     # Calculate user's accuracy
     Y_bar_list = [value[0] for key, value in master_dict.items() if key[1] == "Y_bar"]
@@ -338,33 +240,15 @@ for c in [1, 2]:
     print((numerator_sum, denominator_sum))
     print("Area-based user's accuracy = ", users_acc)
 
-    # Calculate variance of user's accuracy
-    v_sum_list = []
-    for strata in master_df["strata"].unique():
-        A_N_star_h = master_df.loc[master_df["strata"] == strata, "A_N_star_h"].values[
-            0
-        ]
-        A_n_star_h = master_df.loc[master_df["strata"] == strata, "A_n_star_h"].values[
-            0
-        ]
-        sy_h_2 = master_df.loc[master_df["strata"] == strata, "sy_h_2"].values[0]
-        sx_h_2 = master_df.loc[master_df["strata"] == strata, "sx_h_2"].values[0]
-        s_xy_h = master_df.loc[master_df["strata"] == strata, "s_xy_h"].values[0]
-
-        v_sum_list.append(
-            A_N_star_h**2
-            * (1 - A_n_star_h / A_N_star_h)
-            * (sy_h_2 + users_acc**2 * sx_h_2 - 2 * users_acc * s_xy_h)
-            / A_n_star_h
-        )
-
+    # Calculate variance of user's accuracy # why there are 2 of these?
+    v_sum_list = nc.user_acc_variance(master_df)
     v_u = (1 / master_df["x_hat"].sum()) * sum(v_sum_list)
     print("Area-based standard error of user's accuracy = ", np.sqrt(v_u))
 
     ######################################################################
-    ######################################################################
+    #
     # PRODUCER'S ACCURACY AND SE
-    ######################################################################
+    #
     ######################################################################
 
     # Filter for instances that are mapped as c.
@@ -376,109 +260,25 @@ for c in [1, 2]:
         if (key[0][0] == c and key[0][1] == c)
     }
 
-    # List stratas for c and cc
-    # X
-    c_strata_list = [key[1] for key, _ in c_dict.items()]
-    # Y
-    cc_strata_list = [key[1] for key, _ in cc_dict.items()]
+    # List stratas for c and cc Why there are two of everything?
+    cc_strata_list = [key[1] for key, _ in cc_dict.items()] # numerator
+    c_strata_list = [key[1] for key, _ in c_dict.items()] # denominator
 
-    # ##### Calculate numerator sum
+    # numerator sum
     acr_data = data["six_OverSam_TestRes"]["inclusion_prob"]
 
     master_dict = defaultdict(list)
-    # Numbers of strata
-    for strata in test_set["CropTyp"].unique():
-        strata_subset = {
-            key: value for key, value in id_dict.items() if key[1] == strata
-        }
-        A_n_star_h_list = [
-            value[2] for key, values in strata_subset.items() for value in values
-        ]
-        A_n_star_h = sum(A_n_star_h_list)
-
-        idx = acr_data[acr_data["CropTyp"] == strata].idx[0]
-        # Now use .at to access the specific value
-        A_N_star_h = acr_data.at[idx, "denom_acr"]
-        N_star_h = acr_data.at[idx, "denom"]
-
-        master_dict[(strata, "n_star_h")].append(len(A_n_star_h_list))
-        master_dict[(strata, "A_n_star_h")].append(A_n_star_h)
-        master_dict[(strata, "A_N_star_h")].append(A_N_star_h)
-        master_dict[(strata, "N_star_h")].append(N_star_h)
-
-    for strata in np.unique(np.array(cc_strata_list)):
-        strata_subset = {
-            key: value for key, value in cc_dict.items() if key[1] == strata
-        }
-
-        A_yu_list = [
-            value[2]
-            for key, values in strata_subset.items()
-            for value in values
-            if key[0][0] == key[0][1]
-        ]
-        yu_IDs = np.array(
-            [
-                value[0]
-                for key, values in strata_subset.items()
-                for value in values
-                if key[0][0] == key[0][1]
-            ]
-        )
-        A_yu = sum(A_yu_list)
-
-        # Sample variance (based on counts not area)
-        y_bar_h_count = len(A_yu_list) / master_dict[(strata, "n_star_h")][0]
-        sy_h_2 = (len(A_yu_list) - y_bar_h_count) ** 2 / master_dict[
-            (strata, "n_star_h")
-        ][0]
-
-        master_dict[(strata, "n_yu")].append(len(A_yu_list))
-        master_dict[(strata, "yu_IDs")].append(yu_IDs)
-        master_dict[(strata, "y_bar_h")].append(
-            A_yu / master_dict[(strata, "A_n_star_h")][0]
-        )
-        master_dict[(strata, "y_bar_h_count")].append(y_bar_h_count)
-        master_dict[(strata, "sy_h_2")].append(sy_h_2)
-        master_dict[(strata, "Y_bar")].append(
-            master_dict[(strata, "A_N_star_h")][0] * master_dict[(strata, "y_bar_h")][0]
-        )
+    # Numbers of strata 3. why there are two of these? and the one below it
+    master_dict = nc.number_of_strata(test_set, m_dict= master_dict)
+    master_dict = nc.amin_numer_sum_for_acc_intervals(numer_strata_list, m_dict)
 
     ###########  Calculate denominator sum  ###########
-    for strata in np.unique(np.array(c_strata_list)):
-        strata_subset = {
-            key: value for key, value in c_dict.items() if key[1] == strata
-        }
-
-        A_xu_list = [
-            value[2] for key, values in strata_subset.items() for value in values
-        ]
-        xu_IDs = np.array(
-            [value[0] for key, values in strata_subset.items() for value in values]
-        )
-        A_xu = sum(A_xu_list)
-
-        # Sample variance (based on counts not area)
-        x_bar_h_count = len(A_xu_list) / master_dict[(strata, "n_star_h")][0]
-        sx_h_2 = (len(A_xu_list) - x_bar_h_count) ** 2 / master_dict[
-            (strata, "n_star_h")
-        ][0]
-
-        master_dict[(strata, "n_xu")].append(len(A_xu_list))
-        master_dict[(strata, "xu_IDs")].append(xu_IDs)
-        master_dict[(strata, "x_bar_h")].append(
-            A_xu / master_dict[(strata, "A_n_star_h")][0]
-        )
-        master_dict[(strata, "x_bar_h_count")].append(x_bar_h_count)
-        master_dict[(strata, "sx_h_2")].append(sx_h_2)
-        master_dict[(strata, "X_bar")].append(
-            master_dict[(strata, "A_N_star_h")][0] * master_dict[(strata, "x_bar_h")][0]
-        )
-
+    # Why there are two of these?
+    master_dict = nc.amin_denom_sum_for_acc_intervals(denom_strata_list=c_strata_list, m_dict=master_dict)
     master_dict = {key: master_dict[key] for key in sorted(master_dict.keys())}
     master_dict = defaultdict(list, master_dict)
 
-    # put yu and xu of 0 - 1s in the master dict
+    # put yu and xu of 0 - 1s in the master dict # 2
     xu_id = {
         key[0]: np.array(sorted(value))
         for key, values in master_dict.items()
@@ -507,28 +307,12 @@ for c in [1, 2]:
     master_df = nc.dict_to_df(master_dict)
     master_df = master_df.dropna()
 
-    # Calculate s_xy_h
-    for strata in master_df["strata"].unique():
-        yu = master_df.loc[master_df["strata"] == strata, "yu_0_1"].values[0]
-        xu = master_df.loc[master_df["strata"] == strata, "xu_0_1"].values[0]
-        ybar_h = master_df.loc[master_df["strata"] == strata, "y_bar_h_count"].values[0]
-        xbar_h = master_df.loc[master_df["strata"] == strata, "x_bar_h_count"].values[0]
-        n_star_h = master_df.loc[master_df["strata"] == strata, "n_star_h"].values[0]
-
-        s_xy_h = sum((yu - ybar_h) * (xu - xbar_h) / n_star_h - 1)
-        master_df.loc[master_df["strata"] == strata, "s_xy_h"] = s_xy_h
-
-        # Calculate X_hat
-        A_N_star_h = master_df.loc[master_df["strata"] == strata, "A_N_star_h"].values[
-            0
-        ]
-        x_hat = A_N_star_h * xbar_h
-        master_df.loc[master_df["strata"] == strata, "x_hat"] = x_hat
+    # Calculate s_xy_h. Why there are two of these?
+    master_df = nc.s_xy_h(master_df)
 
     # Calculate user's accuracy
     Y_bar_list = [value[0] for key, value in master_dict.items() if key[1] == "Y_bar"]
     numerator_sum = sum(Y_bar_list)
-
     X_bar_list = [value[0] for key, value in master_dict.items() if key[1] == "X_bar"]
     denominator_sum = sum(X_bar_list)
 
@@ -537,24 +321,7 @@ for c in [1, 2]:
     print("Area-based user's producer's = ", users_acc)
 
     # Calculate variance of user's accuracy
-    v_sum_list = []
-    for strata in master_df["strata"].unique():
-        A_N_star_h = master_df.loc[master_df["strata"] == strata, "A_N_star_h"].values[
-            0
-        ]
-        A_n_star_h = master_df.loc[master_df["strata"] == strata, "A_n_star_h"].values[
-            0
-        ]
-        sy_h_2 = master_df.loc[master_df["strata"] == strata, "sy_h_2"].values[0]
-        sx_h_2 = master_df.loc[master_df["strata"] == strata, "sx_h_2"].values[0]
-        s_xy_h = master_df.loc[master_df["strata"] == strata, "s_xy_h"].values[0]
-
-        v_sum_list.append(
-            A_N_star_h**2
-            * (1 - A_n_star_h / A_N_star_h)
-            * (sy_h_2 + users_acc**2 * sx_h_2 - 2 * users_acc * s_xy_h)
-            / A_n_star_h
-        )
+     v_sum_list = nc.user_acc_variance(master_df)
 
     v_u = (1 / master_df["x_hat"].sum()) * sum(v_sum_list)
     print("Area-based standard error of producer's accuracy = ", np.sqrt(v_u))
