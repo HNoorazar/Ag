@@ -40,39 +40,60 @@ from tensorflow.keras.utils import to_categorical, load_img, img_to_array
 
 
 ###########################################################
-def number_of_strata(test_df, m_dict):
+def number_of_strata(test_df, m_dict, IDs_dictionary, area_df):
     """
     Author : Amin Norouzi Kandelati
+
+    Arguments
+    ---------
+    test_df : dataframe
+        This dataframe includes
+
+    m_dict : dictionary
+        Master dictionary that includes
+
+    IDs_dictionary : dictionary
+
+    area_df : dataframe
+        includes area of all fields of the same crop?
+
+    Returns
+    m_dict : dictionary
+         Adds X, Y, Z to the m_dict
+    ---------
+
     """
     # Numbers of strata 2
-    for strata in test_df["CropTyp"].unique():
-        strata_subset = {
-            key: value for key, value in id_dict.items() if key[1] == strata
+    for cropType in test_df["CropTyp"].unique():
+        cropType_subset = {
+            key: value for key, value in IDs_dictionary.items() if key[1] == cropType
         }
         A_n_star_h_list = [
-            value[2] for key, values in strata_subset.items() for value in values
+            value[2] for key, values in cropType_subset.items() for value in values
         ]
         A_n_star_h = sum(A_n_star_h_list)
 
-        idx = acr_data[acr_data["CropTyp"] == strata].idx[0]
         # Now use .at to access the specific value
-        A_N_star_h = acr_data.at[idx, "denom_acr"]
-        N_star_h = acr_data.at[idx, "denom"]
+        # idx = area_df[area_df["CropTyp"] == cropType].index[0]
+        # A_N_star_h = area_df.at[idx, "denom_acr"]
+        # N_star_h = area_df.at[idx, "denom"]
+        A_N_star_h = area_df.loc[area_df["CropTyp"] == cropType, "denom_acr"].values[0]
+        N_star_h = area_df.loc[area_df["CropTyp"] == cropType, "denom"].values[0]
 
-        m_dict[(strata, "n_star_h")].append(len(A_n_star_h_list))
-        m_dict[(strata, "A_n_star_h")].append(A_n_star_h)
-        m_dict[(strata, "A_N_star_h")].append(A_N_star_h)
-        m_dict[(strata, "N_star_h")].append(N_star_h)
+        m_dict[(cropType, "n_star_h")].append(len(A_n_star_h_list))
+        m_dict[(cropType, "A_n_star_h")].append(A_n_star_h)
+        m_dict[(cropType, "A_N_star_h")].append(A_N_star_h)
+        m_dict[(cropType, "N_star_h")].append(N_star_h)
     return m_dict
 
 
-def amin_numer_sum_for_acc_intervals(numer_strata_list, m_dict):
+def numer_sum_for_acc_intervals(numer_strata_list, m_dict, numer_dict):
     """
     Author : Amin Norouzi Kandelati
     """
     for strata in np.unique(np.array(numer_strata_list)):
         strata_subset = {
-            key: value for key, value in cc_dict.items() if key[1] == strata
+            key: value for key, value in numer_dict.items() if key[1] == strata
         }
 
         A_yu_list = [
@@ -106,15 +127,14 @@ def amin_numer_sum_for_acc_intervals(numer_strata_list, m_dict):
     return m_dict
 
 
-def amin_denom_sum_for_acc_intervals(denom_strata_list, m_dict):
+def denom_sum_for_acc_intervals(denom_strata_list, m_dict, denom_dictionary):
     """
     Author : Amin Norouzi Kandelati
     """
     for strata in np.unique(np.array(denom_strata_list)):
         strata_subset = {
-            key: value for key, value in c_dict.items() if key[1] == strata
+            key: value for key, value in denom_dictionary.items() if key[1] == strata
         }
-
         A_xu_list = [
             value[2] for key, values in strata_subset.items() for value in values
         ]
@@ -138,7 +158,7 @@ def amin_denom_sum_for_acc_intervals(denom_strata_list, m_dict):
     return m_dict
 
 
-def user_acc_variance(UAV_df):
+def user_acc_variance(UAV_df, user_accuracy):
     """
     Author : Amin Norouzi Kandelati
     """
@@ -153,13 +173,13 @@ def user_acc_variance(UAV_df):
         v_sum_list.append(
             A_N_star_h**2
             * (1 - A_n_star_h / A_N_star_h)
-            * (sy_h_2 + users_acc**2 * sx_h_2 - 2 * users_acc * s_xy_h)
+            * (sy_h_2 + user_accuracy**2 * sx_h_2 - 2 * user_accuracy * s_xy_h)
             / A_n_star_h
         )
     return v_sum_list
 
 
-def s_xy_h(m_df):
+def s_xy_h_func(m_df):
     """
     Author : Amin Norouzi Kandelati
     """
@@ -176,10 +196,10 @@ def s_xy_h(m_df):
         # Calculate X_hat
         A_N_star_h = m_df.loc[m_df["strata"] == strata, "A_N_star_h"].values[0]
         m_df.loc[m_df["strata"] == strata, "x_hat"] = A_N_star_h * xbar_h
-        return m_df
+    return m_df
 
 
-def dict_to_df(master_dictionary):
+def amin_UA_defaultdict_to_df(master_dictionary):
     """
     Author: Amin Norouzi Kandlati
     Extract all unique first and second keys
@@ -211,9 +231,9 @@ def dict_to_df(master_dictionary):
     for s in strata:
         row = {"strata": s}
         for c in columns:
-            row[c] = master_dictionary.get((s, c), [None])[
-                0
-            ]  # Get the first value from the list or None if key doesn't exist
+            # Get the first value from the list or None if key doesn't exist
+            # are there more than one value? why first value?
+            row[c] = master_dictionary.get((s, c), [None])[0]
         rows.append(row)
 
     # Convert the list of rows into a DataFrame
