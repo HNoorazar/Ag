@@ -40,6 +40,30 @@ from tensorflow.keras.utils import to_categorical, load_img, img_to_array
 
 
 ###########################################################
+def overal_acc_StehlmanDF(df, GT_col, pred_col, overal_acc_col):
+    """
+    Arguments
+    ---------
+    df : dataframe
+        That looks like Table 2 of Stehman paper.
+
+    GT_col : str
+        name of the column in df that contains ground-truth label
+    pred_col : str
+        name of the column in df that contains prediction label
+
+    overal_acc_col : str
+        name of a column that indicates the prediction is
+        correct or not. We can compute this using GT_col
+        and pred_col already
+
+    Returns
+    ---------
+    overal_acc : float
+         overal accuracy
+    """
+
+
 def number_of_strata(test_df, m_dict, IDs_dictionary, area_df):
     """
     Author : Amin Norouzi Kandelati
@@ -58,9 +82,9 @@ def number_of_strata(test_df, m_dict, IDs_dictionary, area_df):
         includes area of all fields of the same crop?
 
     Returns
+    ---------
     m_dict : dictionary
          Adds X, Y, Z to the m_dict
-    ---------
 
     """
     # Numbers of strata 2
