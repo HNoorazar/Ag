@@ -61,7 +61,129 @@ def overal_acc_StehlmanDF(df, GT_col, pred_col, overal_acc_col):
     ---------
     overal_acc : float
          overal accuracy
+
     """
+
+
+def proportion_of_area_class(
+    Stehman_Table3, area_class_col, strarum_area_df, strarum_col, strarum_area_col
+):
+    """
+    Arguments
+    ---------
+    Stehman_Table3 : dataframe
+        Table 3 from Stehman paper. It is assumed the column "parameters"
+        exist in this datatable
+
+    stratum_col : str
+        the name of the stratum column. e.g. stratum, cropType.
+
+    area_class_col : str
+        name of column in Stehman_Table3 to be used
+
+    strarum_area_df : dataframe
+        dataframe containing area per stratum
+
+    strarum_col : str
+        name of the column containing the name of each stratum
+        This column must be identical in both Stehman_Table3 and strarum_area_df
+
+    strarum_area_col : str
+        name of the column containing the area of each stratum
+
+    Returns
+    ---------
+
+    """
+
+    strarum_area_df = pd.merge(
+        strarum_area_df,
+        Stehman_Table3[Stehman_Table3["parameters"] == "mean"][
+            [strarum_col, area_class_col]
+        ],
+        how="left",
+        on=strarum_col,
+    )
+
+    numerator = strarum_area_df[strarum_area_col] * strarum_area_df[area_class_col]
+    proportion_area = numerator.sum() / strarum_area_df[strarum_area_col].sum()
+    return proportion_area
+
+
+def mean_var_covar_table(df, strarum_col, variable_cols, cov_variables):
+    """
+    Arguments
+    ---------
+    df : DataFrame
+        That looks like Table 2 of Stehman paper.
+
+    strarum_col : str
+        name of strarums
+
+    variable_cols : list
+        list of variables for which we want to compute mean and var
+
+    cov_variables : list
+        This is list of lists.
+        Each list has two column names in it: for covariance we need two variables.
+
+    Returns
+    ---------
+    mean_var_covar_df : DataFrame
+         table of means and variances and covariances
+         similar to table 3 of Stehman paper
+
+    Stehman paper: http://dx.doi.org/10.1080/01431161.2014.930207
+    """
+    stratas = df[strarum_col].unique()
+    cols = [strarum_col, "parameters"] + variable_cols
+    meanVarCovar_df = pd.DataFrame(columns=cols, index=range(len(stratas) * 3))
+
+    # fill in the strarum column
+    # since we want mean, var, and covar, we put 3 in line below
+    meanVarCovar_df[strarum_col] = np.repeat(stratas, 3)
+
+    param_list = ["mean", "var", "covar"]
+    meanVarCovar_df["parameters"] = np.stack((param_list) * len(stratas), axis=0)
+
+    # populate the table:
+    mean_df = df.groupby(by=strarum_col)[variable_cols].mean().reset_index()
+    replacement = mean_df.loc[:, variable_cols].values
+    meanVarCovar_df.loc[
+        meanVarCovar_df["parameters"] == "mean", variable_cols
+    ] = replacement
+
+    #
+    var_df = df.groupby(by=strarum_col)[variable_cols].std().reset_index()
+    var_df[variable_cols] = var_df[variable_cols] ** 2
+    replacement = var_df.loc[:, variable_cols].values
+    meanVarCovar_df.loc[
+        meanVarCovar_df["parameters"] == "var", variable_cols
+    ] = replacement
+
+    for curr_cov_var in cov_variables:
+        cov_df = (
+            df.groupby(by=strarum_col)[[curr_cov_var[0], curr_cov_var[1]]]
+            .cov()
+            .reset_index()
+        )
+        # we need one of the off-diagonal entries
+        # so, we drop first column and every other row
+
+        # cov_df = cov_df.loc[cov_df.index[::2,]].copy() # or the following line the same thing
+
+        cov_df = cov_df[cov_df["level_1"] == curr_cov_var[0]].copy()
+        # copy values of off diagonal into diagonal as well
+        # just for simplifying the process of populating of
+        # main dataframe
+        cov_df[curr_cov_var[0]] = cov_df[curr_cov_var[1]]
+
+        replacement = cov_df[curr_cov_var].values
+        meanVarCovar_df.loc[
+            meanVarCovar_df["parameters"] == "covar", curr_cov_var
+        ] = replacement
+
+    return meanVarCovar_df
 
 
 def number_of_strata(test_df, m_dict, IDs_dictionary, area_df):
