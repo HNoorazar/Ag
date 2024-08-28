@@ -5,7 +5,7 @@
 #       extension: .py
 #       format_name: percent
 #       format_version: '1.3'
-#       jupytext_version: 1.16.1
+#       jupytext_version: 1.15.2
 #   kernelspec:
 #     display_name: Python 3 (ipykernel)
 #     language: python
@@ -15,7 +15,7 @@
 # %% [markdown]
 # ## Stehman Replication
 #
-# I am replicating Stehman's paper. Check against Amin's code. etc. ec.
+# I'm replicating Stehman's paper. Check against Amin's code. etc. ec.
 #
 # Created this notebook on Aug. 26. 2024
 
@@ -30,38 +30,6 @@ sys.path.append("/Users/hn/Documents/00_GitHub/Ag/NASA/Python_codes/")
 import NASA_core as nc
 
 # %%
-path_to_data = "/Users/hn/Documents/01_research_data/NASA/Amin/"
-
-# %%
-file_name = "six_OverSam_TestRes_and_InclusionProb.sav"
-file_path = path_to_data + file_name
-
-six_OverSam_TestRes_IncluProb = pd.read_pickle(file_path)
-print (six_OverSam_TestRes_IncluProb.keys())
-
-# %%
-field_areas = six_OverSam_TestRes_IncluProb["field_info"][["ID", "ExctAcr"]]
-
-test_set1_DL_res = six_OverSam_TestRes_IncluProb["six_OverSam_TestRes"]\
-                                                      ["test_results_DL"]["train_ID1"]["a_test_set_df"]
-
-# %%
-field_areas.head(2)
-
-# %%
-test_set1_DL_res.head(2)
-
-# %%
-confusion_matrix(test_set1_DL_res["NDVI_SG_DL_p3"], test_set1_DL_res["Vote"])
-
-# %%
-inclusion_prob = six_OverSam_TestRes_IncluProb["six_OverSam_TestRes"]["inclusion_prob"]
-inclusion_prob.head(2)
-
-# %%
-test_set1_DL_res = test_set1_DL_res.merge(inclusion_prob, on="CropTyp", how="right")
-test_set1_DL_res = test_set1_DL_res.merge(field_areas, on="ID", how="inner")
-test_set1_DL_res.head(2)
 
 # %%
 stratum = [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 
@@ -129,7 +97,7 @@ variable_cols = list(stehman_dict.keys())[3:]
 cov_variables = [["UA_class_B_yu", "UA_class_B_xu"], ["PA_class_B_yu", "PA_class_B_xu"]]
 
 Stehman_Table3 = nc.mean_var_covar_table(df = stehman_df_table2, 
-                                         strarum_col = "stratum", 
+                                         stratum_col = "stratum", 
                                          variable_cols = variable_cols,
                                          cov_variables = cov_variables)
 
@@ -153,30 +121,102 @@ stehman_stratum_areas
 area_class_col = "area_class_A_yu"
 
 strarum_area_df = stehman_stratum_areas.copy()
-strarum_col = "stratum" 
+stratum_col = "stratum" 
 strarum_area_col = "total_area"
 
 # %%
-nc.proportion_of_area_class(Stehman_Table3 = Stehman_Table3, 
-                            area_class_col = "area_class_A_yu", 
-                            strarum_area_df = stehman_stratum_areas, 
-                            strarum_col = "stratum", 
-                            strarum_area_col = "total_area")
+nc.AreaClassProportion_and_OA(Stehman_T3 = Stehman_Table3, 
+                              yu_col = "area_class_A_yu", 
+                              stratum_area_df = stehman_stratum_areas, 
+                              stratum_col = "stratum", 
+                              stratum_area_col = "total_area")
 
 # %%
-nc.proportion_of_area_class(Stehman_Table3 = Stehman_Table3, 
-                            area_class_col = "area_class_C_yu", 
-                            strarum_area_df = stehman_stratum_areas, 
-                            strarum_col = "stratum", 
-                            strarum_area_col = "total_area")
+nc.AreaClassProportion_and_OA(Stehman_T3 = Stehman_Table3, 
+                              yu_col = "area_class_C_yu", 
+                              stratum_area_df = stehman_stratum_areas, 
+                              stratum_col = "stratum", 
+                              stratum_area_col = "total_area")
 
 # %%
-nc.proportion_of_area_class(Stehman_Table3 = Stehman_Table3, 
-                            area_class_col = "overall_ac_yu", 
-                            strarum_area_df = stehman_stratum_areas, 
-                            strarum_col = "stratum", 
-                            strarum_area_col = "total_area")
+nc.AreaClassProportion_and_OA(Stehman_T3 = Stehman_Table3, 
+                              yu_col = "overall_ac_yu",
+                              stratum_area_df = stehman_stratum_areas, 
+                              stratum_col = "stratum", 
+                              stratum_area_col = "total_area")
+
+# %%
+nc.UA_PA_Rhat_Eq27(Stehman_T3 = Stehman_Table3, 
+                   yu_col = "UA_class_B_yu", 
+                   xu_col = "UA_class_B_xu",
+                   stratum_area_df = stehman_stratum_areas, 
+                   stratum_col = "stratum", 
+                   stratum_area_col = "total_area")
+
+# %%
+nc.UA_PA_Rhat_Eq27(Stehman_T3 = Stehman_Table3, 
+                   yu_col = "PA_class_B_yu", 
+                   xu_col = "PA_class_B_xu",
+                   stratum_area_df = stehman_stratum_areas, 
+                   stratum_col = "stratum", 
+                   stratum_area_col = "total_area")
+
+# %%
+# Page 13 of the PDF 4935 of the paper.
+# Cell (i, j) of the error matrix, Pij (i = 2, j = 3):
+#
+nc.AreaClassProportion_and_OA(Stehman_T3 = Stehman_Table3, 
+                              yu_col = "area_perc_in_R2_C3_yu", 
+                              stratum_area_df = stehman_stratum_areas, 
+                              stratum_col = "stratum", 
+                              stratum_area_col = "total_area")
 
 # %%
 
 # %%
+
+# %%
+
+# %%
+
+# %%
+####
+#### Directories
+####
+path_to_data = "/Users/hn/Documents/01_research_data/NASA/Amin/"
+file_name = "six_OverSam_TestRes_and_InclusionProb.sav"
+
+# %%
+####
+#### Read file
+####
+
+file_path = path_to_data + file_name
+
+six_OverSam_TestRes_IncluProb = pd.read_pickle(file_path)
+print (six_OverSam_TestRes_IncluProb.keys())
+
+# %%
+
+# %%
+field_areas = six_OverSam_TestRes_IncluProb["field_info"][["ID", "ExctAcr"]]
+
+test_set1_DL_res = six_OverSam_TestRes_IncluProb["six_OverSam_TestRes"]\
+                                                      ["test_results_DL"]["train_ID1"]["a_test_set_df"]
+
+field_areas.head(2)
+
+# %%
+test_set1_DL_res.head(2)
+
+# %%
+confusion_matrix(test_set1_DL_res["NDVI_SG_DL_p3"], test_set1_DL_res["Vote"])
+
+# %%
+inclusion_prob = six_OverSam_TestRes_IncluProb["six_OverSam_TestRes"]["inclusion_prob"]
+inclusion_prob.head(2)
+
+# %%
+test_set1_DL_res = test_set1_DL_res.merge(inclusion_prob, on="CropTyp", how="right")
+test_set1_DL_res = test_set1_DL_res.merge(field_areas, on="ID", how="inner")
+test_set1_DL_res.head(2)

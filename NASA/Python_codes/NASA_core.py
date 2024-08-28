@@ -12,10 +12,7 @@ from math import factorial
 from statsmodels.sandbox.regression.predstd import wls_prediction_std
 from sklearn.linear_model import LinearRegression
 from patsy import cr
-
 from pprint import pprint
-import matplotlib.pyplot as plt
-import seaborn as sb
 from collections import defaultdict
 
 import os, os.path, sys
@@ -40,55 +37,44 @@ from tensorflow.keras.utils import to_categorical, load_img, img_to_array
 
 
 ###########################################################
-def overal_acc_StehlmanDF(df, GT_col, pred_col, overal_acc_col):
-    """
-    Arguments
-    ---------
-    df : dataframe
-        That looks like Table 2 of Stehman paper.
-
-    GT_col : str
-        name of the column in df that contains ground-truth label
-    pred_col : str
-        name of the column in df that contains prediction label
-
-    overal_acc_col : str
-        name of a column that indicates the prediction is
-        correct or not. We can compute this using GT_col
-        and pred_col already
-
-    Returns
-    ---------
-    overal_acc : float
-         overal accuracy
-
-    """
 
 
-def proportion_of_area_class(
-    Stehman_Table3, area_class_col, strarum_area_df, strarum_col, strarum_area_col
+def UA_PA_Rhat_Eq27(
+    Stehman_T3, yu_col, xu_col, stratum_area_df, stratum_col, stratum_area_col
+):
+    numer = mean_times_a_column(
+        Stehman_T3, yu_col, stratum_area_df, stratum_col, stratum_area_col
+    )
+    denom = mean_times_a_column(
+        Stehman_T3, xu_col, stratum_area_df, stratum_col, stratum_area_col
+    )
+    return (numer.sum() / denom.sum()).round(3)
+
+
+def AreaClassProportion_and_OA(
+    Stehman_T3, yu_col, stratum_area_df, stratum_col, stratum_area_col
 ):
     """
     Arguments
     ---------
-    Stehman_Table3 : dataframe
+    Stehman_T3 : dataframe
         Table 3 from Stehman paper. It is assumed the column "parameters"
         exist in this datatable
 
     stratum_col : str
         the name of the stratum column. e.g. stratum, cropType.
 
-    area_class_col : str
-        name of column in Stehman_Table3 to be used
+    yu_col : str
+        name of column in Stehman_T3 to be used
 
-    strarum_area_df : dataframe
+    stratum_area_df : dataframe
         dataframe containing area per stratum
 
-    strarum_col : str
+    stratum_col : str
         name of the column containing the name of each stratum
-        This column must be identical in both Stehman_Table3 and strarum_area_df
+        This column must be identical in both Stehman_T3 and stratum_area_df
 
-    strarum_area_col : str
+    stratum_area_col : str
         name of the column containing the area of each stratum
 
     Returns
@@ -96,28 +82,68 @@ def proportion_of_area_class(
 
     """
 
-    strarum_area_df = pd.merge(
-        strarum_area_df,
-        Stehman_Table3[Stehman_Table3["parameters"] == "mean"][
-            [strarum_col, area_class_col]
-        ],
+    numerator = mean_times_a_column(
+        Stehman_T3, yu_col, stratum_area_df, stratum_col, stratum_area_col
+    )
+    # stratum_area_df = pd.merge(
+    #     stratum_area_df,
+    #     Stehman_T3[Stehman_T3["parameters"] == "mean"][[stratum_col, yu_col]],
+    #     how="left",
+    #     on=stratum_col,
+    # )
+    return numerator.sum() / stratum_area_df[stratum_area_col].sum()
+
+
+def mean_times_a_column(
+    Stehman_T3, yu_col, stratum_area_df, stratum_col, stratum_area_col
+):
+    """
+    a_column in the name of this function can be the area of each stratum or.
+
+    Arguments
+    ---------
+    Stehman_T3 : dataframe
+        Table 3 from Stehman paper. It is assumed the column "parameters"
+        exist in this datatable
+
+    stratum_col : str
+        the name of the stratum column. e.g. stratum, cropType.
+
+    yu_col : str
+        name of column in Stehman_T3 to be used
+
+    stratum_area_df : dataframe
+        dataframe containing area per stratum
+
+    stratum_col : str
+        name of the column containing the name of each stratum
+        This column must be identical in both Stehman_T3 and stratum_area_df
+
+    stratum_area_col : str
+        name of the column containing the area of each stratum
+
+    Returns
+    ---------
+
+    """
+    stratum_area_df = pd.merge(
+        stratum_area_df,
+        Stehman_T3[Stehman_T3["parameters"] == "mean"][[stratum_col, yu_col]],
         how="left",
-        on=strarum_col,
+        on=stratum_col,
     )
 
-    numerator = strarum_area_df[strarum_area_col] * strarum_area_df[area_class_col]
-    proportion_area = numerator.sum() / strarum_area_df[strarum_area_col].sum()
-    return proportion_area
+    return stratum_area_df[stratum_area_col] * stratum_area_df[yu_col]
 
 
-def mean_var_covar_table(df, strarum_col, variable_cols, cov_variables):
+def mean_var_covar_table(df, stratum_col, variable_cols, cov_variables):
     """
     Arguments
     ---------
     df : DataFrame
         That looks like Table 2 of Stehman paper.
 
-    strarum_col : str
+    stratum_col : str
         name of strarums
 
     variable_cols : list
@@ -135,26 +161,26 @@ def mean_var_covar_table(df, strarum_col, variable_cols, cov_variables):
 
     Stehman paper: http://dx.doi.org/10.1080/01431161.2014.930207
     """
-    stratas = df[strarum_col].unique()
-    cols = [strarum_col, "parameters"] + variable_cols
+    stratas = df[stratum_col].unique()
+    cols = [stratum_col, "parameters"] + variable_cols
     meanVarCovar_df = pd.DataFrame(columns=cols, index=range(len(stratas) * 3))
 
     # fill in the strarum column
     # since we want mean, var, and covar, we put 3 in line below
-    meanVarCovar_df[strarum_col] = np.repeat(stratas, 3)
+    meanVarCovar_df[stratum_col] = np.repeat(stratas, 3)
 
     param_list = ["mean", "var", "covar"]
     meanVarCovar_df["parameters"] = np.stack((param_list) * len(stratas), axis=0)
 
     # populate the table:
-    mean_df = df.groupby(by=strarum_col)[variable_cols].mean().reset_index()
+    mean_df = df.groupby(by=stratum_col)[variable_cols].mean().reset_index()
     replacement = mean_df.loc[:, variable_cols].values
     meanVarCovar_df.loc[
         meanVarCovar_df["parameters"] == "mean", variable_cols
     ] = replacement
 
     #
-    var_df = df.groupby(by=strarum_col)[variable_cols].std().reset_index()
+    var_df = df.groupby(by=stratum_col)[variable_cols].std().reset_index()
     var_df[variable_cols] = var_df[variable_cols] ** 2
     replacement = var_df.loc[:, variable_cols].values
     meanVarCovar_df.loc[
@@ -163,7 +189,7 @@ def mean_var_covar_table(df, strarum_col, variable_cols, cov_variables):
 
     for curr_cov_var in cov_variables:
         cov_df = (
-            df.groupby(by=strarum_col)[[curr_cov_var[0], curr_cov_var[1]]]
+            df.groupby(by=stratum_col)[[curr_cov_var[0], curr_cov_var[1]]]
             .cov()
             .reset_index()
         )
