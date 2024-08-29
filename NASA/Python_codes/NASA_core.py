@@ -39,20 +39,284 @@ from tensorflow.keras.utils import to_categorical, load_img, img_to_array
 ###########################################################
 
 
+def yu_4_PA_Eq22(test_df, ref_class, ML_pred_col):
+    """
+    This is the same as Eq. 18 of the paper.
+    Same as function yu_4_UA_Eq18(.)
+    Except it uses ref_class instead of map_class
+
+    Arguments
+    ---------
+    ref_class : int
+        here ref_class can be either 1 for single- or 2 for double-cropped
+        according to prediction
+
+    ML_pred_col : str
+        Name of the ML model we want, since we have trained
+        more than one model
+
+    Returns
+    ---------
+    Modifies test_df in place.
+    Adds a column UA_singleClass or UA_singleClass to the dataframe
+    which indicates whether a field is classified correctly or not
+    in a given class given by ref_class
+
+    This is Eq. 22 of Stehman's paper
+    """
+    assert ref_class in [1, 2]
+
+    if "Vote" in test_df:
+        test_df.rename(columns={"Vote": "ref_class"}, inplace=True)
+
+    if ref_class == 1:
+        new_variable = "PA_single_yu_" + ML_pred_col
+    else:
+        new_variable = "PA_double_yu_" + ML_pred_col
+
+    test_df[new_variable] = 0
+
+    correctly_classified = test_df[test_df["ref_class"] == test_df[ML_pred_col]]
+    correc_class_targetClass = correctly_classified[
+        correctly_classified[ML_pred_col] == ref_class
+    ]
+    idx = correc_class_targetClass.index
+    test_df[new_variable] = 0
+    test_df.loc[idx, new_variable] = 1
+
+
+def area_count_classPred_xu_Eq19(test_df, map_class, ML_pred_col):
+    """
+    This is the same as Eq 14 (area_count_refClass_yu_Eq14()).
+    Just uses map_class instead of ref_class
+    Arguments
+    ---------
+    map_class : int
+        here map_class can be either 1 for single- or 2 for double-cropped
+        according to ML prediction
+
+    ML_pred_col : str
+        Name of the column containing predictions of a given ML.
+
+    Returns
+    ---------
+    Modifies test_df in place.
+    Adds a column single__yu or double_class_yu to the dataframe
+    which indicates whether a field is single-cropped or double-cropped.
+    by vote/reference/truth.
+
+    This is Eq. 19 of Stehman's paper
+    """
+    assert map_class in [1, 2]
+
+    if map_class == 1:
+        new_variable = "singlePred_xu_" + ML_pred_col
+    else:
+        new_variable = "doublePred_xu_" + ML_pred_col
+
+    test_df[new_variable] = 0
+
+    indices = test_df[test_df[ML_pred_col] == map_class].index
+    test_df.loc[indices, new_variable] = 1
+
+
+def yu_4_UA_Eq18(test_df, map_class, ML_pred_col):
+    """
+    Arguments
+    ---------
+    map_class : int
+        here map_class can be either 1 for single- or 2 for double-cropped
+        according to prediction
+
+    ML_pred_col : str
+        Name of the ML model we want, since we have trained
+        more than one model
+
+    Returns
+    ---------
+    Modifies test_df in place.
+    Adds a column UA_singleClass or UA_singleClass to the dataframe
+    which indicates whether a field is classified correctly or not
+    in a given class given by map_class
+
+    This is Eq. 18 of Stehman's paper
+    """
+    assert map_class in [1, 2]
+
+    if "Vote" in test_df:
+        test_df.rename(columns={"Vote": "ref_class"}, inplace=True)
+
+    if map_class == 1:
+        new_variable = "UA_single_yu_" + ML_pred_col
+    else:
+        new_variable = "UA_double_yu_" + ML_pred_col
+
+    test_df[new_variable] = 0
+
+    correctly_classified = test_df[test_df["ref_class"] == test_df[ML_pred_col]]
+    correc_class_targetClass = correctly_classified[
+        correctly_classified[ML_pred_col] == map_class
+    ]
+    idx = correc_class_targetClass.index
+    test_df[new_variable] = 0
+    test_df.loc[idx, new_variable] = 1
+
+
+def overal_acc_yu_Eq12(test_df, ML_pred_col):
+    """
+    Arguments
+    ---------
+    ML_pred_col : str
+        name of the column that contains predictions by a
+        given ML
+
+    Returns
+    ---------
+    Modifies test_df in place.
+    Adds a column that indicates whether predictions are
+    correct (1) or not (0)
+
+    This is Eq. 12 of Stehman's paper
+    """
+
+    if "Vote" in test_df:
+        test_df.rename(columns={"Vote": "ref_class"}, inplace=True)
+
+    new_variable = ML_pred_col + "_yu"
+
+    test_df[new_variable] = 0
+
+    indices = test_df[test_df["ref_class"] == test_df[ML_pred_col]].index
+    test_df.loc[indices, new_variable] = 1
+
+
+def area_count_refClass_yu_Eq14_Eq23(test_df, ref_class):
+    """
+    Arguments
+    ---------
+    ref_class : int
+        here ref_class can be either 1 for single- or 2 for double-cropped
+        according to truth/vote/reality
+
+    Returns
+    ---------
+    Modifies test_df in place.
+    Adds a column single_class_yu or double_class_yu to the dataframe
+    which indicates whether a field is single-cropped or double-cropped.
+    by vote/reference/truth.
+    This is Eq. 14 of Stehman's paper
+    """
+    assert ref_class in [1, 2]
+
+    if "Vote" in test_df:
+        test_df.rename(columns={"Vote": "ref_class"}, inplace=True)
+
+    if ref_class == 1:
+        new_variable = "single_class_yu"
+    else:
+        new_variable = "double_class_yu"
+
+    test_df[new_variable] = 0
+
+    indices = test_df[test_df["ref_class"] == ref_class].index
+    test_df.loc[indices, new_variable] = 1
+
+
+def SE_4_UA_PA(Stehman_T3, stratum_area_df, area_or_count, yu_col, xu_col, stratum_col):
+    """ """
+
+    if area_or_count == "area":
+        pop_area_count = "population_area"
+        sample_area_count = "sample_area"
+    else:
+        pop_area_count = "population_count"
+        sample_area_count = "sample_count"
+
+    Rhat = UA_PA_Rhat_Eq27(
+        Stehman_T3=Stehman_T3,
+        yu_col=yu_col,
+        xu_col=xu_col,
+        stratum_area_df=stratum_area_df,
+        stratum_col=stratum_col,
+        stratum_area_count_col=pop_area_count,
+    )
+
+    outer_denom = mean_times_a_column(
+        Stehman_T3=Stehman_T3,
+        yu_col=xu_col,
+        stratum_area_df=stratum_area_df,
+        stratum_col=stratum_col,
+        stratum_area_count_col=pop_area_count,
+    )
+    outer_denom = 1 / (outer_denom.sum() ** 2)
+
+    # first term inside the Sigma is Nh_satar_sq
+    Nh_star_sq = stratum_area_df[pop_area_count].values ** 2
+
+    second_term = (
+        1 - (stratum_area_df[sample_area_count] / stratum_area_df[pop_area_count])
+    ).values
+
+    # compute the third term in Eq 28 of Stehman's paper
+    sy_sq = Stehman_T3[Stehman_T3["parameters"] == "var"][yu_col].values
+    RhatSq_X_sxSq = (Rhat**2) * Stehman_T3[Stehman_T3["parameters"] == "var"][
+        xu_col
+    ].values
+    twoRhat_sxy = (2 * Rhat) * Stehman_T3[Stehman_T3["parameters"] == "covar"][
+        yu_col
+    ].values
+    third_term = sy_sq + RhatSq_X_sxSq - twoRhat_sxy
+
+    inner_denoms = 1 / stratum_area_df[sample_area_count].values
+
+    a = np.multiply(Nh_star_sq, second_term)
+    b = np.multiply(a, third_term)
+    c = np.multiply(b, inner_denoms)
+    variance_ = c.sum() * outer_denom
+    return np.sqrt(variance_).round(3)
+
+
+def SE_4_OA_and_PropArea(
+    stehman_T2, stehman_T3, stratum_area_df, area_or_count, variable
+):
+    """ """
+    if area_or_count == "area":
+        pop_area_count = "population_area"
+        sample_area_count = "sample_area"
+    else:
+        pop_area_count = "population_count"
+        sample_area_count = "sample_count"
+
+    outer_denom = stratum_area_df[pop_area_count].sum() ** 2
+
+    Nh_star_sq = stratum_area_df[pop_area_count].values ** 2
+    second_term = (
+        1 - (stratum_area_df[sample_area_count] / stratum_area_df[pop_area_count])
+    ).values
+    syh_sq = stehman_T3[stehman_T3["parameters"] == "var"][variable].values
+    inner_denoms = 1 / stratum_area_df[sample_area_count].values
+
+    first_X_second = np.multiply(Nh_star_sq, second_term)
+    first_X_second_X_third = np.multiply(first_X_second, syh_sq)
+    sum_ = np.multiply(first_X_second_X_third, inner_denoms).sum()
+    SE_sq = sum_ / outer_denom
+    return np.sqrt(SE_sq).round(3)
+
+
 def UA_PA_Rhat_Eq27(
-    Stehman_T3, yu_col, xu_col, stratum_area_df, stratum_col, stratum_area_col
+    Stehman_T3, yu_col, xu_col, stratum_area_df, stratum_col, stratum_area_count_col
 ):
     numer = mean_times_a_column(
-        Stehman_T3, yu_col, stratum_area_df, stratum_col, stratum_area_col
+        Stehman_T3, yu_col, stratum_area_df, stratum_col, stratum_area_count_col
     )
     denom = mean_times_a_column(
-        Stehman_T3, xu_col, stratum_area_df, stratum_col, stratum_area_col
+        Stehman_T3, xu_col, stratum_area_df, stratum_col, stratum_area_count_col
     )
     return (numer.sum() / denom.sum()).round(3)
 
 
 def AreaClassProportion_and_OA(
-    Stehman_T3, yu_col, stratum_area_df, stratum_col, stratum_area_col
+    Stehman_T3, yu_col, stratum_area_df, stratum_col, stratum_area_count_col
 ):
     """
     Arguments
@@ -74,7 +338,7 @@ def AreaClassProportion_and_OA(
         name of the column containing the name of each stratum
         This column must be identical in both Stehman_T3 and stratum_area_df
 
-    stratum_area_col : str
+    stratum_area_count_col : str
         name of the column containing the area of each stratum
 
     Returns
@@ -83,7 +347,7 @@ def AreaClassProportion_and_OA(
     """
 
     numerator = mean_times_a_column(
-        Stehman_T3, yu_col, stratum_area_df, stratum_col, stratum_area_col
+        Stehman_T3, yu_col, stratum_area_df, stratum_col, stratum_area_count_col
     )
     # stratum_area_df = pd.merge(
     #     stratum_area_df,
@@ -91,11 +355,11 @@ def AreaClassProportion_and_OA(
     #     how="left",
     #     on=stratum_col,
     # )
-    return numerator.sum() / stratum_area_df[stratum_area_col].sum()
+    return numerator.sum() / stratum_area_df[stratum_area_count_col].sum()
 
 
 def mean_times_a_column(
-    Stehman_T3, yu_col, stratum_area_df, stratum_col, stratum_area_col
+    Stehman_T3, yu_col, stratum_area_df, stratum_col, stratum_area_count_col
 ):
     """
     a_column in the name of this function can be the area of each stratum or.
@@ -119,7 +383,7 @@ def mean_times_a_column(
         name of the column containing the name of each stratum
         This column must be identical in both Stehman_T3 and stratum_area_df
 
-    stratum_area_col : str
+    stratum_area_count_col : str
         name of the column containing the area of each stratum
 
     Returns
@@ -133,7 +397,7 @@ def mean_times_a_column(
         on=stratum_col,
     )
 
-    return stratum_area_df[stratum_area_col] * stratum_area_df[yu_col]
+    return stratum_area_df[stratum_area_count_col] * stratum_area_df[yu_col]
 
 
 def mean_var_covar_table(df, stratum_col, variable_cols, cov_variables):

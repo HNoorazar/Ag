@@ -247,10 +247,13 @@ plt.rcParams["ytick.labelleft"] = True
 plt.rcParams.update(params)
 
 # %%
+all_df.head(2)
 
 # %%
+all_df.dropna(subset=["max_ndvi_in_year_modis"])["year"].max()
 
 # %%
+all_df.columns
 
 
 # %%
