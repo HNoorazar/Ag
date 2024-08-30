@@ -262,8 +262,8 @@ test_set1_DL_res.head(2)
 
 # %%
 test_df = test_set1_DL_res.copy()
-nc.area_count_refClass_yu_Eq14(test_df = test_df, ref_class = 1)
-nc.area_count_refClass_yu_Eq14(test_df = test_df, ref_class = 2)
+nc.area_count_refClass_yu_Eq14_Eq23(test_df = test_df, ref_class = 1)
+nc.area_count_refClass_yu_Eq14_Eq23(test_df = test_df, ref_class = 2)
 nc.overal_acc_yu_Eq12(test_df = test_df, ML_pred_col="NDVI_SG_DL_p3")
 test_df.head(2)
 
@@ -282,8 +282,8 @@ test_df[["ref_class", ML_pred_col, "UA_single_yu_NDVI_SG_DL_p3", "UA_double_yu_N
 # %%
 
 # %%
-area_count_classPred_xu_Eq19(test_df, map_class = 1, ML_pred_col = ML_pred_col)
-area_count_classPred_xu_Eq19(test_df, map_class = 2, ML_pred_col = ML_pred_col)
+nc.xu_4_UA_Eq19(test_df, map_class = 1, ML_pred_col = ML_pred_col)
+nc.xu_4_UA_Eq19(test_df, map_class = 2, ML_pred_col = ML_pred_col)
 
 # %%
 test_df.head(2)
@@ -304,5 +304,197 @@ test_df[["ref_class", ML_pred_col, "PA_single_yu_NDVI_SG_DL_p3", "PA_double_yu_N
 stehman_df_table2.head(2)
 
 # %%
+# Test our functions to create Table 2 of Stehman here.
 
 # %%
+stehman_T2 = stehman_df_table2[list(stehman_df_table2.columns[0:3])].copy()
+stehman_T2.head(2)
+
+
+# %% [markdown]
+# # I adjust these functions slightly 
+# to accomodate the 4 classes in Stehman
+
+# %%
+def area_count_refClass_yu_Eq14_Eq23(test_df, ref_class):
+    """
+    Arguments
+    ---------
+    ref_class : int
+        here ref_class can be either 1 for single- or 2 for double-cropped
+        according to truth/vote/reality
+
+    Returns
+    ---------
+    Modifies test_df in place.
+    Adds a column single_class_yu or double_class_yu to the dataframe
+    which indicates whether a field is single-cropped or double-cropped.
+    by vote/reference/truth.
+    This is Eq. 14 of Stehman's paper
+    """
+    # assert ref_class in [1, 2]
+
+    if "Vote" in test_df:
+        test_df.rename(columns={"Vote": "ref_class"}, inplace=True)
+
+ #   if ref_class == 1:
+    new_variable = str(ref_class) + "_class_yu"
+ #   else:
+ #       new_variable = "double_class_yu"
+
+    test_df[new_variable] = 0
+
+    indices = test_df[test_df["ref_class"] == ref_class].index
+    test_df.loc[indices, new_variable] = 1
+
+
+# %%
+area_count_refClass_yu_Eq14_Eq23(test_df=stehman_T2, ref_class="A")
+area_count_refClass_yu_Eq14_Eq23(test_df=stehman_T2, ref_class="C")
+stehman_T2.head(2)
+
+# %%
+stehman_T2["C_class_yu"].equals(stehman_df_table2["area_class_C_yu"])
+
+# %%
+stehman_df_table2.head(2)
+
+# %%
+nc.overal_acc_yu_Eq12(test_df = stehman_T2, ML_pred_col = "map_class")
+stehman_T2.head(2)
+
+# %%
+stehman_T2["map_class_yu"].equals(stehman_df_table2["overall_ac_yu"])
+
+
+# %%
+def yu_4_UA_Eq18(test_df, map_class, ML_pred_col):
+    """
+    Arguments
+    ---------
+    map_class : int
+        here map_class can be either 1 for single- or 2 for double-cropped
+        according to prediction
+
+    ML_pred_col : str
+        Name of the ML model we want, since we have trained
+        more than one model
+
+    Returns
+    ---------
+    Modifies test_df in place.
+    Adds a column UA_singleClass or UA_singleClass to the dataframe
+    which indicates whether a field is classified correctly or not
+    in a given class given by map_class
+
+    This is Eq. 18 of Stehman's paper
+    """
+    # assert map_class in [1, 2]
+
+    if "Vote" in test_df:
+        test_df.rename(columns={"Vote": "ref_class"}, inplace=True)
+
+#    if map_class == 1:
+    new_variable = "UA_" + map_class + "_yu_" + ML_pred_col
+#    else:
+#        new_variable = "UA_double_yu_" + ML_pred_col
+
+    test_df[new_variable] = 0
+
+    correctly_classified = test_df[test_df["ref_class"] == test_df[ML_pred_col]]
+    correc_class_targetClass = correctly_classified[
+        correctly_classified[ML_pred_col] == map_class
+    ]
+    idx = correc_class_targetClass.index
+    test_df[new_variable] = 0
+    test_df.loc[idx, new_variable] = 1
+
+
+# %%
+stehman_T2.head(2)
+
+# %%
+stehman_df_table2.head(2)
+
+# %%
+yu_4_UA_Eq18(test_df = stehman_T2, map_class = "B", ML_pred_col = "map_class")
+stehman_T2.head(2)
+
+# %%
+stehman_T2["UA_B_yu_map_class"].equals(stehman_df_table2["UA_class_B_yu"])
+
+
+# %%
+def xu_4_UA_Eq19(test_df, map_class, ML_pred_col):
+    """
+    This is the same as Eq 14 (area_count_refClass_yu_Eq14()).
+    Just uses map_class instead of ref_class
+    Arguments
+    ---------
+    map_class : int
+        here map_class can be either 1 for single- or 2 for double-cropped
+        according to ML prediction
+
+    ML_pred_col : str
+        Name of the column containing predictions of a given ML.
+
+    Returns
+    ---------
+    Modifies test_df in place.
+    Adds a column single__yu or double_class_yu to the dataframe
+    which indicates whether a field is single-cropped or double-cropped.
+    by vote/reference/truth.
+
+    This is Eq. 19 of Stehman's paper
+    """
+    # assert map_class in [1, 2]
+
+#    if map_class == 1:
+    new_variable = map_class + "_Pred_xu_" + ML_pred_col
+#    else:
+#        new_variable = "doublePred_xu_" + ML_pred_col
+
+    test_df[new_variable] = 0
+
+    indices = test_df[test_df[ML_pred_col] == map_class].index
+    test_df.loc[indices, new_variable] = 1
+
+
+# %%
+xu_4_UA_Eq19(test_df=stehman_T2, map_class="B", ML_pred_col="map_class")
+stehman_T2.head(2)
+
+# %%
+stehman_T2["B_Pred_xu_map_class"].equals(stehman_df_table2["UA_class_B_xu"])
+
+
+# %%
+def yu_4_PA_Eq22(test_df, ref_class, ML_pred_col):
+    
+    # assert ref_class in [1, 2]
+
+    if "Vote" in test_df:
+        test_df.rename(columns={"Vote": "ref_class"}, inplace=True)
+
+#    if ref_class == 1:
+    new_variable = "PA_" + ref_class + "_yu_" + ML_pred_col
+#    else:
+#        new_variable = "PA_double_yu_" + ML_pred_col
+
+    test_df[new_variable] = 0
+
+    correctly_classified = test_df[test_df["ref_class"] == test_df[ML_pred_col]]
+    correc_class_targetClass = correctly_classified[
+        correctly_classified[ML_pred_col] == ref_class
+    ]
+    idx = correc_class_targetClass.index
+    test_df[new_variable] = 0
+    test_df.loc[idx, new_variable] = 1
+
+
+# %%
+yu_4_PA_Eq22(test_df=stehman_T2, ref_class="B", ML_pred_col="map_class")
+stehman_T2.head(2)
+
+# %%
+stehman_T2.drop(columns=["PA_single_yu_map_class"], in)

@@ -85,8 +85,9 @@ def yu_4_PA_Eq22(test_df, ref_class, ML_pred_col):
     test_df.loc[idx, new_variable] = 1
 
 
-def area_count_classPred_xu_Eq19(test_df, map_class, ML_pred_col):
+def xu_4_UA_Eq19(test_df, map_class, ML_pred_col):
     """
+    # Tested Against Stehman's Table 2
     This is the same as Eq 14 (area_count_refClass_yu_Eq14()).
     Just uses map_class instead of ref_class
     Arguments
@@ -164,6 +165,7 @@ def yu_4_UA_Eq18(test_df, map_class, ML_pred_col):
 
 def overal_acc_yu_Eq12(test_df, ML_pred_col):
     """
+    # Tested agains Table 2 of Stehman
     Arguments
     ---------
     ML_pred_col : str
@@ -182,7 +184,7 @@ def overal_acc_yu_Eq12(test_df, ML_pred_col):
     if "Vote" in test_df:
         test_df.rename(columns={"Vote": "ref_class"}, inplace=True)
 
-    new_variable = ML_pred_col + "_yu"
+    new_variable = "overal_acc_" + ML_pred_col + "_yu"
 
     test_df[new_variable] = 0
 
@@ -192,6 +194,7 @@ def overal_acc_yu_Eq12(test_df, ML_pred_col):
 
 def area_count_refClass_yu_Eq14_Eq23(test_df, ref_class):
     """
+    Checked agains Stehman.
     Arguments
     ---------
     ref_class : int
