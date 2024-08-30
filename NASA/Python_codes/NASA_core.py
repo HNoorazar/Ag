@@ -165,7 +165,7 @@ def yu_4_UA_Eq18(test_df, map_class, ML_pred_col):
 
 def overal_acc_yu_Eq12(test_df, ML_pred_col):
     """
-    # Tested agains Table 2 of Stehman
+    # Tested against Table 2 of Stehman
     Arguments
     ---------
     ML_pred_col : str

@@ -5,7 +5,7 @@
 #       extension: .py
 #       format_name: percent
 #       format_version: '1.3'
-#       jupytext_version: 1.15.2
+#       jupytext_version: 1.16.1
 #   kernelspec:
 #     display_name: Python 3 (ipykernel)
 #     language: python
@@ -278,10 +278,6 @@ test_df.head(2)
 test_df[["ref_class", ML_pred_col, "UA_single_yu_NDVI_SG_DL_p3", "UA_double_yu_NDVI_SG_DL_p3"]]
 
 # %%
-
-# %%
-
-# %%
 nc.xu_4_UA_Eq19(test_df, map_class = 1, ML_pred_col = ML_pred_col)
 nc.xu_4_UA_Eq19(test_df, map_class = 2, ML_pred_col = ML_pred_col)
 
@@ -301,7 +297,6 @@ test_df.head(2)
 test_df[["ref_class", ML_pred_col, "PA_single_yu_NDVI_SG_DL_p3", "PA_double_yu_NDVI_SG_DL_p3"]]
 
 # %%
-stehman_df_table2.head(2)
 
 # %%
 # Test our functions to create Table 2 of Stehman here.
@@ -364,7 +359,7 @@ nc.overal_acc_yu_Eq12(test_df = stehman_T2, ML_pred_col = "map_class")
 stehman_T2.head(2)
 
 # %%
-stehman_T2["map_class_yu"].equals(stehman_df_table2["overall_ac_yu"])
+stehman_T2["overal_acc_map_class_yu"].equals(stehman_df_table2["overall_ac_yu"])
 
 
 # %%
@@ -497,4 +492,9 @@ yu_4_PA_Eq22(test_df=stehman_T2, ref_class="B", ML_pred_col="map_class")
 stehman_T2.head(2)
 
 # %%
-stehman_T2.drop(columns=["PA_single_yu_map_class"], in)
+stehman_df_table2.head(2)
+
+# %%
+stehman_T2["PA_B_yu_map_class"].equals(stehman_df_table2["PA_class_B_yu"])
+
+# %%
