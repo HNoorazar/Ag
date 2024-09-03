@@ -5,7 +5,7 @@
 #       extension: .py
 #       format_name: percent
 #       format_version: '1.3'
-#       jupytext_version: 1.16.1
+#       jupytext_version: 1.15.2
 #   kernelspec:
 #     display_name: Python 3 (ipykernel)
 #     language: python
@@ -28,8 +28,6 @@ import os, os.path, sys
 # %%
 sys.path.append("/Users/hn/Documents/00_GitHub/Ag/NASA/Python_codes/")
 import NASA_core as nc
-
-# %%
 
 # %%
 stratum = [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 
@@ -95,9 +93,7 @@ stehman_df_table2.head(5)
 stehman_df_table2.tail(5)
 
 # %%
-
-# %%
-variable_cols = list(stehman_dict.keys())[3:]
+variable_cols = list(stehman_df_table2.columns)[3:]
 cov_variables = [["UA_class_B_yu", "UA_class_B_xu"], ["PA_class_B_yu", "PA_class_B_xu"]]
 
 Stehman_Table3 = nc.mean_var_covar_table(df = stehman_df_table2, 
@@ -185,21 +181,24 @@ nc.SE_4_OA_and_PropArea(stehman_T2 = stehman_df_table2,
                         stehman_T3 = Stehman_Table3, 
                         stratum_area_df = stratum_area_df, 
                         area_or_count="area", 
-                        variable = "area_class_A_yu")
+                        variable = "area_class_A_yu",
+                        stratum_col = "stratum")
 
 # %%
 nc.SE_4_OA_and_PropArea(stehman_T2 = stehman_df_table2, 
                         stehman_T3 = Stehman_Table3, 
                         stratum_area_df = stratum_area_df, 
                         area_or_count="area", 
-                        variable = "area_class_C_yu")
+                        variable = "area_class_C_yu",
+                       stratum_col = "stratum")
 
 # %%
 nc.SE_4_OA_and_PropArea(stehman_T2 = stehman_df_table2, 
                         stehman_T3 = Stehman_Table3, 
                         stratum_area_df = stratum_area_df, 
                         area_or_count="area", 
-                        variable = "overall_ac_yu")
+                        variable = "overall_ac_yu",
+                        stratum_col = "stratum")
 
 # %%
 nc.SE_4_UA_PA(Stehman_T3 = Stehman_Table3, 
@@ -212,96 +211,6 @@ nc.SE_4_UA_PA(Stehman_T3 = Stehman_Table3,
 # %%
 
 # %%
-
-# %% [markdown]
-# # Our Data
-
-# %%
-####
-#### Directories
-####
-path_to_data = "/Users/hn/Documents/01_research_data/NASA/Amin/"
-file_name = "six_OverSam_TestRes_and_InclusionProb.sav"
-
-# %%
-####
-#### Read file
-####
-
-file_path = path_to_data + file_name
-
-six_OverSam_TestRes_IncluProb = pd.read_pickle(file_path)
-print (six_OverSam_TestRes_IncluProb.keys())
-
-# %%
-
-# %%
-field_areas = six_OverSam_TestRes_IncluProb["field_info"][["ID", "ExctAcr"]]
-
-test_set1_DL_res = six_OverSam_TestRes_IncluProb["six_OverSam_TestRes"]\
-                                                      ["test_results_DL"]["train_ID1"]["a_test_set_df"]
-
-field_areas.head(2)
-
-# %%
-test_set1_DL_res.head(2)
-
-# %%
-confusion_matrix(test_set1_DL_res["NDVI_SG_DL_p3"], test_set1_DL_res["Vote"])
-
-# %%
-inclusion_prob = six_OverSam_TestRes_IncluProb["six_OverSam_TestRes"]["inclusion_prob"]
-inclusion_prob.head(2)
-
-# %%
-test_set1_DL_res = test_set1_DL_res.merge(inclusion_prob, on="CropTyp", how="right")
-test_set1_DL_res = test_set1_DL_res.merge(field_areas, on="ID", how="inner")
-test_set1_DL_res.head(2)
-
-# %%
-
-# %%
-test_df = test_set1_DL_res.copy()
-nc.area_count_refClass_yu_Eq14_Eq23(test_df = test_df, ref_class = 1)
-nc.area_count_refClass_yu_Eq14_Eq23(test_df = test_df, ref_class = 2)
-nc.overal_acc_yu_Eq12(test_df = test_df, ML_pred_col="NDVI_SG_DL_p3")
-test_df.head(2)
-
-# %%
-ML_pred_col = "NDVI_SG_DL_p3"
-nc.yu_4_UA_Eq18(test_df, map_class = 1, ML_pred_col = ML_pred_col)
-nc.yu_4_UA_Eq18(test_df, map_class = 2, ML_pred_col = ML_pred_col)
-
-test_df.head(2)
-
-# %%
-test_df[["ref_class", ML_pred_col, "UA_single_yu_NDVI_SG_DL_p3", "UA_double_yu_NDVI_SG_DL_p3"]]
-
-# %%
-nc.xu_4_UA_Eq19(test_df, map_class = 1, ML_pred_col = ML_pred_col)
-nc.xu_4_UA_Eq19(test_df, map_class = 2, ML_pred_col = ML_pred_col)
-
-# %%
-test_df.head(2)
-
-# %%
-
-# %%
-nc.yu_4_PA_Eq22(test_df, ref_class = 1, ML_pred_col = ML_pred_col)
-nc.yu_4_PA_Eq22(test_df, ref_class = 2, ML_pred_col = ML_pred_col)
-
-# %%
-test_df.head(2)
-
-# %%
-test_df[["ref_class", ML_pred_col, "PA_single_yu_NDVI_SG_DL_p3", "PA_double_yu_NDVI_SG_DL_p3"]]
-
-# %%
-
-# %%
-# Test our functions to create Table 2 of Stehman here.
-
-# %%
 stehman_T2 = stehman_df_table2[list(stehman_df_table2.columns[0:3])].copy()
 stehman_T2.head(2)
 
@@ -311,7 +220,7 @@ stehman_T2.head(2)
 # to accomodate the 4 classes in Stehman
 
 # %%
-def area_count_refClass_yu_Eq14_Eq23(test_df, ref_class):
+def xu_4_PA_Eq23_yuEq14(test_df, ref_class):
     """
     Arguments
     ---------
@@ -344,8 +253,8 @@ def area_count_refClass_yu_Eq14_Eq23(test_df, ref_class):
 
 
 # %%
-area_count_refClass_yu_Eq14_Eq23(test_df=stehman_T2, ref_class="A")
-area_count_refClass_yu_Eq14_Eq23(test_df=stehman_T2, ref_class="C")
+xu_4_PA_Eq23_yuEq14(test_df=stehman_T2, ref_class="A")
+xu_4_PA_Eq23_yuEq14(test_df=stehman_T2, ref_class="C")
 stehman_T2.head(2)
 
 # %%
@@ -359,7 +268,7 @@ nc.overal_acc_yu_Eq12(test_df = stehman_T2, ML_pred_col = "map_class")
 stehman_T2.head(2)
 
 # %%
-stehman_T2["overal_acc_map_class_yu"].equals(stehman_df_table2["overall_ac_yu"])
+stehman_T2["overal_acc_yu_map_class"].equals(stehman_df_table2["overall_ac_yu"])
 
 
 # %%
@@ -422,8 +331,6 @@ stehman_T2["UA_B_yu_map_class"].equals(stehman_df_table2["UA_class_B_yu"])
 # %%
 def xu_4_UA_Eq19(test_df, map_class, ML_pred_col):
     """
-    This is the same as Eq 14 (area_count_refClass_yu_Eq14()).
-    Just uses map_class instead of ref_class
     Arguments
     ---------
     map_class : int
@@ -496,5 +403,422 @@ stehman_df_table2.head(2)
 
 # %%
 stehman_T2["PA_B_yu_map_class"].equals(stehman_df_table2["PA_class_B_yu"])
+
+# %% [markdown]
+# # Our Data
+
+# %%
+####
+#### Directories
+####
+path_to_data = "/Users/hn/Documents/01_research_data/NASA/Amin/"
+file_name = "six_OverSam_TestRes_and_InclusionProb.sav"
+
+# %%
+####
+#### Read file
+####
+
+file_path = path_to_data + file_name
+
+all_data_dict = pd.read_pickle(file_path)
+print (f"{list(all_data_dict.keys()) = }")
+
+
+field_areas = all_data_dict["field_info"][["ID", "ExctAcr"]]
+
+test_set1_DL_res = all_data_dict["six_OverSam_TestRes"]["test_results_DL"]["train_ID1"]["a_test_set_df"]
+
+field_areas.head(2)
+
+# %%
+test_set1_DL_res.head(2)
+
+# %%
+print (all_data_dict["six_OverSam_TestRes"].keys())
+inclusion_prob = all_data_dict["six_OverSam_TestRes"]["inclusion_prob"]
+inclusion_prob.rename(columns={"denom": "population_count",
+                               "numer": "sample_count"}, inplace=True)
+
+inclusion_prob.head(2)
+
+# %%
+list(all_data_dict.keys())
+
+# %%
+all_data_dict["six_OverSam_TestRes"].keys()
+
+# %%
+stats = ["OA", "OA_SE", 
+         "UA_single", "UA_single_SE", 
+         "UA_double", "UA_double_SE",
+         "PA_single", "PA_single_SE", 
+         "PA_double", "PA_double_SE"]
+
+MLs = ["SVM", "RF", "KNN", "DL"]
+splits = ['train_ID0', 'train_ID1', 'train_ID2', 'train_ID3', 'train_ID4', 'train_ID5']
+
+# %%
+all_data_dict["six_OverSam_TestRes"]["test_results_SVM"].keys()
+
+# %%
+all_SE_summaries = {}
+
+for a_split in splits:
+    split_summary = pd.DataFrame(columns=["stats"] + MLs, index=np.arange(len(stats)))
+    split_summary["stats"] = stats
+    for a_col in split_summary.columns[1:]:
+        split_summary[a_col] = split_summary[a_col].astype(np.float64)
+        
+    for an_ML in MLs:
+        currSplit_currML_dict = all_data_dict["six_OverSam_TestRes"]["test_results_" + an_ML][a_split].copy()
+        # We already computed and have UA and PA for
+        # double-cropped fields. So, we can populate
+        # split_summary
+        split_summary.loc[split_summary["stats"]=="OA", an_ML] = currSplit_currML_dict["acc"]
+        split_summary.loc[split_summary["stats"]=="UA_double", an_ML] = currSplit_currML_dict["UA"]
+        split_summary.loc[split_summary["stats"]=="PA_double", an_ML] = currSplit_currML_dict["PA"]
+        
+        # we now need to compute and populate other rows
+        
+        ####
+        ####  Form Table 2
+        ####
+        curr_test = currSplit_currML_dict["a_test_set_df"].copy()
+        curr_ML_col = [x for x in curr_test.columns if "NDVI_SG_" in x]
+        curr_ML_col = curr_ML_col[0]
+        
+        old_columns_ = list(curr_test.columns)
+        
+        nc.overal_acc_yu_Eq12(test_df = curr_test, ML_pred_col=curr_ML_col)
+        ##
+        ## columns for single-cropped
+        ##
+        nc.yu_4_UA_Eq18(test_df = curr_test, map_class = 1, ML_pred_col=curr_ML_col)
+        nc.xu_4_UA_Eq19(test_df = curr_test, map_class = 1, ML_pred_col=curr_ML_col)
+        nc.yu_4_PA_Eq22(test_df = curr_test, ref_class = 1, ML_pred_col = curr_ML_col)
+        nc.xu_4_PA_Eq23_yuEq14(test_df = curr_test, ref_class = 1)
+        curr_test.head(2)
+
+        ##
+        ## columns for double-cropped
+        ##
+        nc.yu_4_UA_Eq18(test_df = curr_test, map_class = 2, ML_pred_col=curr_ML_col)
+        nc.xu_4_UA_Eq19(test_df = curr_test, map_class = 2, ML_pred_col=curr_ML_col)
+
+        nc.yu_4_PA_Eq22(test_df = curr_test, ref_class = 2, ML_pred_col = curr_ML_col)
+        nc.xu_4_PA_Eq23_yuEq14(test_df = curr_test, ref_class = 2)
+        curr_test.head(2)
+        ############################################################
+        all_columns = list(curr_test.columns)
+        var_cols = [x for x in all_columns if not (x in old_columns_)]
+        var_cols.remove("ref_class")
+
+        cov_variables = [
+                         ["UA_single_yu_" + curr_ML_col, "UA_single_xu_" + curr_ML_col],
+                         ["PA_single_yu_" + curr_ML_col, "PA_single_xu"],
+                         ["UA_double_yu_" + curr_ML_col, "UA_double_xu_" + curr_ML_col],
+                         ["PA_double_yu_" + curr_ML_col, "PA_double_xu"]
+                         ]
+        
+        Table3 = nc.mean_var_covar_table(df = curr_test.copy(), 
+                                         stratum_col = "CropTyp", 
+                                         variable_cols = var_cols,
+                                         cov_variables = cov_variables)
+        #########
+        #########
+        #########
+        
+        ### User Accuracy - single-cropped
+        split_summary.loc[split_summary["stats"]=="UA_single", an_ML] = \
+                               nc.UA_PA_Rhat_Eq27(Stehman_T3 = Table3, 
+                                                  yu_col = "UA_single_yu_" + curr_ML_col, 
+                                                  xu_col = "UA_single_xu_" + curr_ML_col, 
+                                                  stratum_area_df = inclusion_prob, 
+                                                  stratum_col = "CropTyp", 
+                                                  stratum_area_count_col = "population_count")
+
+        ### Producer Accuracy - single-cropped
+        split_summary.loc[split_summary["stats"]=="PA_single", an_ML] = \
+                               nc.UA_PA_Rhat_Eq27(Stehman_T3 = Table3, 
+                                                   yu_col = "PA_single_yu_" + curr_ML_col, 
+                                                   xu_col =  "PA_single_xu", 
+                                                   stratum_area_df = inclusion_prob, 
+                                                   stratum_col = "CropTyp", 
+                                                   stratum_area_count_col = "population_count")
+
+        ### SE for overall accuracy
+        split_summary.loc[split_summary["stats"]=="OA_SE", an_ML] = \
+                    nc.SE_4_OA_and_PropArea(stehman_T2 = curr_test.copy(), 
+                                            stehman_T3 = Table3.copy(), 
+                                            stratum_area_df = inclusion_prob.copy(),
+                                            # area or count. function will chose col: population_count
+                                            area_or_count="count",
+                                            variable = "overal_acc_yu_" + curr_ML_col,
+                                            stratum_col = "CropTyp")
+
+        # SE for UA single-cropped
+        split_summary.loc[split_summary["stats"]=="UA_single_SE", an_ML] = \
+                                  nc.SE_4_UA_PA(Stehman_T3 = Table3.copy(), 
+                                                stratum_area_df = inclusion_prob.copy(), 
+                                                area_or_count = "count", 
+                                                yu_col = "UA_single_yu_" + curr_ML_col, 
+                                                xu_col = "UA_single_xu_" + curr_ML_col, 
+                                                stratum_col = "CropTyp")
+
+        # SE for UA double-cropped
+        split_summary.loc[split_summary["stats"]=="UA_double_SE", an_ML] = \
+                                   nc.SE_4_UA_PA(Stehman_T3 = Table3.copy(), 
+                                                 stratum_area_df = inclusion_prob.copy(), 
+                                                 area_or_count = "count", 
+                                                 yu_col = "UA_double_yu_" + curr_ML_col, 
+                                                 xu_col = "UA_double_xu_" + curr_ML_col, 
+                                                 stratum_col = "CropTyp")
+
+        # SE for PA single-cropped
+        split_summary.loc[split_summary["stats"]=="PA_single_SE", an_ML] = \
+                                    nc.SE_4_UA_PA(Stehman_T3 = Table3.copy(), 
+                                                  stratum_area_df = inclusion_prob.copy(), 
+                                                  area_or_count = "count", 
+                                                  yu_col = "PA_single_yu_" + curr_ML_col, 
+                                                  xu_col = "PA_single_xu", 
+                                                  stratum_col = "CropTyp")
+
+        # SE for PA double-cropped
+        split_summary.loc[split_summary["stats"]=="PA_double_SE", an_ML] = \
+                                    nc.SE_4_UA_PA(Stehman_T3 = Table3.copy(), 
+                                                  stratum_area_df = inclusion_prob.copy(), 
+                                                  area_or_count = "count", 
+                                                  yu_col = "PA_double_yu_" + curr_ML_col, 
+                                                  xu_col = "PA_double_xu", 
+                                                  stratum_col = "CropTyp")
+    all_SE_summaries[a_split] = split_summary
+
+# %%
+all_SE_summaries["train_ID0"]
+
+# %%
+keep_rows = [x for x in stats if not("single" in x)]
+keep_rows
+
+# %%
+A = all_SE_summaries["train_ID5"].copy()
+A.loc[A.stats.isin(keep_rows), ["stats", "SVM", "DL", "KNN", "RF"]].values
+
+# %%
+stats = ["OA", "OA_SE", 
+         "UA_double", "UA_double_SE",
+         "PA_double", "PA_double_SE"]
+
+MLs = ["SVM", "DL", "KNN", "RF"]
+
+for a_stat in stats:
+    for an_ML in MLs:
+        stat_min = np.inf
+        stat_max = -np.inf
+        
+        for a_split in list(all_SE_summaries.keys()):
+            df = all_SE_summaries[a_split]
+            if df.loc[df.stats == a_stat, an_ML].values[0] < stat_min:
+                stat_min = df.loc[df.stats == a_stat, an_ML].values[0]
+            if df.loc[df.stats == a_stat, an_ML].values[0] > stat_max:
+                    stat_max = df.loc[df.stats == a_stat, an_ML].values[0]
+                    
+        print (a_stat, an_ML, stat_min, stat_max)
+    print ("-------------------------------------")
+            
+            
+
+# %%
+an_ML
+
+# %%
+
+# %%
+an_ML
+
+# %%
+
+# %%
+
+# %%
+import pickle
+from datetime import datetime
+
+filename = path_to_data + "SE_summaries_for_RemoteSensEnvDeskReject.sav"
+pickle.dump(all_SE_summaries, open(filename, 'wb'))
+
+export_ = {"all_SE_summaries": all_SE_summaries, 
+           "source_code" : "replicate_amin_intervals_stehman",
+           "Author": "HN",
+           "Date" : datetime.now().strftime('%Y-%m-%d %H:%M:%S')}
+
+pickle.dump(export_, open(filename, 'wb'))
+
+
+# %%
+print (path_to_data)
+
+# %%
+
+# %%
+
+# %%
+
+# %%
+
+# %%
+
+# %%
+
+# %%
+####
+####  Form Table 2
+####
+curr_test = test_set1_DL_res.copy()
+curr_ML_col = [x for x in curr_test.columns if "NDVI_SG_" in x]
+curr_ML_col = curr_ML_col[0]
+
+nc.overal_acc_yu_Eq12(test_df = curr_test, ML_pred_col=curr_ML_col)
+##
+## columns for single-cropped
+##
+nc.yu_4_UA_Eq18(test_df = curr_test, map_class = 1, ML_pred_col=curr_ML_col)
+nc.xu_4_UA_Eq19(test_df = curr_test, map_class = 1, ML_pred_col=curr_ML_col)
+nc.yu_4_PA_Eq22(test_df = curr_test, ref_class = 1, ML_pred_col = curr_ML_col)
+nc.xu_4_PA_Eq23_yuEq14(test_df = curr_test, ref_class = 1)
+curr_test.head(2)
+
+##
+## columns for double-cropped
+##
+nc.yu_4_UA_Eq18(test_df = curr_test, map_class = 2, ML_pred_col=curr_ML_col)
+nc.xu_4_UA_Eq19(test_df = curr_test, map_class = 2, ML_pred_col=curr_ML_col)
+
+nc.yu_4_PA_Eq22(test_df = curr_test, ref_class = 2, ML_pred_col = curr_ML_col)
+nc.xu_4_PA_Eq23_yuEq14(test_df = curr_test, ref_class = 2)
+curr_test.head(2)
+
+############################################################
+var_cols = list(curr_test.columns)[8:]
+
+cov_variables = [
+                 ["UA_single_yu_" + curr_ML_col, "UA_single_xu_" + curr_ML_col],
+                 ["PA_single_yu_" + curr_ML_col, "PA_single_xu"],
+                 ["UA_double_yu_" + curr_ML_col, "UA_double_xu_" + curr_ML_col],
+                 ["PA_double_yu_" + curr_ML_col, "PA_double_xu"]
+                 ]
+
+Table3 = nc.mean_var_covar_table(df = curr_test.copy(), 
+                                 stratum_col = "CropTyp", 
+                                 variable_cols = var_cols,
+                                 cov_variables = cov_variables)
+
+Table3.head(3)
+
+
+### overall acuracy
+nc.AreaClassProportion_and_OA(Stehman_T3 = Table3, 
+                              yu_col = "overal_acc_yu_" + curr_ML_col,
+                              stratum_area_df = inclusion_prob, 
+                              stratum_col = "CropTyp", 
+                              stratum_area_count_col = "population_count")
+
+### User Accuracy - single-cropped
+nc.UA_PA_Rhat_Eq27(Stehman_T3 = Table3, 
+                   yu_col = "UA_single_yu_" + curr_ML_col, 
+                   xu_col =  "UA_single_xu_" + curr_ML_col, 
+                   stratum_area_df = inclusion_prob, 
+                   stratum_col = "CropTyp", 
+                   stratum_area_count_col = "population_count")
+
+### User Accuracy - double-cropped
+nc.UA_PA_Rhat_Eq27(Stehman_T3 = Table3, 
+                   yu_col = "UA_double_yu_" + curr_ML_col, 
+                   xu_col =  "UA_double_xu_" + curr_ML_col, 
+                   stratum_area_df = inclusion_prob, 
+                   stratum_col = "CropTyp", 
+                   stratum_area_count_col = "population_count")
+
+### Producer Accuracy - single-cropped
+nc.UA_PA_Rhat_Eq27(Stehman_T3 = Table3, 
+                   yu_col = "PA_single_yu_" + curr_ML_col, 
+                   xu_col =  "PA_single_xu", 
+                   stratum_area_df = inclusion_prob, 
+                   stratum_col = "CropTyp", 
+                   stratum_area_count_col = "population_count")
+
+### Producer Accuracy - double-cropped
+nc.UA_PA_Rhat_Eq27(Stehman_T3 = Table3, 
+                   yu_col = "PA_double_yu_" + curr_ML_col, 
+                   xu_col =  "PA_double_xu", 
+                   stratum_area_df = inclusion_prob, 
+                   stratum_col = "CropTyp", 
+                   stratum_area_count_col = "population_count")
+
+### SE for overall accuracy
+nc.SE_4_OA_and_PropArea(stehman_T2 = curr_test.copy(), 
+                        stehman_T3 = Table3.copy(), 
+                        stratum_area_df = inclusion_prob.copy(), 
+                        area_or_count="count", # area or count. function will chose col: population_count
+                        variable = "overal_acc_yu_" + curr_ML_col,
+                        stratum_col = "CropTyp")
+
+# SE for UA single-cropped
+nc.SE_4_UA_PA(Stehman_T3 = Table3.copy(), 
+              stratum_area_df = inclusion_prob.copy(), 
+              area_or_count = "count", 
+              yu_col = "UA_single_yu_" + curr_ML_col, 
+              xu_col = "UA_single_xu_" + curr_ML_col, 
+              stratum_col = "CropTyp")
+
+# SE for UA double-cropped
+nc.SE_4_UA_PA(Stehman_T3 = Table3.copy(), 
+              stratum_area_df = inclusion_prob.copy(), 
+              area_or_count = "count", 
+              yu_col = "UA_double_yu_" + curr_ML_col, 
+              xu_col = "UA_double_xu_" + curr_ML_col, 
+              stratum_col = "CropTyp")
+
+# SE for PA single-cropped
+nc.SE_4_UA_PA(Stehman_T3 = Table3.copy(), 
+              stratum_area_df = inclusion_prob.copy(), 
+              area_or_count = "count", 
+              yu_col = "PA_single_yu_" + curr_ML_col, 
+              xu_col = "PA_single_xu", 
+              stratum_col = "CropTyp")
+
+# SE for PA double-cropped
+nc.SE_4_UA_PA(Stehman_T3 = Table3.copy(), 
+              stratum_area_df = inclusion_prob.copy(), 
+              area_or_count = "count", 
+              yu_col = "PA_double_yu_" + curr_ML_col, 
+              xu_col = "PA_double_xu", 
+              stratum_col = "CropTyp")
+
+# %%
+
+# %%
+
+# %%
+all_data_dict["six_OverSam_TestRes"]["test_results_DL"]["train_ID1"]
+
+# %%
+
+# %%
+
+# %%
+
+# %%
+
+# %%
+
+# %%
+
+# %%
+
+# %%
+
+# %%
 
 # %%

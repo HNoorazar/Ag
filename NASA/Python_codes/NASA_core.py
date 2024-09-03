@@ -111,9 +111,9 @@ def xu_4_UA_Eq19(test_df, map_class, ML_pred_col):
     assert map_class in [1, 2]
 
     if map_class == 1:
-        new_variable = "singlePred_xu_" + ML_pred_col
+        new_variable = "UA_single_xu_" + ML_pred_col
     else:
-        new_variable = "doublePred_xu_" + ML_pred_col
+        new_variable = "UA_double_xu_" + ML_pred_col
 
     test_df[new_variable] = 0
 
@@ -184,7 +184,7 @@ def overal_acc_yu_Eq12(test_df, ML_pred_col):
     if "Vote" in test_df:
         test_df.rename(columns={"Vote": "ref_class"}, inplace=True)
 
-    new_variable = "overal_acc_" + ML_pred_col + "_yu"
+    new_variable = "overal_acc_yu_" + ML_pred_col
 
     test_df[new_variable] = 0
 
@@ -192,7 +192,7 @@ def overal_acc_yu_Eq12(test_df, ML_pred_col):
     test_df.loc[indices, new_variable] = 1
 
 
-def area_count_refClass_yu_Eq14_Eq23(test_df, ref_class):
+def xu_4_PA_Eq23_yuEq14(test_df, ref_class):
     """
     Checked agains Stehman.
     Arguments
@@ -215,9 +215,9 @@ def area_count_refClass_yu_Eq14_Eq23(test_df, ref_class):
         test_df.rename(columns={"Vote": "ref_class"}, inplace=True)
 
     if ref_class == 1:
-        new_variable = "single_class_yu"
+        new_variable = "PA_single_xu"
     else:
-        new_variable = "double_class_yu"
+        new_variable = "PA_double_xu"
 
     test_df[new_variable] = 0
 
@@ -226,7 +226,21 @@ def area_count_refClass_yu_Eq14_Eq23(test_df, ref_class):
 
 
 def SE_4_UA_PA(Stehman_T3, stratum_area_df, area_or_count, yu_col, xu_col, stratum_col):
-    """ """
+    """
+    as it is possible that there is only one instance of a given strata
+    in the set, we need to drop them. This is already done in Stehman_T3.
+    We must do the same for stehman_T2
+    """
+
+    stratum_area_df = stratum_area_df[
+        stratum_area_df[stratum_col].isin(list(Stehman_T3[stratum_col]))
+    ]
+
+    Stehman_T3.sort_values(by=[stratum_col], inplace=True)
+    Stehman_T3.reset_index(drop=True, inplace=True)
+
+    stratum_area_df.sort_values(by=[stratum_col], inplace=True)
+    stratum_area_df.reset_index(drop=True, inplace=True)
 
     if area_or_count == "area":
         pop_area_count = "population_area"
@@ -275,14 +289,33 @@ def SE_4_UA_PA(Stehman_T3, stratum_area_df, area_or_count, yu_col, xu_col, strat
     a = np.multiply(Nh_star_sq, second_term)
     b = np.multiply(a, third_term)
     c = np.multiply(b, inner_denoms)
+    # variance_ = np.abs(c.sum() * outer_denom)
     variance_ = c.sum() * outer_denom
-    return np.sqrt(variance_).round(3)
+    return (np.sqrt(variance_)).round(3)
 
 
 def SE_4_OA_and_PropArea(
-    stehman_T2, stehman_T3, stratum_area_df, area_or_count, variable
+    stehman_T2, stehman_T3, stratum_area_df, area_or_count, variable, stratum_col
 ):
-    """ """
+    """
+    as it is possible that there is only one instance of a given strata
+    in the set, we need to drop them. This is already done in stehman_T3.
+    We must do the same for stehman_T2
+    """
+    stehman_T2 = stehman_T2[stehman_T2[stratum_col].isin(list(stehman_T3[stratum_col]))]
+    stratum_area_df = stratum_area_df[
+        stratum_area_df[stratum_col].isin(list(stehman_T3[stratum_col]))
+    ]
+
+    stehman_T2.sort_values(by=[stratum_col], inplace=True)
+    stehman_T2.reset_index(drop=True, inplace=True)
+
+    stehman_T3.sort_values(by=[stratum_col], inplace=True)
+    stehman_T3.reset_index(drop=True, inplace=True)
+
+    stratum_area_df.sort_values(by=[stratum_col], inplace=True)
+    stratum_area_df.reset_index(drop=True, inplace=True)
+
     if area_or_count == "area":
         pop_area_count = "population_area"
         sample_area_count = "sample_area"
@@ -303,7 +336,7 @@ def SE_4_OA_and_PropArea(
     first_X_second_X_third = np.multiply(first_X_second, syh_sq)
     sum_ = np.multiply(first_X_second_X_third, inner_denoms).sum()
     SE_sq = sum_ / outer_denom
-    return np.sqrt(SE_sq).round(3)
+    return (np.sqrt(SE_sq)).round(3)
 
 
 def UA_PA_Rhat_Eq27(
@@ -358,7 +391,7 @@ def AreaClassProportion_and_OA(
     #     how="left",
     #     on=stratum_col,
     # )
-    return numerator.sum() / stratum_area_df[stratum_area_count_col].sum()
+    return (numerator.sum() / stratum_area_df[stratum_area_count_col].sum()).round(3)
 
 
 def mean_times_a_column(
@@ -428,6 +461,21 @@ def mean_var_covar_table(df, stratum_col, variable_cols, cov_variables):
 
     Stehman paper: http://dx.doi.org/10.1080/01431161.2014.930207
     """
+
+    ### It's possible that there is only one example
+    ### from a given stratum. This creates NaN for variance and covariance stuff.
+    ### Get rid of them.
+    ###
+    if not ("ID" in df.columns):
+        df["ID"] = df.index
+
+    count_df = df.groupby(by=stratum_col).count().reset_index()
+    alone_stratums_ = list(count_df[count_df["ID"] == 1][stratum_col])
+    df = df[~(df[stratum_col].isin(alone_stratums_))]
+
+    df.sort_values(by=[stratum_col], inplace=True)
+    df.reset_index(drop=True, inplace=True)
+
     stratas = df[stratum_col].unique()
     cols = [stratum_col, "parameters"] + variable_cols
     meanVarCovar_df = pd.DataFrame(columns=cols, index=range(len(stratas) * 3))
@@ -475,6 +523,9 @@ def mean_var_covar_table(df, stratum_col, variable_cols, cov_variables):
         meanVarCovar_df.loc[
             meanVarCovar_df["parameters"] == "covar", curr_cov_var
         ] = replacement
+
+    for a_col in meanVarCovar_df.columns[2:]:
+        meanVarCovar_df[a_col] = meanVarCovar_df[a_col].astype(np.float64)
 
     return meanVarCovar_df
 
