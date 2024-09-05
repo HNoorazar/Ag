@@ -665,7 +665,6 @@ hawaii_gdf = gdf[gdf.state=='HI'] # I donno why visframe is not working here
 hawaii_gdf.clip(hipolygon).plot(color = visframe[visframe.state=="HI"]["region_color"].item(), 
                                  linewidth=0.8, ax=hiax, edgecolor='0.8')
 
-
 legend_dict = col_dict
 patchList = []
 for key in legend_dict:

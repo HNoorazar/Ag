@@ -3,8 +3,6 @@
 //// SET PARAMETERS HERE ///////
 
 ////////////////////////////////
- 
-
 // Raster data to run zonal stats on
 var collection_name = 'projects/rap-data-365417/assets/vegetation-cover-v3' //projects/rangeland-analysis-platform/vegetation-cover-v3';
 
@@ -20,46 +18,30 @@ var zones_name = table;
 
 // Set the meters/pixel scale you want to process the data at. You can set it to a different
 // resolution than the underlying data to affect processing time. Or just set it to the data size
-
 var processing_scale = 30; 
 
 // Set the output name (without extension, it'll be a CSV)
 var output_name = 'Hudson_Proposed';
 
 // Set an output folder. Leave blank to just write to root Drive
-
 var output_folder = 'Tess';
 
  
 
 // Define a reducer to crunch the data. The combine function efficiently chains
-
 // multiple reducers. In this case, mean and standard deviation
 
 var redu = ee.Reducer.mean();
-
-  // .combine({reducer2: ee.Reducer.stdDev(), sharedInputs: true})
-
-  // .combine({reducer2: ee.Reducer.count(), sharedInputs: true});
-
- 
+         // .combine({reducer2: ee.Reducer.stdDev(), sharedInputs: true})
+         // .combine({reducer2: ee.Reducer.count(), sharedInputs: true});
 
 ////////////////////////////////
 
 ////////////////////////////////
-
- 
-
- 
-
 var col = ee.ImageCollection(collection_name);
-
 var single_band = col.select(band_name);
-
  
-
 // Add it to the map with some visualization parameters
-
 Map.addLayer(single_band, {palette:['red', 'yellow', 'green']}, band_name);
 
  
@@ -67,34 +49,24 @@ Map.addLayer(single_band, {palette:['red', 'yellow', 'green']}, band_name);
  
 
 // Get the geometry file
-
 var zones = ee.FeatureCollection(zones_name);
 
 // print('example zone', zones.first());
 
  
-
 // Add it to the map if you want
-
 // Map.addLayer(zones);
 
- 
-
- 
 
 // Turn the image collection into a single image with bands from each single-band image in the collection
-
 var img = single_band.toBands();
 
- 
 
 // Reduce the image collection on the zones
 
 var samp = img.reduceRegions({
-
   collection: zones,
-
-  reducer: redu,
+  reducer: ee.Reducer.mean(),
 
   scale: processing_scale,
 
