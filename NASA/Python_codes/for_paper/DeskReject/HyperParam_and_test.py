@@ -164,10 +164,10 @@ for a_train_ID in sorted(DL_preds_test.train_ID.unique()):
 a_train_ID
 
 # %%
-for a_key in test_results.keys():
-    print (a_key)
-    print (test_results[a_key])
-    print ("==========================================================================")
+# for a_key in test_results.keys():
+#     print (a_key)
+#     print (test_results[a_key])
+#     print ("==========================================================================")
 
 
 # %%
@@ -175,7 +175,11 @@ for a_key in test_results.keys():
 
 # %%
 test_results_DL = test_results.copy()
-test_results_DL
+
+# %%
+test_results.keys()
+
+# %%
 
 # %% [markdown]
 # ### Non-DL MLs
@@ -334,16 +338,16 @@ for a_key in test_results_SVM.keys():
     print ("==========================================================================")
 
 # %%
-for a_key in test_results_KNN.keys():
-    print (a_key)
-    print (test_results_KNN[a_key])
-    print ("==========================================================================")
+# for a_key in test_results_KNN.keys():
+#     print (a_key)
+#     print (test_results_KNN[a_key])
+#     print ("==========================================================================")
 
 # %%
-for a_key in test_results_RF.keys():
-    print (a_key)
-    print (test_results_RF[a_key])
-    print ("==========================================================================")
+# for a_key in test_results_RF.keys():
+#     print (a_key)
+#     print (test_results_RF[a_key])
+#     print ("==========================================================================")
 
 # %%
 ML_test_results.keys()
@@ -356,6 +360,9 @@ ML_test_results["test_results_DL"] = test_results_DL
 
 # %%
 ML_test_results.keys()
+
+# %%
+ML_test_results["test_results_SVM"].keys()
 
 # %% [markdown]
 # # Original Split
@@ -378,25 +385,44 @@ pred_cols
 all_preds_overSample = all_preds_overSample[["ID", "CropTyp"] + pred_cols].copy()
 
 # %%
-test_IDs = list(test_results_KNN["train_ID1"]["a_test_set_df"]["ID"])
-all_preds_overSample = all_preds_overSample[all_preds_overSample.ID.isin(test_IDs)].copy()
+ML_data_Oct17_dir = "/Users/hn/Documents/01_research_data/NASA/ML_data_Oct17/"
+original_test = pd.read_csv(ML_data_Oct17_dir + "test20_split_2Bconsistent_Oct17.csv")
+original_test.head(2)
+
+# %%
+###########
+########### we need to pick up train_ID from original split.
+###########
+original_test_IDs = list(original_test["ID"])
+all_preds_overSample = all_preds_overSample[all_preds_overSample.ID.isin(original_test_IDs)].copy()
 all_preds_overSample.reset_index(drop=True, inplace=True)
 all_preds_overSample.head(3)
 
 # %%
-ML_test_results["test_results_SVM"]["train_ID1"].keys()
+all_preds_overSample.shape
 
 # %%
-A = ML_test_results["test_results_SVM"]["train_ID1"]["a_test_set_df"]
-A.head(2)
+DL_orig = all_preds_overSample[["ID", "DL_NDVI_SG_prob_point3"]].copy()
+DL_orig = pd.merge(DL_orig, original_test, how="left", on="ID")
+DL_orig.head(2)
+
+# %%
+DL_orig[(DL_orig["Vote"] == 1) & (DL_orig["DL_NDVI_SG_prob_point3"]==1)].shape
+
+# %%
+# A = ML_test_results["test_results_SVM"]["train_ID1"]["a_test_set_df"]
+# A.head(2)
 
 # %%
 original_split_test_SVM = all_preds_overSample.copy()
 original_split_test_SVM = original_split_test_SVM[["ID", "SVM_NDVI_SG_preds"]].copy()
-original_split_test_SVM = pd.merge(original_split_test_SVM, A[["ID", "Vote"]], on="ID", how="left")
+original_split_test_SVM = pd.merge(original_split_test_SVM, original_test, on="ID", how="left")
 original_split_test_SVM["train_test"] = "test"
 original_split_test_SVM["train_ID"] = 0
 original_split_test_SVM.head(2)
+
+# %%
+DL_orig[(DL_orig["Vote"] == 1) & (DL_orig["DL_NDVI_SG_prob_point3"]==1)].shape
 
 # %%
 pred_col = "SVM_NDVI_SG_preds"
@@ -433,7 +459,7 @@ original_split_test_SVM_dict = {"acc" : round(accuracy, 3),
 # %%
 original_split_test_RF = all_preds_overSample.copy()
 original_split_test_RF = original_split_test_RF[["ID", "RF_NDVI_SG_preds"]].copy()
-original_split_test_RF = pd.merge(original_split_test_RF, A[["ID", "Vote"]], on="ID", how="left")
+original_split_test_RF = pd.merge(original_split_test_RF, original_test, on="ID", how="left")
 original_split_test_RF["train_test"] = "test"
 original_split_test_RF["train_ID"] = 0
 original_split_test_RF.head(2)
@@ -473,7 +499,7 @@ original_split_test_RF_dict = {"acc" : round(accuracy, 3),
 # %%
 original_split_test_KNN = all_preds_overSample.copy()
 original_split_test_KNN = original_split_test_KNN[["ID", "KNN_NDVI_SG_preds"]].copy()
-original_split_test_KNN = pd.merge(original_split_test_KNN, A[["ID", "Vote"]], on="ID", how="left")
+original_split_test_KNN = pd.merge(original_split_test_KNN, original_test, on="ID", how="left")
 original_split_test_KNN["train_test"] = "test"
 original_split_test_KNN["train_ID"] = 0
 original_split_test_KNN.head(2)
@@ -513,10 +539,16 @@ original_split_test_KNN_dict = {"acc" : round(accuracy, 3),
 # %%
 original_split_test_DL = all_preds_overSample.copy()
 original_split_test_DL = original_split_test_DL[["ID", "DL_NDVI_SG_prob_point3"]].copy()
-original_split_test_DL = pd.merge(original_split_test_DL, A[["ID", "Vote"]], on="ID", how="left")
+original_split_test_DL = pd.merge(original_split_test_DL, original_test, on="ID", how="left")
 original_split_test_DL["train_test"] = "test"
 original_split_test_DL["train_ID"] = 0
 original_split_test_DL.head(2)
+
+# %%
+original_split_test_DL[(original_split_test_DL["Vote"] == 2) & \
+                       (original_split_test_DL["DL_NDVI_SG_prob_point3"] == 2)].shape
+
+# %%
 
 # %%
 pred_col = "DL_NDVI_SG_prob_point3"

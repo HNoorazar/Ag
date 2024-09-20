@@ -35,6 +35,20 @@ import os
 import math
 
 # %%
+import numpy as np
+import pandas as pd
+a = np.random.randn(3,3)
+a= pd.DataFrame(a)
+
+a.to_csv("/Users/hn/Documents/00_github/Ag/NASA/Python_codes/drivers/09_ML_drivers/a.csv")
+
+# %%
+
+# %%
+
+# %%
+
+# %%
 data_dir_base = "/Users/hn/Documents/01_research_data/RangeLand/Data/"
 param_dir = data_dir_base + "parameters/"
 Shannon_data_dir = data_dir_base + "Shannon_Data/"

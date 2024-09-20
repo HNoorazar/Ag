@@ -595,7 +595,7 @@ for a_split in splits:
     all_SE_summaries[a_split] = split_summary
 
 # %%
-all_SE_summaries["train_ID0"]
+all_SE_summaries["train_ID0"][["stats", "SVM", "DL", "KNN", "RF"]]
 
 # %%
 keep_rows = [x for x in stats if not("single" in x)]
@@ -630,16 +630,6 @@ for a_stat in stats:
             
 
 # %%
-an_ML
-
-# %%
-
-# %%
-an_ML
-
-# %%
-
-# %%
 
 # %%
 import pickle
@@ -658,12 +648,6 @@ pickle.dump(export_, open(filename, 'wb'))
 
 # %%
 print (path_to_data)
-
-# %%
-
-# %%
-
-# %%
 
 # %%
 

@@ -6,7 +6,7 @@
 #       extension: .py
 #       format_name: percent
 #       format_version: '1.3'
-#       jupytext_version: 1.14.5
+#       jupytext_version: 1.15.2
 #   kernelspec:
 #     display_name: Python 3 (ipykernel)
 #     language: python
@@ -125,7 +125,7 @@ file_name = plot_dir + "denoise_" + str(length_) + "_by_" + str (height_)+".pdf"
 plt.savefig(fname = file_name, dpi=400, bbox_inches='tight', transparent=False)
 
 file_name = plot_dir + "denoise_" + str(length_) + "_by_" + str (height_)+".png"
-plt.savefig(fname = file_name, dpi=400, bbox_inches='tight', transparent=False)
+# plt.savefig(fname = file_name, dpi=400, bbox_inches='tight', transparent=False)
 
 # %%
 with plt.xkcd(scale=1, length=200):
