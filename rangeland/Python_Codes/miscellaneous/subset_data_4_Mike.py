@@ -70,7 +70,21 @@ list(abb_dict.keys())
 # %%
 state_name_fips = pd.DataFrame({"state_full" : list(abb_dict["full_2_abb"].keys()),
                                 "state" : list(abb_dict["full_2_abb"].values())})
-state_name_fips = pd.merge(state_name_fips, abb_dict["state_fips"], on=["state"], how="left")
+
+
+state_name_fips.head(2)
+
+# %%
+abb_dict["state_fips"].head(2)
+
+# %%
+
+# %%
+
+# %%
+state_name_fips = pd.merge(state_name_fips, 
+                           abb_dict["state_fips"][["state_fips", "EW_meridian", "state"]], 
+                           on=["state"], how="left")
 state_name_fips.head(2)
 
 # %%
@@ -104,9 +118,9 @@ productivity = pd.read_csv(Min_data_dir_base + "county_annual_productivity.csv")
 productivity.head(2)
 
 # %%
-MODIS_NPP = pd.read_csv("/Users/hn/Documents/01_research_data/RangeLand/Data_large_notUsedYet/" + \
-                        "Min_data/county_annual_MODIS_NPP.csv")
-MODIS_NPP.head(2)
+# MODIS_NPP = pd.read_csv("/Users/hn/Documents/01_research_data/RangeLand/Data_large_notUsedYet/" + \
+#                         "Min_data/county_annual_MODIS_NPP.csv")
+# MODIS_NPP.head(2)
 
 # %%
 test_inventory_yr = all_df[["year", "inventory"]]
@@ -123,6 +137,9 @@ print (test_inventory_yr.year.max())
 # %%
 dummy_cols = [x for x in all_df.columns if "dumm" in x]
 all_df.drop(columns = dummy_cols, inplace=True)
+
+# %%
+[x for x in all_df.columns if "npp" in x]
 
 # %%
 keep_cols = ['year', 'inventory', 'state_fips',
@@ -160,16 +177,42 @@ print (test_inventory_yr.year.max())
 # %%
 all_df = rc.convert_lb_2_kg(df=all_df, 
                             matt_total_npp_col="total_matt_npp", 
-                            new_col_name="metric_total_matt_npp")
+                            new_col_name="metricKg_total_matt_npp")
+
+# %%
+[x for x in all_df.columns if "npp" in x]
+
+# %%
+# all_df = rc.convert_lb_2_kg(df=all_df, 
+#                             matt_total_npp_col="unit_matt_npp", 
+#                             new_col_name="metric_unit_matt_npp")
+
+all_df = rc.convert_lbperAcr_2_kg_in_sqM(all_df, 
+                                         matt_unit_npp_col="unit_matt_npp", 
+                                         new_col_name="metricKg_sqMeter_unit_matt_npp")
+
+# %%
+[x for x in all_df.columns if "npp" in x]
+
+# %%
+# 1 acre is 4046.85642199999983859016 m2
+all_df["rangeland_area_sqMeter"] = all_df["rangeland_acre"] * 4046.85642199999983859016
+
+# %%
+all_df.head(2)
+
+# %%
+all_df2 = all_df.copy()
+all_df2.dropna(subset = ["metricKg_sqMeter_unit_matt_npp"], inplace=True)
+metric_npp_vect = (all_df2["metricKg_sqMeter_unit_matt_npp"] * all_df2["rangeland_area_sqMeter"]).values
+metric_npp_vect
 
 # %%
 all_df = pd.merge(all_df, state_name_fips, on=["state_fips"], how="left")
 all_df.head(2)
 
 # %%
-all_df[["year", "unit_matt_npp"]].dropna(how="any", inplace=False).year.max()
-
-# %%
+print (all_df[["year", "unit_matt_npp"]].dropna(how="any", inplace=False).year.max())
 all_df[["year", "max_ndvi_in_year_modis"]].dropna(how="any", inplace=False).head(2)
 
 # %%
@@ -179,8 +222,34 @@ print (format(15979574020, ",d"))
 all_df.tail(2)
 
 # %%
+[x for x in all_df.columns if "npp" in x]
+
+# %%
+[x for x in list(all_df.columns) if "rangeland" in x]
+
+# %%
+min_dir = "/Users/hn/Documents/01_research_data/RangeLand/Data/Min_Data/"
+A = pd.read_csv(min_dir + "county_rangeland_and_totalarea_fraction.csv")
+A = rc.correct_Mins_county_6digitFIPS(A, col_="FIPS_ID")
+A["state_fips"] = A["FIPS_ID"].str.slice(0, 2)
+A["state_fips"].unique()
+A.head(2)
+
+# %%
 # converting to CSV file
 all_df.to_csv(reOrganized_dir + "NPP_NDVI_Invent_Mike_2May2024.csv", index=False)
+
+# %%
+reOrganized_dir
+
+# %%
+list(all_df.columns)
+
+# %%
+
+# %%
+
+# %%
 
 # %%
 all_df.year.max()
@@ -253,8 +322,15 @@ all_df.head(2)
 all_df.dropna(subset=["max_ndvi_in_year_modis"])["year"].max()
 
 # %%
-all_df.columns
 
+
+# %%
+
+# %%
+
+# %%
+
+# %%
 
 # %%
 

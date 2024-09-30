@@ -169,6 +169,9 @@ fit.params["Intercept"].round(2)
 fit.params[NDVI_col].round(2)
 
 # %%
+npp_col
+
+# %%
 
 # # This automatically considers intercept, i.e. no need to add a column on 1s to Xs
 
@@ -193,8 +196,11 @@ df_.dropna(how="any", inplace=True)
 # print("Coefficient of determination: %.2f" % r2_score(y_pred, df_.unit_matt_npp.values))
 
 # %%
+print (len(all_df.state_fips.unique()))
+(all_df.state_fips.unique())
 
 # %%
+# [x for x in list(all_df.columns) if "state" in x]
 
 # %%
 X = all_df[[NDVI_col, npp_col]].copy()
@@ -227,7 +233,7 @@ axs.set_ylabel(y_label)
 
 fig_name = plots_dir + "stateNDVI_" + meteric_name + "MattUnitNPP.pdf"
 print(f"{fig_name = }")
-plt.savefig(fname=fig_name, dpi=100, bbox_inches="tight")
+# plt.savefig(fname=fig_name, dpi=100, bbox_inches="tight")
 
 del(ks_result, R2)
 
@@ -236,6 +242,7 @@ del(ks_result, R2)
 # # Transferred model
 
 # %%
+df_
 
 # %%
 X = df_[NDVI_col]
@@ -266,11 +273,12 @@ axs.set_ylabel("sqrt " + y_label)
 
 fig_name = plots_dir + "stateNDVI_sqrt" + meteric_name + "MattUnitNPP.pdf"
 print(f"{fig_name = }")
-plt.savefig(fname=fig_name, dpi=100, bbox_inches="tight")
+# plt.savefig(fname=fig_name, dpi=100, bbox_inches="tight")
 
 del(R2, ks_result)
 
 # %%
+npp_col
 
 # %%
 X = df_[NDVI_col]
