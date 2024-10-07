@@ -418,17 +418,12 @@ file_name = "six_OverSam_TestRes_and_InclusionProb.sav"
 ####
 #### Read file
 ####
-
 file_path = path_to_data + file_name
-
 all_data_dict = pd.read_pickle(file_path)
 print (f"{list(all_data_dict.keys()) = }")
 
-
 field_areas = all_data_dict["field_info"][["ID", "ExctAcr"]]
-
 test_set1_DL_res = all_data_dict["six_OverSam_TestRes"]["test_results_DL"]["train_ID1"]["a_test_set_df"]
-
 field_areas.head(2)
 
 # %%

@@ -33,9 +33,6 @@ import rangeland_core as rc
 
 datetime.now().strftime("%Y-%m-%d %H:%M:%S")
 # -
-
-
-
 data_dir_base = "/Users/hn/Documents/01_research_data/RangeLand/Data/"
 census_population_dir = data_dir_base + "census/"
 # Shannon_data_dir = data_dir_base + "Shannon_Data/"
@@ -43,6 +40,62 @@ census_population_dir = data_dir_base + "census/"
 param_dir = data_dir_base + "parameters/"
 Min_data_base = data_dir_base + "Min_Data/"
 reOrganized_dir = data_dir_base + "reOrganized/"
+
+
+# # <font color='red'>Warning</font>
+#
+# Min's RA file (```county_rangeland_and_totalarea_fraction.csv```) includes some counties that
+# are not present in NPP file. Thus, if you want total rangeland acre, filter based on NPP!!!
+#
+# Do NOT run the following cell...
+#  - inconsistency
+#  - Already it is computed above
+#
+# Read NPP file. Filter counties that are not there. Then compute state-level RA
+
+# +
+cty_yr_npp = pd.read_csv(reOrganized_dir + "county_annual_GPP_MattNPP.csv")
+cty_yr_npp.rename(columns={"county": "county_fips"}, inplace=True)
+cty_yr_npp.drop(columns = ["MODIS_GPP"], inplace=True)
+
+cty_yr_npp = rc.correct_Mins_county_6digitFIPS(cty_yr_npp, col_="county_fips")
+cty_yr_npp.head(2)
+# -
+
+counties_from_cty_yr_npp = cty_yr_npp["county_fips"].unique()
+len(counties_from_cty_yr_npp)
+
+
+
+# +
+### RA
+### We need RA to convert unit NPP to total NPP.
+
+county_RA = pd.read_csv(Min_data_base + "county_rangeland_and_totalarea_fraction.csv")
+county_RA.drop(columns = ["County_Area_Acre", "Rangeland_fraction"], inplace=True)
+
+county_RA.rename(columns={"FIPS_ID": "county_fips",
+                          "Rangeland_Acre" : "rangeland_acre"}, inplace=True)
+
+county_RA = rc.correct_Mins_county_6digitFIPS(county_RA, col_="county_fips")
+county_RA["state_fips"] = county_RA.county_fips.str.slice(start=0, stop=2)
+county_RA.head(2)
+
+print (county_RA.shape)
+county_RA.drop_duplicates(inplace=True)
+print (county_RA.shape)
+
+county_RA = county_RA[county_RA.county_fips.isin(list(counties_from_cty_yr_npp))]
+print (county_RA.shape)
+
+county_RA.head(2)
+# -
+
+state_RA = county_RA.copy()
+state_RA.drop(columns = ["county_fips"], inplace=True)
+state_RA = state_RA.groupby(["state_fips"]).sum().reset_index()
+print (state_RA.shape)
+state_RA.head(2)
 
 # for bold print
 start_b = "\033[1m"
@@ -68,6 +121,10 @@ print(f"{len(county_fips.state.unique()) = }")
 county_fips = county_fips[["county_fips", "county_name", "state_fips", "EW_meridian"]]
 print(f"{len(county_fips.state_fips.unique()) = }")
 # -
+
+county_fips.head(2)
+
+county_fips[county_fips.state_fips=="01"].shape
 
 # ## Inventory
 
@@ -139,7 +196,6 @@ herb = herb["State_NDVIDOY_Herb"]
 herb.dropna(how="any", inplace=True)
 herb.head(2)
 
-
 ## Compute total herb area.
 herb = rc.compute_herbRatio_totalArea(herb)
 herb.reset_index(drop=True, inplace=True)
@@ -163,56 +219,49 @@ WA_County_NDVIDOY_Herb = County_NDVIDOY_Herb[County_NDVIDOY_Herb.state_fips == "
 
 County_NDVIDOY_Herb.head(5)
 
-# ### RA
-#
-# We need RA to convert unit NPP to total NPP.
+
 
 # +
-RA = pd.read_csv(reOrganized_dir + "county_rangeland_and_totalarea_fraction.csv")
-RA.rename(columns={"fips_id": "county_fips"}, inplace=True)
-RA = rc.correct_Mins_county_6digitFIPS(df=RA, col_="county_fips")
-print(f"{len(RA.county_fips.unique()) = }")
-RA.reset_index(drop=True, inplace=True)
+# Min_state_NPP = pd.read_csv(Min_data_base + "statefips_annual_productivity.csv")
+# Min_state_NPP.rename(columns={"statefips90m": "state_fips", "productivity": "unit_matt_npp"}, inplace=True)
+# Min_state_NPP["state_fips"] = Min_state_NPP["state_fips"].astype(str)
 
-RA["state_fips"] = RA.county_fips.str.slice(start=0, stop=2)
-RA.head(2)
+# Min_state_NPP["state_fips"] = Min_state_NPP.state_fips.str.slice(start=1, stop=3)
 
-# +
-Min_state_NPP = pd.read_csv(Min_data_base + "statefips_annual_productivity.csv")
-Min_state_NPP.rename(columns={"statefips90m": "state_fips", "productivity": "unit_matt_npp"}, inplace=True)
-Min_state_NPP["state_fips"] = Min_state_NPP["state_fips"].astype(str)
-
-Min_state_NPP["state_fips"] = Min_state_NPP.state_fips.str.slice(start=1, stop=3)
-
-print(f"{Min_state_NPP.year.min() = }")
-print(f"{Min_state_NPP.year.max() = }")
-Min_state_NPP.head(2)
-# -
-
-Min_state_NPP[Min_state_NPP.state_fips == "21"]
-
-sorted(Min_state_NPP.state_fips.unique())
+# print(f"{Min_state_NPP.year.min() = }")
+# print(f"{Min_state_NPP.year.max() = }")
+# Min_state_NPP.head(2)
 
 # +
+# Min_state_NPP[Min_state_NPP.state_fips == "21"]
 
-A = pd.read_csv(Min_data_base+"statefips_annual_productivity.csv")
+# +
+# sorted(Min_state_NPP.state_fips.unique())
 
+# +
+county_RA.rename(columns={"FIPS_ID": "county_fips",
+                          "Rangeland_Acre" : "rangeland_acre", }, inplace=True)
+
+county_RA.head(2)
+
+# +
 cty_yr_npp = pd.read_csv(reOrganized_dir + "county_annual_GPP_MattNPP.csv")
+cty_yr_npp.head(2)
 
 # On March 29 we changed the NPP to Matt NPP.
 # The Matt NPP units are pound/acr.
 cty_yr_npp.rename(columns={"county": "county_fips"}, inplace=True)
 cty_yr_npp = rc.correct_Mins_county_6digitFIPS(df=cty_yr_npp, col_="county_fips")
 cty_yr_npp = cty_yr_npp[["year", "county_fips", "unit_matt_npp"]]
+cty_yr_npp.head(2)
+# -
 
 # # Some counties do not have unit NPPs
 cty_yr_npp.dropna(subset=["unit_matt_npp"], inplace=True)
 cty_yr_npp.reset_index(drop=True, inplace=True)
-
-cty_yr_npp = pd.merge(cty_yr_npp, RA[["county_fips", "rangeland_acre"]], on=["county_fips"], how="left")
-
+cty_yr_npp = pd.merge(cty_yr_npp, county_RA[["county_fips", "rangeland_acre"]], 
+                      on=["county_fips"], how="left")
 cty_yr_npp.head(2)
-# -
 
 cty_yr_npp = rc.covert_MattunitNPP_2_total(NPP_df=cty_yr_npp, 
                                            npp_unit_col_="unit_matt_npp",
@@ -221,6 +270,9 @@ cty_yr_npp = rc.covert_MattunitNPP_2_total(NPP_df=cty_yr_npp,
 cty_yr_npp.head(2)
 
 cty_yr_npp.year.max()
+
+print (((cty_yr_npp["unit_matt_npp"] * cty_yr_npp["rangeland_acre"]) - 
+        cty_yr_npp["county_total_matt_npp"]).unique())
 
 
 
@@ -235,41 +287,28 @@ state_yr_npp["state_fips"] = state_yr_npp.county_fips.str.slice(start=0, stop=2)
 state_yr_npp.head(2)
 # -
 
-state_yr_npp.drop(labels=["county_fips", "unit_matt_npp"], axis=1, inplace=True)
+state_yr_npp.drop(labels=["county_fips", "unit_matt_npp", "rangeland_acre"], axis=1, inplace=True)
 state_yr_npp = state_yr_npp.groupby(["state_fips", "year"]).sum().reset_index()
-state_yr_npp.head(2)
-
 state_yr_npp.rename(columns={"county_total_matt_npp": "total_matt_npp"}, inplace=True)
 state_yr_npp.head(2)
+
+state_yr_npp = pd.merge(state_yr_npp, state_RA, on=["state_fips"], how="left")
+state_yr_npp.head(2)
+
+state_yr_npp[state_yr_npp.state_fips == "47"]["rangeland_acre"].unique()
+
+# +
 # del(cty_yr_npp)
+# -
 
 ##### Compute state-level unit-NPP
 state_yr_npp["unit_matt_npp"] = (state_yr_npp["total_matt_npp"] / state_yr_npp["rangeland_acre"])
 state_yr_npp.head(2)
 
-state_yr_npp[(state_yr_npp.state_fips == "04") & (state_yr_npp.year == 2001)]
+cty_yr_npp.head(2)
 
-Min_state_NPP.head(2)
-
-# # <font color='red'>Warning</font>
-#
-# Min's RA file (```county_rangeland_and_totalarea_fraction.csv```) includes some counties that
-# are not present in NPP file. Thus, if you want total rangeland acre, filter based on NPP!!!
-#
-# Do NOT run the following cell...
-#  - inconsistency
-#  - Already it is computed above
-
-# +
-## Convert RA to state level
-# RA_state = RA.copy()
-# RA_state.drop(labels=["county_fips", "rangeland_fraction"], axis=1, inplace=True)
-# RA_state = RA_state.groupby(["state_fips"]).sum().reset_index()
-
-# RA_state.rename(columns={"county_area_acre": "state_area_acre"},
-#                 inplace=True)
-# RA_state.head(2)
-# -
+print ((state_yr_npp["unit_matt_npp"]-(state_yr_npp["total_matt_npp"]/state_yr_npp["rangeland_acre"])).unique())
+print ((cty_yr_npp["unit_matt_npp"]*cty_yr_npp["rangeland_acre"]-(cty_yr_npp["county_total_matt_npp"])).unique())
 
 # ### Weather
 
@@ -320,6 +359,8 @@ A["s3_statemean_avg_tavg"] = A["s3_statemean_avg_tavg"].astype('float64')
 A = A.round(2)
 A[A.s3_statemean_avg_tavg == 21.72]
 
+(state_yr_npp["unit_matt_npp"] - (state_yr_npp["total_matt_npp"] / state_yr_npp["rangeland_acre"])).unique()
+
 # # Others (Controls)
 #
 #  - herb ratio
@@ -362,6 +403,8 @@ irr_hay.head(2)
 irr_hay["irr_hay_as_perc"] = (irr_hay["irr_hay_area"] * 100 / irr_hay["total_area_irrHayRelated"])
 irr_hay.head(2)
 
+(state_yr_npp["unit_matt_npp"] - (state_yr_npp["total_matt_npp"] / state_yr_npp["rangeland_acre"])).unique()
+
 feed_expense.head(2)
 
 feed_expense = feed_expense[["year", "state_fips", "feed_expense"]]
@@ -392,22 +435,22 @@ seasonal_ndvi.head(2)
 
 # ## State-level RA
 
-RA.head(2)
+(state_yr_npp["unit_matt_npp"] - (state_yr_npp["total_matt_npp"] / state_yr_npp["rangeland_acre"])).unique()
+
+county_RA.head(2)
+
+state_RA.head(2)
+
+print ((state_yr_npp["unit_matt_npp"]-(state_yr_npp["total_matt_npp"]/state_yr_npp["rangeland_acre"])).unique())
+print ((cty_yr_npp["unit_matt_npp"]*cty_yr_npp["rangeland_acre"]-(cty_yr_npp["county_total_matt_npp"])).unique())
 
 # # <font color='red'>Warning</font>
 #
 # ### FILTER RA based on the counties that are in county-level NPP?
 
-RA_state = RA.copy()
-RA_state = RA_state[["state_fips", "rangeland_acre", "county_area_acre"]]
-RA_state = RA_state.groupby(["state_fips"]).sum().reset_index()
-RA_state.rename(columns={"county_area_acre": "state_area_acre"}, inplace=True)
-RA_state["rangeland_fraction"] = (RA_state["rangeland_acre"] / RA_state["state_area_acre"])
-RA_state.head(2)
-
 FarmOperation.head(2)
 
-RA_state.head(2)
+state_RA.head(2)
 
 SW.head(2)
 
@@ -428,9 +471,11 @@ seasonal_ndvi.head(2)
 
 list(seasonal_ndvi.columns)
 
-seasonal_ndvi.loc[seasonal_ndvi.state_fips=="01", ["year", "state_fips", "ndvi_std_modis"]]
+seasonal_ndvi.loc[seasonal_ndvi.state_fips=="01", ["year", "state_fips", "ndvi_std_modis"]].head(10)
 
 SW.head(2)
+
+(state_yr_npp["unit_matt_npp"] - (state_yr_npp["total_matt_npp"] / state_yr_npp["rangeland_acre"])).unique()
 
 # +
 SW["annual_statemean_total_danger"] = (
@@ -453,29 +498,41 @@ A["s3_statemean_avg_tavg"] = A["s3_statemean_avg_tavg"].astype('float64')
 A = A.round(2)
 A[A.s3_statemean_avg_tavg == 21.72]
 
-Min_state_NPP.head(2)
+# +
+# Min_state_NPP.head(2)
+# -
+
+state_yr_npp.head(2)
+
+print ((state_yr_npp["unit_matt_npp"]-(state_yr_npp["total_matt_npp"]/state_yr_npp["rangeland_acre"])).unique())
+print ((cty_yr_npp["unit_matt_npp"]*cty_yr_npp["rangeland_acre"]-(cty_yr_npp["county_total_matt_npp"])).unique())
 
 # state_yr_npp = state_yr_npp[["state_fips", "year", "state_unit_npp", "state_total_npp"]].copy()
-state_yr_npp = state_yr_npp[["state_fips", "year", "unit_matt_npp", "total_matt_npp"]].copy()
+# state_yr_npp = state_yr_npp[["state_fips", "year", "unit_matt_npp", "total_matt_npp"]].copy()
 state_yr_npp.head(2)
+
+print ((state_yr_npp["unit_matt_npp"]-(state_yr_npp["total_matt_npp"]/state_yr_npp["rangeland_acre"])).unique())
+print ((cty_yr_npp["unit_matt_npp"]*cty_yr_npp["rangeland_acre"]-(cty_yr_npp["county_total_matt_npp"])).unique())
+
+state_yr_npp[state_yr_npp.state_fips == "01"]["rangeland_acre"].unique()
+
+
 
 state_yr_npp.sort_values(by=["state_fips", "year"], inplace=True)
 state_yr_npp.head(4)
-
-Min_state_NPP.sort_values(by=["state_fips", "year"], inplace=True)
-Min_state_NPP.head(4)
 
 # # NPP or NDVI std: Do we want to include this per state?
 # I think so.
 
 # +
-Min_state_NPP_std = Min_state_NPP.groupby(["state_fips"])["unit_matt_npp"].std(ddof=1).reset_index()
-Min_state_NPP_std.rename(columns={"unit_matt_npp": "unit_matt_npp_std"}, inplace=True)
+# Min_state_NPP_std = Min_state_NPP.groupby(["state_fips"])["unit_matt_npp"].std(ddof=1).reset_index()
+# Min_state_NPP_std.rename(columns={"unit_matt_npp": "unit_matt_npp_std"}, inplace=True)
 
-Min_state_NPP = pd.merge(Min_state_NPP, Min_state_NPP_std, on=["state_fips"], how="outer")
-Min_state_NPP.head(2)
+# Min_state_NPP = pd.merge(Min_state_NPP, Min_state_NPP_std, on=["state_fips"], how="outer")
+# Min_state_NPP.head(2)
 # -
 
+print ((state_yr_npp["unit_matt_npp"] - (state_yr_npp["total_matt_npp"] / state_yr_npp["rangeland_acre"])).unique())
 state_yr_npp.head(2)
 
 state_yr_npp_std = state_yr_npp.groupby(["state_fips"])["unit_matt_npp"].std(ddof=1).reset_index()
@@ -484,11 +541,19 @@ state_yr_npp_std.head(2)
 state_yr_npp = pd.merge(state_yr_npp, state_yr_npp_std, on=["state_fips"], how="outer")
 state_yr_npp.head(2)
 
+print ((state_yr_npp["unit_matt_npp"]-(state_yr_npp["total_matt_npp"]/state_yr_npp["rangeland_acre"])).unique())
+print ((cty_yr_npp["unit_matt_npp"]*cty_yr_npp["rangeland_acre"]-(cty_yr_npp["county_total_matt_npp"])).unique())
+
+state_yr_npp[state_yr_npp.state_fips == "47"]["rangeland_acre"].unique()
+
 state_yr_npp_std = state_yr_npp.groupby(["state_fips"])["total_matt_npp"].std(ddof=1).reset_index()
 state_yr_npp_std.rename(columns={"total_matt_npp": "total_matt_npp_std"}, inplace=True)
 state_yr_npp_std.head(2)
 state_yr_npp = pd.merge(state_yr_npp, state_yr_npp_std, on=["state_fips"], how="outer")
 state_yr_npp.head(2)
+
+print ((state_yr_npp["unit_matt_npp"]-(state_yr_npp["total_matt_npp"]/state_yr_npp["rangeland_acre"])).unique())
+print ((cty_yr_npp["unit_matt_npp"]*cty_yr_npp["rangeland_acre"]-(cty_yr_npp["county_total_matt_npp"])).unique())
 
 # ### Subset to states of interest at the end!
 
@@ -498,13 +563,13 @@ filename = reOrganized_dir + "state_data_forOuterJoin.sav"
 export_ = {
     "AgLand": AgLand,
     "FarmOperation": FarmOperation,
-    "RA": RA_state,
+    "RA": state_RA,
     "SW": SW,
     "SoI": SoI,
     "SoI_abb": SoI_abb,
     "abb_dict": abb_dict,
     "my_state_npp": state_yr_npp,
-    "Min_state_NPP": Min_state_NPP,
+    # "Min_state_NPP": Min_state_NPP,
     "feed_expense": feed_expense,
     "herb": herb,
     "irr_hay": irr_hay,
@@ -550,25 +615,24 @@ A["s3_statemean_avg_tavg"] = A["s3_statemean_avg_tavg"].astype('float64')
 A = A.round(2)
 A[(A.s3_statemean_avg_tavg > 21.7) & (A.s3_statemean_avg_tavg < 21.8)]
 
-
-
-
-
 # ## Do the outer join and normalize and save in another file
 #
 # #### First do variables that change over time then constant variables such as rangeland area.
 
 # ### Time-invariant Variables
 
-RA_state.head(2)
+print (state_RA.shape)
+state_RA.head(2)
 
 herb.head(2)
 
 irr_hay.head(2)
 
-constants = pd.merge(RA_state, herb, on=["state_fips"], how="outer")
+constants = pd.merge(state_RA, herb, on=["state_fips"], how="outer")
 constants = pd.merge(constants, irr_hay, on=["state_fips"], how="outer")
 constants.head(2)
+
+constants[constants.state_fips == "01"]
 
 # ### Annual variables
 
@@ -612,12 +676,22 @@ wetLand_area[(wetLand_area.state_fips == "01") & (wetLand_area.year == 1997)]
 
 AgLand[(AgLand.state_fips == "01") & (AgLand.year == 1997)]
 
+print ((state_yr_npp["unit_matt_npp"] - (state_yr_npp["total_matt_npp"] / 
+                                         state_yr_npp["rangeland_acre"])).unique())
 
 
+
+
+
+# +
 # I cannot use Min's state NPP cuz, there is no way I can know what is the RA used in there.
 # So, NPP total in there... cannot be.
 # 
-annual_outer = pd.merge(shannon_invt_tall, state_yr_npp, on=["state_fips", "year"], how="outer")
+annual_outer = pd.merge(shannon_invt_tall, # ignore rangeland_acre here as it is time-invariant
+                        state_yr_npp[['state_fips', 'year', 'total_matt_npp',
+                                      'unit_matt_npp', 'unit_matt_npp_std', 'total_matt_npp_std']], 
+                        on=["state_fips", "year"], how="outer")
+
 annual_outer = pd.merge(annual_outer, slaughter, on=["state_fips", "year"], how="outer")
 annual_outer = pd.merge(annual_outer, human_population, on=["state_fips", "year"], how="outer")
 annual_outer = pd.merge(annual_outer, feed_expense, on=["state_fips", "year"], how="outer")
@@ -625,6 +699,9 @@ annual_outer = pd.merge(annual_outer, FarmOperation, on=["state_fips", "year"], 
 annual_outer = pd.merge(annual_outer, wetLand_area, on=["state_fips", "year"], how="outer")
 annual_outer = pd.merge(annual_outer, AgLand, on=["state_fips", "year"], how="outer")
 annual_outer.head(2)
+# -
+
+
 
 annual_outer[(annual_outer.state_fips == "01") & (annual_outer.year == 1997)]
 
@@ -633,11 +710,22 @@ beef_price_at_1982.head(2)
 
 hay_price_Q1_at_1982.head(2)
 
+
+
+annual_outer.head(2)
+
 annual_outer = pd.merge(annual_outer, hay_price_Q1_at_1982[["state_fips", "year", "hay_price_at_1982"]], 
                         on=["state_fips", "year"], how="outer")
 
 annual_outer = pd.merge(annual_outer, beef_price_at_1982[["year", "beef_price_at_1982"]], 
                         on=["year"], how="outer")
+
+# state_RA_from_annual_outer = annual_outer[["state_fips", "rangeland_acre"]].copy()
+# state_RA_from_annual_outer.dropna(subset = ["rangeland_acre"], inplace=True)
+# state_RA_from_annual_outer.drop_duplicates(inplace=True)
+# state_RA_from_annual_outer.shape
+# state_RA_from_annual_outer[state_RA_from_annual_outer.state_fips == "01"]
+
 
 annual_outer = pd.merge(annual_outer, chicken_price_at_1982[["year", "chicken_price_at_1982"]], 
                         on=["year"], how="outer")
@@ -647,6 +735,8 @@ annual_outer.head(2)
 # #### Seasonal ```NDVI``` to be added.
 
 SW.head(2)
+
+sorted(list(SW.columns))
 
 all_df = pd.merge(annual_outer, SW, on=["state_fips", "year"], how="outer")
 all_df.head(2)
@@ -664,6 +754,9 @@ states_interest_28 = states_interest_28[states_interest_28.state_full != "Kentuc
 states_interest_28.head(2)
 
 all_df.head(2)
+
+print ((state_yr_npp["unit_matt_npp"] - (state_yr_npp["total_matt_npp"] / state_yr_npp["rangeland_acre"])).unique())
+print ((all_df["unit_matt_npp"] - (all_df["total_matt_npp"] / all_df["rangeland_acre"])).unique())
 
 # +
 import matplotlib
@@ -699,18 +792,16 @@ plt.xlabel("seasonal temp");
 plt.ylabel(cols_[0]);
 # -
 
-A = all_df[["state_fips", "year", "s3_statemean_avg_tavg"]].copy()
-A["s3_statemean_avg_tavg"] = A["s3_statemean_avg_tavg"].astype('float64')
-A = A.round(2)
-A = all_df[["state_fips", "year", "s3_statemean_avg_tavg"]].copy()
-A["s3_statemean_avg_tavg"] = A["s3_statemean_avg_tavg"].astype('float64')
-A = A.round(2)
-A[(A.s3_statemean_avg_tavg > 21.5) & (A.s3_statemean_avg_tavg < 21.9)].shape
+all_df.head(2)
+
+print (constants.shape)
+constants.head(2)
 
 all_df = pd.merge(all_df, constants, on=["state_fips"], how="outer")
 all_df.head(2)
 
-
+print ((state_yr_npp["unit_matt_npp"] - (state_yr_npp["total_matt_npp"] / state_yr_npp["rangeland_acre"])).unique())
+print ((all_df["unit_matt_npp"] - (all_df["total_matt_npp"] / all_df["rangeland_acre"])).unique())
 
 all_df = pd.merge(all_df, seasonal_ndvi, on=["state_fips", "year"], how="outer")
 print(all_df.shape)
@@ -1117,6 +1208,26 @@ export_ = {
 
 pickle.dump(export_, open(filename, "wb"))
 # -
+
+all_df.head(2)
+
+all_df_copy = all_df.copy()
+all_df_copy.dropna(subset = ["unit_matt_npp"], inplace=True)
+all_df_copy.head(2)
+
+[x for x in sorted(list(all_df.columns)) if "rangeland" in x]
+
+all_df[all_df.state_fips == "47"]["rangeland_acre"].unique()
+
+(all_df_copy["unit_matt_npp"]) - (all_df_copy["total_matt_npp"] / all_df_copy["rangeland_acre"] )
+
+
+
+
+
+
+
+
 
 # ### Check if inventory Jan 1, Yr problem:
 

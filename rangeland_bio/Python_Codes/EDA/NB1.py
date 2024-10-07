@@ -14,26 +14,102 @@
 
 # %%
 import pandas as pd
+import numpy as np
+from datetime import datetime
+import os, os.path, pickle, sys
+import seaborn as sns
+
+import matplotlib
+import matplotlib.pyplot as plt
+
+sys.path.append("/Users/hn/Documents/00_GitHub/Ag/rangeland/Python_Codes/")
+import rangeland_core as rc
 
 # %%
-data_dir_base = "/Users/hn/Documents/01_research_data/RangeLand/Data/"
+data_dir_base = "/Users/hn/Documents/01_research_data/RangeLand_bio/Data/"
 min_dir = data_dir_base + "Min_Data/"
-RPMS_dir = min_dir + "RPMS/"
-bpszone_dir = min_dir + "bpszone/"
+reOrganized_dir = data_dir_base + "reOrganized/"
 
 # %%
-subsec_annual_RPMS_ANPP = pd.read_csv(RPMS_dir + "subsection_annual_productivity_rpms_SUM.csv")
-subsec_annual_RPMS_ANPP.head(2)
-
-# %%
-county_yrly_rpms_ANPP = pd.read_csv(RPMS_dir + "county_annual_productivity_rpms_MEAN.csv")
-county_yrly_rpms_ANPP.head(2)
-
-# %%
-bpszone_ANPP = pd.read_csv(bpszone_dir + "bpszone_annual_productivity_rpms_MEAN.csv")
+bpszone_ANPP = pd.read_csv(min_dir + "bpszone_annual_productivity_rpms_MEAN.csv")
 bpszone_ANPP.head(2)
 
 # %%
-len(bpszone_ANPP.FID.unique())
+len(bpszone_ANPP["FID"].unique())
+
+# %%
+import geopandas
+f_name = "albers_HucsGreeningBpSAtts250_For_Zonal_Stats"
+bps_SF = geopandas.read_file(min_dir + f_name + "/" + f_name + ".shp")
+bps_SF.head(2)
+
+# %%
+print (len(bps_SF["MinStatsID"].unique()))
+print (len(bps_SF["Value"].unique()))
+print (len(bps_SF["hucsgree_4"].unique()))
+
+# %%
+print ((bps_SF["hucsgree_4"] - bps_SF["Value"]).unique())
+
+print ((list(bps_SF.index) == bps_SF.MinStatsID).sum())
+
+# %%
+bps_SF.drop(columns=["Value"], inplace=True)
+bps_SF.head(2)
+
+# %%
+bpszone_ANPP["FID"].unique()[-10::]
+
+# %% [markdown]
+# #### rename columns
+
+# %%
+bpszone_ANPP.rename(columns=lambda x: x.lower().replace(' ', '_'), inplace=True)
+bpszone_ANPP.rename(columns={"area": "area_sqMeter", 
+                             "count": "pixel_count",
+                             "mean" : "mean_lb_per_acr"}, inplace=True)
+
+bpszone_ANPP.head(2)
+
+# %%
+print (len(bpszone_ANPP["fid"].unique()))
+print (len(bps_SF["hucsgree_4"].unique()))
+
+# %%
+print (bpszone_ANPP["fid"].unique().max())
+print (bps_SF["BPS_CODE"].unique().max())
+
+# %% [markdown]
+# ### Check if all locations have all years in it
+
+# %%
+bpszone_ANPP.head(2)
+
+# %%
+len(bpszone_ANPP[bpszone_ANPP.fid == 1])
+
+# %%
+unique_number_of_years = {}
+for a_fid in bpszone_ANPP.fid.unique():
+    if not (len(bpszone_ANPP[bpszone_ANPP.fid == a_fid]) in unique_number_of_years.keys()):
+        unique_number_of_years[len(bpszone_ANPP[bpszone_ANPP.fid == a_fid])] = 1
+    else:
+        unique_number_of_years[len(bpszone_ANPP[bpszone_ANPP.fid == a_fid])] = \
+            unique_number_of_years[len(bpszone_ANPP[bpszone_ANPP.fid == a_fid])] + 1
+
+# %%
+unique_number_of_years
+
+# %%
+len(bps_SF["MinStatsID"].unique())
+
+# %%
+len(bpszone_ANPP["fid"].unique())
+
+# %%
+bpszone_ANPP["fid"].unique().max()
+
+# %%
+bps_SF["MinStatsID"].unique().max()
 
 # %%

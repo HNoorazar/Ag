@@ -80,7 +80,7 @@ def create_adj_weight_matrix(data_df, adj_df, fips_var="state_fips"):
 
 def convert_lb_2_kg(df, matt_total_npp_col, new_col_name):
     """
-    Convert weight in lb to kg
+    Convert weight in lb to kg 0.45359237
     """
     df[new_col_name] = df[matt_total_npp_col] / 2.2046226218
     return df
