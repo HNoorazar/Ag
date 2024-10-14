@@ -94,7 +94,9 @@ ymin, ymax = axes.get_ylim()
 axes.set(ylim=(ymin-0.0001, ymax+0.003), axisbelow=True);
 
 file_name = plot_dir + "GT_fieldArea_prob.pdf"
-plt.savefig(fname = file_name, dpi=400, bbox_inches='tight', transparent=False);
+# plt.savefig(fname = file_name, dpi=400, bbox_inches='tight', transparent=False);
+
+# %%
 
 # %%
 x = GT_wMeta["ExctAcr"]
@@ -114,7 +116,9 @@ ymin, ymax = axes.get_ylim()
 axes.set(ylim=(ymin-1, ymax+25), axisbelow=True);
 
 file_name = plot_dir + "GT_fieldArea_Freq.pdf"
-plt.savefig(fname = file_name, dpi=400, bbox_inches='tight', transparent=False);
+# plt.savefig(fname = file_name, dpi=400, bbox_inches='tight', transparent=False);
+
+# %%
 
 # %%
 fig, axs = plt.subplots(2, 1, figsize=(10, 5), gridspec_kw={"hspace": 0.15, "wspace": 0.05},
@@ -137,7 +141,9 @@ ax1.set_ylabel('density');
 ax2.set_ylabel('density');
 ax2.set_xlabel(x_label);
 file_name = plot_dir + "GT_fieldArea_prob_SD.pdf"
-plt.savefig(fname = file_name, dpi=400, bbox_inches='tight', transparent=False);
+# plt.savefig(fname = file_name, dpi=400, bbox_inches='tight', transparent=False);
+
+# %%
 
 # %%
 # x = GT_wMeta["ExctAcr"]
@@ -180,7 +186,7 @@ ax1.set_ylabel('count');
 ax2.set_ylabel('count');
 ax2.set_xlabel(x_label);
 file_name = plot_dir + "GT_fieldArea_prob_Freq_sharey.pdf"
-plt.savefig(fname = file_name, dpi=400, bbox_inches='tight', transparent=False);
+# plt.savefig(fname = file_name, dpi=400, bbox_inches='tight', transparent=False);
 
 # %%
 GT_wMeta.head(2)
@@ -279,7 +285,9 @@ ax1.set_ylabel('count');
 ax2.set_ylabel('count');
 ax2.set_xlabel(x_label);
 file_name = plot_dir + "GT_Split0DL_fieldSizedist_.pdf"
-plt.savefig(fname = file_name, dpi=400, bbox_inches='tight', transparent=False);
+# plt.savefig(fname = file_name, dpi=400, bbox_inches='tight', transparent=False);
+
+# %%
 
 # %%
 fig, axs = plt.subplots(2, 1, figsize=(10, 5), gridspec_kw={"hspace": 0.15, "wspace": 0.05},
@@ -322,7 +330,9 @@ ax1.set_ylabel('count');
 ax2.set_ylabel('count');
 ax2.set_xlabel(x_label);
 file_name = plot_dir + "GT_testSplit0DL_fieldSizedist_mistakes.pdf"
-plt.savefig(fname = file_name, dpi=400, bbox_inches='tight', transparent=False);
+# plt.savefig(fname = file_name, dpi=400, bbox_inches='tight', transparent=False);
+
+# %%
 
 # %%
 tick_legend_FontSize = 12
@@ -359,7 +369,7 @@ plt.xlim(0, 270);
 plt.rcParams["axes.grid.axis"] ="y"
 
 file_name = plot_dir + "GT_fieldArea_Freq_seaborn.pdf"
-plt.savefig(fname = file_name, dpi=400, bbox_inches='tight', transparent=False);
+# plt.savefig(fname = file_name, dpi=400, bbox_inches='tight', transparent=False);
 
 # %%
 GT_wMeta_1 = GT_wMeta[GT_wMeta["Vote"]==1].copy()
@@ -401,7 +411,9 @@ axes[1].set_ylabel("count");
 axes[1].set_xlabel(x_label);
 
 file_name = plot_dir + "GT_fieldArea_Freq_seaborn_SD.pdf"
-plt.savefig(fname = file_name, dpi=400, bbox_inches='tight', transparent=False);
+# plt.savefig(fname = file_name, dpi=400, bbox_inches='tight', transparent=False);
+
+# %%
 
 # %%
 A1_P2 = GT_preds_[(GT_preds_["Vote"]==1) & (GT_preds_["DL_NDVI_SG_prob_point3"]==2)].copy()
@@ -440,7 +452,7 @@ title_2 = "distribution of field sizes in test set that are mislabeled"
 # axes.legend(handles=handles[1:], labels=labels[1:]);
 
 file_name = plot_dir + "GT_testSplit0DL_fieldSizedist_mistakes_seaborn.pdf"
-plt.savefig(fname = file_name, dpi=400, bbox_inches='tight', transparent=False);
+# plt.savefig(fname = file_name, dpi=400, bbox_inches='tight', transparent=False);
 
 # %%
 
@@ -516,6 +528,7 @@ splits = ['train_ID0', 'train_ID1', 'train_ID2', 'train_ID3', 'train_ID4', 'trai
 
 # %%
 all_ABCM = {} # all Area-Based Confusion Matrices
+all_ABCM_ratios = {}
 
 for a_split in splits:
     split_summary = pd.DataFrame(columns=["stats"] + MLs, index=np.arange(len(stats)))
@@ -547,6 +560,11 @@ for a_split in splits:
         split_summary.loc[split_summary["stats"]=="A2_P1", an_ML] = \
            int(curr_test[(curr_test["Vote"] == 2) & (curr_test[curr_ML_col]==1)]["ExctAcr"].sum())
         
+        cols = list(split_summary.columns)[1:]
+        split_summary_ratios = split_summary.copy()
+        split_summary_ratios[cols] = split_summary_ratios[cols] / split_summary_ratios.sum()[1:].values
+
+        
     for a_col in split_summary.columns[1:]:
         split_summary[a_col] = split_summary[a_col].astype(np.int64)
         
@@ -554,7 +572,15 @@ for a_split in splits:
         for idx in split_summary.index:
             split_summary.loc[idx, a_col] = "{:,}".format(split_summary.loc[idx, a_col])
             
+    for a_col in split_summary_ratios.columns[1:]:
+        split_summary_ratios[a_col] = split_summary_ratios[a_col].astype(np.float64)
+        
+    split_summary_ratios = split_summary_ratios
+            
     all_ABCM[a_split] = split_summary
+    all_ABCM_ratios[a_split] = split_summary_ratios
+
+# %%
 
 # %%
 import pickle
@@ -563,7 +589,8 @@ from datetime import datetime
 filename = path_to_data + "area_based_confusion.sav"
 # pickle.dump(all_ABCM, open(filename, 'wb'))
 
-export_ = {"area_based_confusion": all_ABCM, 
+export_ = {"area_based_confusion": all_ABCM,
+           "area_based_confusion_ratios": all_ABCM_ratios,
            "source_code" : "FieldAreaDist_and_AreaConfusion",
            "Author": "HN",
            "Date" : datetime.now().strftime('%Y-%m-%d %H:%M:%S')}
@@ -571,61 +598,7 @@ export_ = {"area_based_confusion": all_ABCM,
 pickle.dump(export_, open(filename, 'wb'))
 
 # %%
-
-# %%
-
-# %%
-
-# %%
-
-# %%
-
-# %%
-a_split = splits[1]
-split_summary = pd.DataFrame(columns=["stats"] + MLs, index=np.arange(len(stats)))
-split_summary["stats"] = stats
-
-for a_col in split_summary.columns[1:]:
-    split_summary[a_col] = split_summary[a_col].astype(np.float64)
-    
-an_ML = "DL"
-currSplit_currML_dict = all_data_dict["six_OverSam_TestRes"]["test_results_" + an_ML][a_split].copy()
-
-curr_test = currSplit_currML_dict["a_test_set_df"].copy()
-curr_ML_col = [x for x in curr_test.columns if "NDVI_SG_" in x]
-curr_ML_col = curr_ML_col[0]
-
-curr_test = pd.merge(curr_test, GT_wMeta[["ID", "ExctAcr"]], on="ID", how="left")
-curr_test.head(2)
-
-split_summary.loc[split_summary["stats"]=="A1_P1", an_ML] = \
-   int(curr_test[(curr_test["Vote"] == 1 ) & (curr_test[curr_ML_col]==1)]["ExctAcr"].sum())
-
-split_summary.loc[split_summary["stats"]=="A2_P2", an_ML] = \
-   int(curr_test[(curr_test["Vote"] == 2 ) & (curr_test[curr_ML_col]==2)]["ExctAcr"].sum())
-
-
-split_summary.loc[split_summary["stats"]=="A1_P2", an_ML] = \
-   int(curr_test[(curr_test["Vote"] == 1 ) & (curr_test[curr_ML_col]==2)]["ExctAcr"].sum())
-
-
-split_summary.loc[split_summary["stats"]=="A2_P1", an_ML] = \
-   int(curr_test[(curr_test["Vote"] == 2) & (curr_test[curr_ML_col]==1)]["ExctAcr"].sum())
-
-split_summary
-
-# %%
-A = all_data_dict["six_OverSam_TestRes"]["test_results_DL"]["train_ID0"]["a_test_set_df"]
-A.head(2)
-
-# %%
-print (A[(A["Vote"] == 1) & (A["DL_NDVI_SG_prob_point3"]==1)].shape)
-
-print (A[(A["Vote"] == 2) & (A["DL_NDVI_SG_prob_point3"]==2)].shape)
-
-print (A[(A["Vote"] == 1) & (A["DL_NDVI_SG_prob_point3"]==2)].shape)
-
-print (A[(A["Vote"] == 2) & (A["DL_NDVI_SG_prob_point3"]==1)].shape)
+all_ABCM_ratios["train_ID5"].values
 
 # %%
 

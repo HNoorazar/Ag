@@ -619,10 +619,50 @@ for a_stat in stats:
             if df.loc[df.stats == a_stat, an_ML].values[0] > stat_max:
                     stat_max = df.loc[df.stats == a_stat, an_ML].values[0]
                     
+        print (a_stat, an_ML, stat_min*100, stat_max*100)
+    print ("-------------------------------------")            
+
+# %%
+
+# %%
+
+# %%
+
+# %%
+
+# %%
+
+# %%
+stats = ["OA", "OA_SE", 
+         "UA_double", "UA_double_SE",
+         "PA_double", "PA_double_SE"]
+
+MLs = ["SVM", "DL", "KNN", "RF"]
+
+for a_stat in stats:
+    for an_ML in MLs:
+        stat_min = np.inf
+        stat_max = -np.inf
+        
+        for a_split in list(all_SE_summaries.keys()):
+            df = all_SE_summaries[a_split]
+            if df.loc[df.stats == a_stat, an_ML].values[0] < stat_min:
+                stat_min = df.loc[df.stats == a_stat, an_ML].values[0]
+            if df.loc[df.stats == a_stat, an_ML].values[0] > stat_max:
+                    stat_max = df.loc[df.stats == a_stat, an_ML].values[0]
+                    
         print (a_stat, an_ML, stat_min, stat_max)
-    print ("-------------------------------------")
-            
-            
+    print ("-------------------------------------")            
+
+# %%
+
+# %%
+ID = "train_ID5"
+df = all_SE_summaries[ID].copy()
+df = df[['stats', 'SVM', 'DL', 'KNN', 'RF']]
+df[df.stats.isin(["OA", "UA_double", "PA_double"])]
+
+# %%
 
 # %%
 
@@ -781,6 +821,10 @@ nc.SE_4_UA_PA(Stehman_T3 = Table3.copy(),
 
 # %%
 all_data_dict["six_OverSam_TestRes"]["test_results_DL"]["train_ID1"]
+
+# %%
+
+# %%
 
 # %%
 
