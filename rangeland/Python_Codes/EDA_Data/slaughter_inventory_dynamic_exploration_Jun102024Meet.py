@@ -1336,12 +1336,12 @@ for ii in [0, 1]:
                            c=col_dict[region], s=14, label=region.replace("_", " ").title())
 
         if x_var == "inv_perc_change":
-            x_label_ = "inventory change %"  #  (1000 heads)
+            x_label_ = "inventory change %" # (1000 heads)
         else:
             x_label_ = "inventory change relative to mean %"  # (1000 heads)
 
         if y_var == "slt_perc_change":
-            y_label_ = "slaughter change %"  # (1000 heads)
+            y_label_ = "slaughter change %" # (1000 heads)
         else:
             y_label_ = "slaughter change relative to mean %"  # (1000 heads)
 

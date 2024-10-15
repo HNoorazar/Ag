@@ -119,5 +119,44 @@ US_counties_SF_westMeridian.to_file(filename=f_name, driver='ESRI Shapefile')
 sorted(US_counties_SF_westMeridian["state_fips"].unique())
 
 # %%
+# look for more in US_map_study_area.py
+import os 
+
+data_dir_base = "/Users/hn/Documents/01_research_data/RangeLand/Data/"
+param_dir = data_dir_base + "parameters/"
+Shannon_data_dir = data_dir_base + "Shannon_Data/"
+
+Min_data_dir_base = data_dir_base + "Min_Data/"
+Mike_dir = data_dir_base + "Mike/"
+NASS_downloads = data_dir_base + "/NASS_downloads/"
+NASS_downloads_state = data_dir_base + "/NASS_downloads_state/"
+reOrganized_dir = data_dir_base + "reOrganized/"
+
+# %%
+import warnings
+warnings.filterwarnings("ignore")
+
+import geopandas as gpd
+import matplotlib.pyplot as plt
+from shapely.geometry import Polygon
+
+gdf = gpd.read_file(data_dir_base + 'cb_2018_us_state_500k.zip')
+gdf.rename(columns={"STUSPS": "state"}, inplace=True)
+gdf = gdf[~gdf.state.isin(["PR", "VI", "AS", "GU", "MP"])]
+gdf.to_crs({'init':'epsg:2163'})
+
+gdf.head(3)
+
+# %%
+visframe = gdf.to_crs({'init':'epsg:2163'})
+
+# create figure and axes for with Matplotlib for main map
+fig, ax = plt.subplots(1, figsize=(18, 14))
+# remove the axis box from the main map
+ax.axis('off')
+
+# create map of all states except AK and HI in the main map axis
+visframe[~visframe.state.isin(["AK", "HI"])].plot(color='lightblue', 
+                                                  linewidth=0.8, ax=ax, edgecolor='0.8');
 
 # %%

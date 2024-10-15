@@ -21,7 +21,6 @@ import matplotlib.pyplot as plt
 from matplotlib.ticker import FuncFormatter
 import matplotlib
 
-
 import numpy as np
 import matplotlib.colors as mcolors
 
@@ -33,18 +32,6 @@ import os
 # import wget
 # import openpyxl
 import math
-
-# %%
-import numpy as np
-import pandas as pd
-a = np.random.randn(3,3)
-a= pd.DataFrame(a)
-
-a.to_csv("/Users/hn/Documents/00_github/Ag/NASA/Python_codes/drivers/09_ML_drivers/a.csv")
-
-# %%
-
-# %%
 
 # %%
 
