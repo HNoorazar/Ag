@@ -32,8 +32,21 @@ import matplotlib
 import matplotlib.pyplot as plt
 import geopandas
 
+from matplotlib.colors import ListedColormap, Normalize
+from matplotlib import cm
+
 sys.path.append("/Users/hn/Documents/00_GitHub/Ag/rangeland/Python_Codes/")
 import rangeland_core as rc
+
+# %%
+dpi_ = 300
+custom_cmap = ListedColormap(['lightcoral', 'black'])
+
+# %%
+from matplotlib import colormaps
+print (list(colormaps)[:4])
+
+# %%
 
 # %%
 data_dir_base = "/Users/hn/Documents/01_research_data/RangeLand_bio/Data/"
@@ -260,7 +273,6 @@ plt.title('rangeland polygons on western meridian')
 # divider = make_axes_locatable(ax)
 # cax = divider.append_axes("right", size="1%", pad=0, alpha=1)
 
-visframe = gdf.to_crs({'init':'epsg:5070'})
 visframe_mainLand.plot(column='EW_meridian', ax=ax, # cax=cax,
                        alpha=1, cmap='Pastel1', 
                        edgecolor='k', legend=True, linewidth=0.1)
@@ -654,7 +666,7 @@ Albers_SF_west.head(2)
 # ### Plot everything and color based on slope
 
 # %%
-Albers_SF_west["centroid"]  = Albers_SF_west["geometry"].centroid
+Albers_SF_west["centroid"] = Albers_SF_west["geometry"].centroid
 Albers_SF_west.head(2)
 
 # %%
@@ -681,38 +693,79 @@ plt.rcParams.update(params)
 # %%
 fig, ax = plt.subplots(1,1, figsize=(8, 6), sharex=True, sharey=True, dpi=300)
 plt.title('rangeland greening trends on western meridian')
-
-# divider = make_axes_locatable(ax)
-# cax = divider.append_axes("right", size="1%", pad=0, alpha=1)
-
-visframe = gdf.to_crs({'init':'epsg:5070'})
 visframe_mainLand.plot(column='EW_meridian', ax=ax, alpha=1, # cax=cax,
                        cmap='Pastel1', edgecolor='k', legend=False, linewidth=0.1)
 
-cent_plt = Albers_SF_west.plot(column='sens_slope', legend=True, ax=ax)
+cent_plt = Albers_SF_west.plot(column='sens_slope', legend=False, ax=ax, cmap = cm.get_cmap('RdYlGn'))
 
-plt.rcParams['axes.linewidth'] = .051
+cbar1 = fig.colorbar(cent_plt.collections[1], ax=ax, orientation='vertical', shrink=0.5, 
+                     cmap = cm.get_cmap('RdYlGn'))
 ax.set_xticks([])
 ax.set_yticks([])
 
 plt.show();
 
 # %%
+tick_legend_FontSize = 6
+params = {"legend.fontsize": tick_legend_FontSize,  # medium, large
+          "axes.labelsize": tick_legend_FontSize * .71,
+          "axes.titlesize": tick_legend_FontSize * 1,
+          "xtick.labelsize": tick_legend_FontSize * .7,  #  * 0.75
+          "ytick.labelsize": tick_legend_FontSize * .7,  #  * 0.75
+          "axes.titlepad": 5, 'legend.handlelength': 2}
+plt.rcParams.update(params)
+
+# %% [markdown]
+# In order to have the center at ```yellow``` we manipulated ```vmin``` and ```vmax```.
+# Another way is [TwoSlopeNorm](https://matplotlib.org/stable/users/explain/colors/colormapnorms.html). Not pretty.
+#
+# Or from AI?
+# ```norm = colors.MidpointNormalize(midpoint=midpoint, vmin=data.min(), vmax=data.max())```?
 
 # %%
-fig, ax = plt.subplots(1,1, figsize=(6, 6), sharex=True, sharey=True, dpi=300)
+
+# %%
+import matplotlib.colors as colors
+
+fig, ax = plt.subplots(1,1, figsize=(4, 4), sharex=True, sharey=True, dpi=300)
 plt.title('rangeland trends on western meridian')
 
+# custom_cmap = ListedColormap(['lightcoral', 'black'])
+custom_cmap = ListedColormap(['white', 'black'])
 visframe_mainLand_west.plot(column='EW_meridian', ax=ax, # cax=cax,
-                            alpha=1, cmap='Pastel1', edgecolor='k', legend=False, linewidth=0.1)
+                            alpha=1, cmap=custom_cmap, edgecolor='k', legend=False, linewidth=0.1)
 
-cent_plt = Albers_SF_west.plot(column='sens_slope', legend=True, ax=ax)
+cent_plt = Albers_SF_west.plot(column='sens_slope', ax=ax, cmap = cm.get_cmap('RdYlGn'))
 
-plt.rcParams['axes.linewidth'] = .051
+min_max = np.max([np.abs(Albers_SF_west['sens_slope'].min()),
+                  np.abs(Albers_SF_west['sens_slope'].max())])
+
+norm1 = Normalize(vmin = -min_max, vmax = min_max, clip=True)
+
+cbar1 = fig.colorbar(cm.ScalarMappable(norm=norm1, cmap=cm.get_cmap('RdYlGn')), 
+                     ax=ax, orientation='vertical', shrink=0.5)
+# cbar1 = fig.colorbar(cent_plt.collections[1], ax=ax, orientation='vertical', shrink=0.5, 
+#                      cmap = cm.get_cmap('RdYlGn'))
 ax.set_xticks([])
 ax.set_yticks([])
 
 plt.show();
+
+# %%
+
+# %%
+# fig, ax = plt.subplots(1,1, figsize=(6, 6), sharex=True, sharey=True, dpi=300)
+# plt.title('rangeland trends on western meridian')
+
+# visframe_mainLand_west.plot(column='EW_meridian', ax=ax, # cax=cax,
+#                             alpha=1, cmap='Pastel1', edgecolor='k', legend=False, linewidth=0.1)
+
+# cent_plt = Albers_SF_west.plot(column='sens_slope', legend=True, ax=ax)
+
+# ax.set_xticks([])
+# ax.set_yticks([])
+
+# plt.show();
 
 # %%
 
@@ -729,26 +782,17 @@ print (ANPP_MK_df[ANPP_MK_df["trend"] == "increasing"]["p"].min())
 Albers_SF_west_increase = Albers_SF_west[Albers_SF_west["trend"] == "increasing"]
 
 # %%
-tick_legend_FontSize = 6
-
-params = {"legend.fontsize": tick_legend_FontSize,  # medium, large
-    "axes.labelsize": tick_legend_FontSize * .71,
-    "axes.titlesize": tick_legend_FontSize * 1,
-    "xtick.labelsize": tick_legend_FontSize * .7,  #  * 0.75
-    "ytick.labelsize": tick_legend_FontSize * .7,  #  * 0.75
-    "axes.titlepad": 5,
-    'legend.handlelength': 2}
-plt.rcParams.update(params)
-
 fig, ax = plt.subplots(1,1, figsize=(4, 4), sharex=True, sharey=True, dpi=300)
-plt.title("rangelands with greening trends, color: Sen's slope")
+plt.title(r"Rangelands with greening trends")
 
 visframe_mainLand_west.plot(column='EW_meridian', ax=ax, # cax=cax,
                             alpha=1, cmap='Pastel1', edgecolor='k', legend=False, linewidth=0.1)
 
-cent_plt = Albers_SF_west_increase.plot(column='sens_slope', legend=True, ax=ax)
+cent_plt = Albers_SF_west_increase.plot(column='sens_slope', ax=ax)
+# Add colorbar for Spearman's plot
+cbar1 = fig.colorbar(cent_plt.collections[1], ax=ax, orientation='vertical', shrink=0.5)
+cbar1.set_label(r"Sen's slope")
 
-plt.rcParams['axes.linewidth'] = .051
 ax.set_xticks([])
 ax.set_yticks([])
 
@@ -758,33 +802,27 @@ plt.show();
 Albers_SF_west_increase.head(2)
 
 # %%
-
-# %%
-tick_legend_FontSize = 6
-params = {"legend.fontsize": tick_legend_FontSize,  # medium, large
-          "axes.labelsize": tick_legend_FontSize * .71,
-         "axes.titlesize": tick_legend_FontSize * 1,
-         "xtick.labelsize": tick_legend_FontSize * .7,  #  * 0.75
-         "ytick.labelsize": tick_legend_FontSize * .7,  #  * 0.75
-         "axes.titlepad": 5, 'legend.handlelength': 2}
-plt.rcParams.update(params)
-
 fig, ax = plt.subplots(1,1, figsize=(4, 4), sharex=True, sharey=True, dpi=300)
-plt.title(r"rangelands with greening trends. colors: Kendall's $\tau$")
+plt.title(r"rangelands with greening trends (Kendall's $\tau$)")
 
-visframe_mainLand_west.plot(column='EW_meridian', ax=ax, # cax=cax,
-                            alpha=1, cmap='Pastel1', edgecolor='k', legend=False, linewidth=0.1)
+visframe_mainLand_west.plot(column='EW_meridian', ax=ax, alpha=1, # cax=cax,
+                            cmap=ListedColormap(['white', 'black']), 
+                            edgecolor='k', legend=False, linewidth=0.1)
 
-cent_plt = Albers_SF_west_increase.plot(column='Tau', legend=True, ax=ax)
+cent_plt = Albers_SF_west_increase.plot(column='Tau', ax=ax, cmap=cm.get_cmap('RdYlGn'))
+# Add colorbar for Spearman's plot
+cbar1 = fig.colorbar(cent_plt.collections[1], ax=ax, orientation='vertical', shrink=0.5)
+cbar1.set_label(r"Kendall's $\tau$")
 
-plt.rcParams['axes.linewidth'] = .051
 ax.set_xticks([])
 ax.set_yticks([])
 
 plt.show();
 
+# %%
+
 # %% [markdown]
-# # Plot positive Spearman's with p-value smaller than 0.05
+# ### Plot positive Spearman's with p-value smaller than 0.05
 
 # %%
 Albers_SF_west["Spearman"].min()
@@ -793,146 +831,114 @@ Albers_SF_west["Spearman"].min()
 Albers_SF_west.head(2)
 
 # %%
-Albers_SF_west_spearmanP5 = Albers_SF_west[Albers_SF_west["Spearman"] > 0]
-Albers_SF_west_spearmanP5 = Albers_SF_west_spearmanP5[Albers_SF_west_spearmanP5["p_valueSpearman"] < 0.05].copy()
 
-tick_legend_FontSize = 6
+# %%
+# Creating the figure and axes
+fig, axes = plt.subplots(1, 1, figsize=(4, 4), sharex=True, sharey=True, dpi=300)
 
-params = {"legend.fontsize": tick_legend_FontSize,  # medium, large
-    "axes.labelsize": tick_legend_FontSize * .71,
-    "axes.titlesize": tick_legend_FontSize * 1,
-    "xtick.labelsize": tick_legend_FontSize * .7,  #  * 0.75
-    "ytick.labelsize": tick_legend_FontSize * .7,  #  * 0.75
-    "axes.titlepad": 5,
-    'legend.handlelength': 2}
-plt.rcParams.update(params)
+visframe_mainLand_west.plot(column='EW_meridian', ax=axes, alpha=1, cmap='Pastel1', edgecolor='k', 
+                            legend=False, linewidth=0.1)
 
-fig, ax = plt.subplots(1,1, figsize=(4, 4), sharex=True, sharey=True, dpi=300)
-plt.title("rangelands with greening trends based on Spearman's rank")
+Albers_SF_west_spearmanP5 = Albers_SF_west[(Albers_SF_west["Spearman"] > 0) & 
+                                            (Albers_SF_west["p_valueSpearman"] < 0.05)]
+spearman_plot_s = Albers_SF_west_spearmanP5.plot(column='Spearman', ax=axes)
 
-visframe_mainLand_west.plot(column='EW_meridian', ax=ax, # cax=cax,
-                            alpha=1, cmap='Pastel1', edgecolor='k', legend=False, linewidth=0.1)
+# Add colorbar for Spearman's plot
+cbar1 = fig.colorbar(spearman_plot_s.collections[1], ax=axes, orientation='vertical', shrink=0.6)
+cbar1.set_label('Spearman\'s Rank')
 
-cent_plt = Albers_SF_west_spearmanP5.plot(column='Spearman', legend=True, ax=ax)
+axes.set_xticks([])
+axes.set_yticks([])
+axes.set_title("Rangelands with Greening Trends (Spearman's Rank)")
 
-plt.rcParams['axes.linewidth'] = .051
-ax.set_xticks([])
-ax.set_yticks([])
-
+plt.tight_layout()
 plt.show();
-
-# %% [markdown]
-# # Tau and Spearman side by side
-
-# %%
-tick_legend_FontSize = 6
-params = {"legend.fontsize": tick_legend_FontSize,  # medium, large
-    "axes.labelsize": tick_legend_FontSize * .71,
-    "axes.titlesize": tick_legend_FontSize * 1,
-    "xtick.labelsize": tick_legend_FontSize * .7,  #  * 0.75
-    "ytick.labelsize": tick_legend_FontSize * .7,  #  * 0.75
-    "axes.titlepad": 5,
-    'legend.handlelength': 2}
-plt.rcParams.update(params)
-plt.rcParams['axes.linewidth'] = .051
-
-fig, axes = plt.subplots(1, 2, figsize=(8, 4), sharex=True, sharey=True, dpi=300)
-(ax1, ax2) = axes
-
-####### Spearman's rank plot
-visframe_mainLand_west.plot(column='EW_meridian', ax=ax1, # cax=cax,
-                            alpha=1, cmap='Pastel1', edgecolor='k', legend=False, linewidth=0.1)
-
-Albers_SF_west_spearmanP5 = Albers_SF_west[Albers_SF_west["Spearman"] > 0].copy()
-Albers_SF_west_spearmanP5 = Albers_SF_west_spearmanP5[Albers_SF_west_spearmanP5["p_valueSpearman"] < 0.05]
-Albers_SF_west_spearmanP5.plot(column='Spearman', legend=True, ax=ax1)
-ax1.set_xticks([])
-ax1.set_yticks([])
-ax1.set_title("rangelands with greening trends based on Spearman's rank")
-
-####### Kendall's tau plot
-visframe_mainLand_west.plot(column='EW_meridian', ax=ax2, alpha=1, cmap='Pastel1',
-                            edgecolor='k', legend=False, linewidth=0.1)
-Albers_SF_west_increase.plot(column='Tau', legend=True, ax=ax2)
-
-ax2.set_xticks([])
-ax2.set_yticks([])
-ax2.set_title(r"rangelands with greening trends. colors: Kendall's $\tau$")
-
-plt.show();
-
-# %%
-
-# %%
-cdict = {
-  'red'  :  ( (0.0, 0.25, .25), (0.02, .59, .59), (1., 1., 1.)),
-  'green':  ( (0.0, 0.0, 0.0), (0.02, .45, .45), (1., .97, .97)),
-  'blue' :  ( (0.0, 1.0, 1.0), (0.02, .75, .75), (1., 0.45, 0.45))
-}
-
-cm = matplotlib.colors.LinearSegmentedColormap('my_colormap', cdict, 1024)
-
-
-import matplotlib.colors as clr
-cm_1 = clr.LinearSegmentedColormap.from_list('custom blue', ['#244362','#DCE6F1'], N=256)
-
-# %%
-tick_legend_FontSize = 6
-params = {"legend.fontsize": tick_legend_FontSize,  # medium, large
-    "axes.labelsize": tick_legend_FontSize * .71,
-    "axes.titlesize": tick_legend_FontSize * 1,
-    "xtick.labelsize": tick_legend_FontSize * .7,  #  * 0.75
-    "ytick.labelsize": tick_legend_FontSize * .7,  #  * 0.75
-    "axes.titlepad": 5,
-    'legend.handlelength': 2}
-plt.rcParams.update(params)
-plt.rcParams['axes.linewidth'] = .051
-
-fig, axes = plt.subplots(1, 2, figsize=(8, 4), sharex=True, sharey=True, dpi=300)
-(ax1, ax2) = axes
-
-####### Spearman's rank plot
-visframe_mainLand_west.plot(column='EW_meridian', ax=ax1, alpha=1, cmap='Pastel1',
-                            edgecolor='k', legend=False, linewidth=0.1)
-
-Albers_SF_west_spearmanP5 = Albers_SF_west[Albers_SF_west["Spearman"] > 0].copy()
-Albers_SF_west_spearmanP5 = Albers_SF_west_spearmanP5[Albers_SF_west_spearmanP5["p_valueSpearman"] < 0.05]
-Albers_SF_west_spearmanP5.plot(column='Spearman', legend=True, ax=ax1)
-ax1.set_xticks([])
-ax1.set_yticks([])
-ax1.set_title("rangelands with greening trends based on Spearman's rank")
-
-####### Kendall's tau plot
-visframe_mainLand_west.plot(column='EW_meridian', ax = ax2,
-                            alpha=1, cmap='Pastel1', edgecolor='k', legend=False, linewidth=0.1)
-
-visframe_mainLand_west.plot(column='EW_meridian', ax=ax2, alpha=1, cmap='Pastel1',
-                            edgecolor='k', legend=False, linewidth=0.1)
-A = Albers_SF_west_increase.plot(column='Tau', legend=True, ax=ax2)
-
-ax2.set_xticks([])
-ax2.set_yticks([])
-ax2.set_title(r"rangelands with greening trends. colors: Kendall's $\tau$")
-# fig.colorbar(A, ax=axes.ravel().tolist())
-plt.show();
-
-# %%
 
 # %%
 Albers_SF_west.head(2)
 
 # %%
-tick_legend_FontSize = 6
-params = {"legend.fontsize": tick_legend_FontSize,  # medium, large
-    "axes.labelsize": tick_legend_FontSize * .71,
-    "axes.titlesize": tick_legend_FontSize * 1,
-    "xtick.labelsize": tick_legend_FontSize * .7,  #  * 0.75
-    "ytick.labelsize": tick_legend_FontSize * .7,  #  * 0.75
-    "axes.titlepad": 5,
-    'legend.handlelength': 2}
-plt.rcParams.update(params)
-plt.rcParams['axes.linewidth'] = .051
+# Creating the figure and axes
+fig, axes = plt.subplots(1, 1, figsize=(4, 4), sharex=True, sharey=True, dpi=300)
 
+visframe_mainLand_west.plot(column='EW_meridian', ax=axes, alpha=1, cmap='Pastel1', edgecolor='k', 
+                            legend=False, linewidth=0.1)
+
+Albers_SF_west_median_diff_increase = Albers_SF_west[Albers_SF_west["median_ANPP_change_as_perc"] > 0].copy()
+plot_s = Albers_SF_west_median_diff_increase.plot(column='median_ANPP_change_as_perc', ax=axes)
+
+# Add colorbar for Spearman's plot
+cbar1 = fig.colorbar(plot_s.collections[1], ax=axes, orientation='vertical', shrink=0.6)
+cbar1.set_label('median ANPP change %')
+
+axes.set_xticks([])
+axes.set_yticks([])
+axes.set_title(r"Greening Trends. median ANPP change %")
+
+plt.tight_layout()
+plt.show();
+
+# %%
+
+# %% [markdown]
+# ## Side by side
+
+# %%
+# Parameters for font sizes
+tick_legend_FontSize = 8
+params = {"legend.fontsize": tick_legend_FontSize,
+          "axes.labelsize": tick_legend_FontSize * 0.71,
+          "axes.titlesize": tick_legend_FontSize * 1,
+          "xtick.labelsize": tick_legend_FontSize * 0.7,
+          "ytick.labelsize": tick_legend_FontSize * 0.7,
+          "axes.titlepad": 5,    'legend.handlelength': 2}
+plt.rcParams.update(params)
+
+# %%
+# Creating the figure and axes
+fig, axes = plt.subplots(1, 2, figsize=(8, 4), sharex=True, sharey=True, dpi=300)
+(ax1, ax2) = axes
+
+# Define a colormap
+cmap = cm.get_cmap('Greens') # 'PRGn', 'YlGn'
+
+custom_cmap = ListedColormap(['lightcoral', 'black'])
+####### Spearman's rank plot
+visframe_mainLand_west.plot(column='EW_meridian', ax=ax1, alpha=1, cmap=custom_cmap, edgecolor='k', 
+                            legend=False, linewidth=0.1)
+
+Albers_SF_west_spearmanP5 = Albers_SF_west[(Albers_SF_west["Spearman"] > 0) & 
+                                            (Albers_SF_west["p_valueSpearman"] < 0.05)]
+Albers_SF_west_spearmanP5.plot(column='Spearman', ax=ax1, cmap=cmap)
+
+# Create a continuous colorbar for Spearman's plot
+norm1 = Normalize(vmin=Albers_SF_west_spearmanP5['Spearman'].min(), 
+                  vmax=Albers_SF_west_spearmanP5['Spearman'].max())
+cbar1 = fig.colorbar(cm.ScalarMappable(norm=norm1, cmap=cmap), ax=ax1, orientation='vertical', shrink=0.8)
+cbar1.set_label("Spearman's Rank")
+
+ax1.set_xticks([])
+ax1.set_yticks([])
+ax1.set_title("Rangelands with Greening Trends (Spearman's Rank)")
+
+####### Kendall's tau plot
+visframe_mainLand_west.plot(column='EW_meridian', ax=ax2, alpha=1, cmap=custom_cmap,
+                            edgecolor='k', legend=False, linewidth=0.1)
+
+Albers_SF_west_increase.plot(column='Tau', ax=ax2, cmap=cmap)
+cbar2 = fig.colorbar(cm.ScalarMappable(norm=norm1, cmap=cmap), ax=ax2, orientation='vertical', shrink=0.8)
+cbar2.set_label(r"Kendall's $\tau$")
+
+ax2.set_xticks([])
+ax2.set_yticks([])
+ax2.set_title(r"Rangelands with Greening Trends (Kendall's $\tau$)")
+
+plt.tight_layout()
+plt.show();
+
+# %%
+
+# %%
 fig, axes = plt.subplots(1, 2, figsize=(8, 4), sharex=True, sharey=True, dpi=300)
 (ax1, ax2) = axes
 
@@ -944,7 +950,7 @@ visframe_mainLand_west.plot(column='EW_meridian', ax=ax1, # cax=cax,
 Albers_SF_west_increase.plot(column='sens_slope', legend=True, ax = ax1)
 ax1.set_xticks([])
 ax1.set_yticks([])
-ax1.set_title(r"rangelands with greening trends. colors: Sen's slope")
+ax1.set_title(r"Greening trends. (Sen's slope)")
 #############
 #############
 visframe_mainLand_west.plot(column='EW_meridian', ax = ax2,
@@ -955,10 +961,48 @@ cent_plt = Albers_SF_west_median_diff_increase.plot(column='medians_diff_slope_A
 
 ax2.set_xticks([])
 ax2.set_yticks([])
-ax2.set_title(r"rangelands with greening trends. colors: ANPP medians diff slope");
+ax2.set_title(r"Greening trends. (ANPP medians diff slope)");
 plt.show();
 
 # %%
+
+# %%
+# Creating the figure and axes
+fig, axes = plt.subplots(1, 2, figsize=(8, 4), sharex=True, sharey=True, dpi=300)
+(ax1, ax2) = axes
+
+# Define a colormap
+cmap = cm.get_cmap('Greens') # 'PRGn', 'YlGn'
+#######
+####### Sen's slope plot
+visframe_mainLand_west.plot(column='EW_meridian', ax=ax1, alpha=1, cmap=custom_cmap, edgecolor='k', 
+                            legend=False, linewidth=0.1)
+
+Albers_SF_west_increase.plot(column='sens_slope', ax=ax1, cmap=cmap)
+
+# Create a continuous colorbar for sens_slope's plot
+norm1 = Normalize(vmin=Albers_SF_west_increase['sens_slope'].min(), 
+                  vmax=Albers_SF_west_increase['sens_slope'].max())
+cbar1 = fig.colorbar(cm.ScalarMappable(norm=norm1, cmap=cmap), ax=ax1, orientation='vertical', shrink=0.8)
+cbar1.set_label("Sen's slope")
+
+ax1.set_xticks([])
+ax1.set_yticks([])
+ax1.set_title("Greening Trends (Sen's slope)");
+#######
+####### medians_diff_slope_ANPP plot
+visframe_mainLand_west.plot(column='EW_meridian', ax=ax2, alpha=1, cmap=custom_cmap, edgecolor='k', 
+                            legend=False, linewidth=0.1)
+
+Albers_SF_west_median_diff_increase = Albers_SF_west[Albers_SF_west["medians_diff_slope_ANPP"] > 0].copy()
+Albers_SF_west_median_diff_increase.plot(column='medians_diff_slope_ANPP', ax=ax2, cmap=cmap)
+
+cbar2 = fig.colorbar(cm.ScalarMappable(norm=norm1, cmap=cmap), ax=ax2, orientation='vertical', shrink=0.8)
+cbar2.set_label("ANPP medians diff slope")
+
+ax2.set_xticks([])
+ax2.set_yticks([])
+ax2.set_title("Greening Trends (ANPP medians diff slope)");
 
 # %%
 
