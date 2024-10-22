@@ -602,12 +602,11 @@ y_pred = ks_result.predict(X)
 reg_slope = int(ks_result.params["year"].round())
 ax1.plot(X["year"], y_pred, color="red", linewidth=3);
 
-text_ = "trend: {}\nSen's slope {}, reg. slope {}\nstate {}".format(trend_, slope_, reg_slope, state_)
+text_ = "trend: {}\nSen's slope {}, \nregression slope: {}\nstate: {}".format(trend_, slope_, reg_slope, state_)
 y_txt = int(df[y_var].max()) - (int(df[y_var].max())/1.2)
 ax1.text(1984, y_txt, text_, fontsize = 12);
 
 ######### Remove outlier and plot
-
 df = bpszone_ANPP_west[bpszone_ANPP_west["fid"] == 100].copy()
 
 # remove outlier
@@ -633,7 +632,7 @@ y_pred = ks_result.predict(X)
 reg_slope = int(ks_result.params["year"].round())
 ax2.plot(X["year"], y_pred, color="red", linewidth=3);
 
-text_ = "trend: {}\nSen's slope {}, reg. slope {}\nstate {}".format(trend_, slope_, reg_slope, state_)
+text_ = "trend: {}\nSen's slope {}, \nregression slope: {}\nstate: {}".format(trend_, slope_, reg_slope, state_)
 y_txt = int(df[y_var].max()) - (int(df[y_var].max())/2.5)
 ax2.text(2010, y_txt, text_, fontsize = 12);
 
@@ -728,7 +727,7 @@ plt.rcParams.update(params)
 import matplotlib.colors as colors
 
 fig, ax = plt.subplots(1,1, figsize=(4, 4), sharex=True, sharey=True, dpi=300)
-plt.title('rangeland trends on western meridian')
+plt.title("rangeland trends (Sen's slope)")
 
 # custom_cmap = ListedColormap(['lightcoral', 'black'])
 custom_cmap = ListedColormap(['white', 'black'])
@@ -744,6 +743,7 @@ norm1 = Normalize(vmin = -min_max, vmax = min_max, clip=True)
 
 cbar1 = fig.colorbar(cm.ScalarMappable(norm=norm1, cmap=cm.get_cmap('RdYlGn')), 
                      ax=ax, orientation='vertical', shrink=0.5)
+# cbar1.set_label(r"Sen's slope")
 # cbar1 = fig.colorbar(cent_plt.collections[1], ax=ax, orientation='vertical', shrink=0.5, 
 #                      cmap = cm.get_cmap('RdYlGn'))
 ax.set_xticks([])
@@ -1003,6 +1003,259 @@ cbar2.set_label("ANPP medians diff slope")
 ax2.set_xticks([])
 ax2.set_yticks([])
 ax2.set_title("Greening Trends (ANPP medians diff slope)");
+
+# %% [markdown]
+# # Investigate Large change in median diff
+
+# %%
+Albers_SF_west_median_diff_increase.head(2)
+
+# %%
+max_loc = Albers_SF_west_median_diff_increase["median_ANPP_change_as_perc"].idxmax()
+Albers_SF_west_median_diff_increase.loc[max_loc]
+
+# %%
+max_percChange_median_fid = Albers_SF_west_median_diff_increase.loc[max_loc]["fid"]
+
+# %%
+# after seaborn, things get messed up. Fix them:
+matplotlib.rc_file_defaults()
+font = {"size": 14}
+matplotlib.rc("font", **font)
+tick_legend_FontSize = 10
+params = {"legend.fontsize": tick_legend_FontSize * 1.2,  # medium, large
+          "axes.labelsize": tick_legend_FontSize * 1.2,
+          "axes.titlesize": tick_legend_FontSize * 1.2,
+          "xtick.labelsize": tick_legend_FontSize * 1.1,  #  * 0.75
+          "ytick.labelsize": tick_legend_FontSize * 1.1,  #  * 0.75
+          "axes.titlepad": 10}
+
+plt.rc("font", family="Palatino")
+plt.rcParams["xtick.bottom"] = True
+plt.rcParams["ytick.left"] = True
+plt.rcParams["xtick.labelbottom"] = True
+plt.rcParams["ytick.labelleft"] = True
+plt.rcParams.update(params)
+
+# %%
+a_fid = max_percChange_median_fid
+fig, axes = plt.subplots(1, 1, figsize=(10, 3), sharex=True, 
+                        gridspec_kw={"hspace": 0.15, "wspace": 0.05}, dpi=400)
+axes.grid(axis='y', which='both')
+
+df = bpszone_ANPP_west[bpszone_ANPP_west.fid == a_fid]
+trend_ = ANPP_MK_df.loc[ANPP_MK_df.fid == a_fid, "trend"].values[0]
+slope_ = int(ANPP_MK_df.loc[ANPP_MK_df.fid == a_fid, "sens_slope"].values[0])
+state_ = list(df['satae_majority_area'].unique())[0]
+axes.plot(df.year, df[y_var], linewidth=3);
+
+
+## regression line
+X = df[["year", y_var]].copy()
+X.dropna(how="any", inplace=True)
+X = sm.add_constant(X)
+Y = X[y_var].astype(float)
+X = X.drop(y_var, axis=1)
+ks = sm.OLS(Y, X)
+ks_result = ks.fit()
+y_pred = ks_result.predict(X)
+reg_slope = int(ks_result.params["year"].round())
+axes.plot(X["year"], y_pred, color="red", linewidth=3);
+
+text_ = "trend: {}\nSen's slope {}, \nregression slope: {}\nstate: {},\nFID: {}".format(trend_, 
+                                                                                        slope_, 
+                                                                                        reg_slope, 
+                                                                                        state_,
+                                                                                        a_fid)
+y_txt = int(df[y_var].max()) - (int(df[y_var].max())/2)
+axes.text(1984, y_txt, text_, fontsize = 12);
+
+
+# %%
+
+# %%
+Albers_SF_west.head(2)
+
+# %%
+tick_legend_FontSize = 10
+params = {"legend.fontsize": tick_legend_FontSize * 1.2,
+          "axes.labelsize": tick_legend_FontSize * 1.2,
+          "axes.titlesize": tick_legend_FontSize * 1.2,
+          "xtick.labelsize": tick_legend_FontSize * 1.1,  #  * 0.75
+          "ytick.labelsize": tick_legend_FontSize * 1.1,  #  * 0.75
+          "axes.titlepad": 10}
+
+plt.rc("font", family="Palatino")
+plt.rcParams["ytick.left"] = True
+plt.rcParams["ytick.labelleft"] = True
+plt.rcParams["xtick.bottom"] = False
+plt.rcParams["xtick.labelbottom"] = True
+
+plt.rcParams.update(params)
+
+# %%
+
+# %%
+fig, axes = plt.subplots(5, 1, figsize=(10, 15), sharey=False, sharex=False)
+sns.set_style({'axes.grid' : True})
+
+sns.histplot(data=Albers_SF_west["Tau"], ax=axes[0], bins=100, kde=True); # height=5
+axes[0].legend(["Kendal's Tau"], loc='upper left');
+
+sns.histplot(data=Albers_SF_west["Spearman"], ax=axes[1], bins=100, kde=True); # height=5
+axes[1].legend(["Spearman's rank"], loc='upper left');
+
+sns.histplot(data=Albers_SF_west["sens_slope"], ax=axes[2], bins=100, kde=True); # height=5
+axes[2].legend(["Sen's slope"], loc='upper left');
+
+sns.histplot(data=Albers_SF_west["medians_diff_slope_ANPP"], ax=axes[3], bins=100, kde=True); # height=5
+axes[3].legend(["medians_diff_slope_ANPP"], loc='upper right');
+
+sns.histplot(data=Albers_SF_west["median_ANPP_change_as_perc"], ax=axes[4], bins=100, kde=True); # height=5
+axes[4].legend(["median_ANPP_change (%)"], loc='upper right');
+
+axes[0].set_xlabel("");
+axes[1].set_xlabel("");
+axes[2].set_xlabel("");
+axes[3].set_xlabel("");
+axes[4].set_xlabel("");
+
+# plt.suptitle(title_, fontsize=15, y=.94);
+
+# %% [markdown]
+# # Same plot as above. Just pick the ones with low p-value
+
+# %%
+Albers_SF_west.head(2)
+
+# %%
+Albers_SF_west.trend.unique()
+
+# %%
+significant_sens = Albers_SF_west[Albers_SF_west["trend"].isin(["increasing", "decreasing"])].copy()
+significant_spearman = Albers_SF_west[Albers_SF_west["p_valueSpearman"] < 0.05].copy()
+
+# %%
+fig, axes = plt.subplots(3, 1, figsize=(10, 10), sharey=False, sharex=False)
+sns.set_style({'axes.grid' : True})
+
+sns.histplot(data=significant_sens["Tau"], ax=axes[0], bins=100, kde=True); # height=5
+axes[0].legend(["Kendal's Tau"], loc='upper left');
+
+sns.histplot(data=significant_spearman["Spearman"], ax=axes[1], bins=100, kde=True); # height=5
+axes[1].legend(["Spearman's rank"], loc='upper left');
+
+sns.histplot(data=significant_sens["sens_slope"], ax=axes[2], bins=100, kde=True); # height=5
+axes[2].legend(["Sen's slope"], loc='upper left');
+
+# sns.histplot(data=Albers_SF_west["medians_diff_slope_ANPP"], ax=axes[3], bins=100, kde=True); # height=5
+# axes[3].legend(["medians_diff_slope_ANPP"], loc='upper right');
+
+# sns.histplot(data=Albers_SF_west["median_ANPP_change_as_perc"], ax=axes[4], bins=100, kde=True); # height=5
+# axes[4].legend(["median_ANPP_change_as_perc"], loc='upper right');
+
+axes[0].set_xlabel("");
+axes[1].set_xlabel("");
+axes[2].set_xlabel("");
+# axes[3].set_xlabel("");
+# axes[4].set_xlabel("");
+
+# plt.suptitle(title_, fontsize=15, y=.94);
+
+# %% [markdown]
+# # Outliers of Spearman's?
+
+# %%
+significant_spearman.head(2)
+
+# %%
+max_loc = significant_spearman["Spearman"].idxmax()
+max_spearman_fid = significant_spearman.loc[max_loc]["fid"]
+
+# %%
+significant_spearman.loc[max_spearman_fid]
+
+# %%
+# after seaborn, things get messed up. Fix them:
+matplotlib.rc_file_defaults()
+tick_legend_FontSize = 10
+params = {"legend.fontsize": tick_legend_FontSize * 1.2,  # medium, large
+          "axes.labelsize": tick_legend_FontSize * 1.2,
+          "axes.titlesize": tick_legend_FontSize * 1.2,
+          "xtick.labelsize": tick_legend_FontSize * 1.1,  #  * 0.75
+          "ytick.labelsize": tick_legend_FontSize * 1.1,  #  * 0.75
+          "axes.titlepad": 10}
+plt.rc("font", family="Palatino")
+plt.rcParams["xtick.bottom"] = True
+plt.rcParams["ytick.left"] = True
+plt.rcParams["xtick.labelbottom"] = True
+plt.rcParams["ytick.labelleft"] = True
+plt.rcParams.update(params)
+
+# %%
+a_fid = max_spearman_fid
+fig, axes = plt.subplots(1, 1, figsize=(10, 3), sharex=True, 
+                         gridspec_kw={"hspace": 0.15, "wspace": 0.05}, dpi=400)
+axes.grid(axis='y', which='both')
+
+df = bpszone_ANPP_west[bpszone_ANPP_west.fid == a_fid]
+trend_ = ANPP_MK_df.loc[ANPP_MK_df.fid == a_fid, "trend"].values[0]
+slope_ = int(ANPP_MK_df.loc[ANPP_MK_df.fid == a_fid, "sens_slope"].values[0])
+state_ = list(df['satae_majority_area'].unique())[0]
+axes.plot(df.year, df[y_var], linewidth=3);
+
+
+## regression line
+X = df[["year", y_var]].copy()
+X.dropna(how="any", inplace=True)
+X = sm.add_constant(X)
+Y = X[y_var].astype(float)
+X = X.drop(y_var, axis=1)
+ks = sm.OLS(Y, X)
+ks_result = ks.fit()
+y_pred = ks_result.predict(X)
+reg_slope = int(ks_result.params["year"].round())
+axes.plot(X["year"], y_pred, color="red", linewidth=3);
+
+text_ = "trend: {}\nSen's slope: {}, \nregression slope: {}\nstate: {},\nFID: {}".format(trend_, 
+                                                                                         slope_, 
+                                                                                         reg_slope, 
+                                                                                         state_,
+                                                                                         a_fid)
+y_txt = int(df[y_var].max()) - (int(df[y_var].max())/3.4)
+axes.text(1984, y_txt, text_, fontsize = 12);
+
+# %% [markdown]
+# ## Find FIDs that are in the intersection of Spearman and MK test
+
+# %%
+intersection_FIDs = set(significant_spearman["fid"]).intersection(set(significant_sens["fid"]))
+intersection_FIDs = list(intersection_FIDs)
+Albers_SF_west_intersec = Albers_SF_west[Albers_SF_west["fid"].isin(intersection_FIDs)]
+Albers_SF_west_intersec = Albers_SF_west_intersec[Albers_SF_west_intersec["sens_slope"] > 0]
+
+# %%
+
+# %%
+fig, axes = plt.subplots(3, 1, figsize=(10, 10), sharey=False, sharex=False)
+sns.set_style({'axes.grid' : True})
+
+axes[0].set_title('Intersection of sigfinicant MK test and Spearman (increasing trend)');
+
+sns.histplot(data=Albers_SF_west_intersec["Tau"], ax=axes[0], bins=100, kde=True);
+axes[0].legend(["Kendal's Tau"], loc='upper right');
+
+sns.histplot(data=Albers_SF_west_intersec["Spearman"], ax=axes[1], bins=100, kde=True);
+axes[1].legend(["Spearman's rank"], loc='upper right');
+
+sns.histplot(data=Albers_SF_west_intersec["sens_slope"], ax=axes[2], bins=100, kde=True); 
+axes[2].legend(["Sen's slope"], loc='upper right');
+
+axes[0].set_xlabel("");
+axes[1].set_xlabel("");
+axes[2].set_xlabel("");
+
+# %%
 
 # %%
 
