@@ -23,6 +23,8 @@ def plot_SF(SF, ax_, cmap_ = "Pastel1", col="EW_meridian"):
 # %%
 import warnings
 warnings.filterwarnings("ignore")
+import pickle
+from datetime import datetime
 
 import pandas as pd
 import numpy as np
@@ -89,80 +91,33 @@ bpszone_ANPP.sort_values(by= ['fid', 'year'], inplace=True)
 bpszone_ANPP.head(2)
 
 # %%
-len(bpszone_ANPP["fid"].unique())
+filename = bio_reOrganized + "ANPP_MK_Spearman.sav"
+ANPP_MK_df = pd.read_pickle(filename)
+ANPP_MK_df = ANPP_MK_df["ANPP_MK_df"]
+
+print (len(ANPP_MK_df["fid"].unique()))
+ANPP_MK_df.head(2)
 
 # %%
-# f_name = "albers_HucsGreeningBpSAtts250_For_Zonal_Stats"
-# bps_SF = geopandas.read_file(min_bio_dir + f_name + "/" + f_name + ".shp")
-# bps_SF.head(2)
+f_name = bio_reOrganized + 'Albers_SF_west_ANPP_MK_Spearman.shp.zip'
+Albers_SF_west = geopandas.read_file(f_name)
+Albers_SF_west["centroid"] = Albers_SF_west["geometry"].centroid
+Albers_SF_west.head(2)
 
 # %%
-# %%time
-Albers_SF_name = min_bio_dir + "Albers_BioRangeland_Min_Ehsan"
-Albers_SF = geopandas.read_file(Albers_SF_name)
-
-Albers_SF.rename(columns=lambda x: x.lower().replace(' ', '_'), inplace=True)
-Albers_SF.rename(columns={"minstatsid": "fid", 
-                          "satae_max": "state_majority_area"}, inplace=True)
-
-Albers_SF.head(2)
-
-# %%
-print (len(Albers_SF["fid"].unique()))
-print (len(Albers_SF["value"].unique()))
-print (len(Albers_SF["hucsgree_4"].unique()))
-
-print ((Albers_SF["hucsgree_4"] - Albers_SF["value"]).unique())
-print ((list(Albers_SF.index) == Albers_SF.fid).sum())
-
-# %%
-Albers_SF.drop(columns=["value"], inplace=True)
-Albers_SF.head(2)
-
-# %%
-bpszone_ANPP["fid"].unique()[-8::]
-
-# %%
-
-# %%
-print (len(bpszone_ANPP["fid"].unique()))
-print (len(Albers_SF["hucsgree_4"].unique()))
-
-print (bpszone_ANPP["fid"].unique().max())
-print (Albers_SF["bps_code"].unique().max())
+Albers_SF_west.rename(columns={"EW_meridia": "EW_meridian",
+                               "p_valueSpe" : "p_valueSpearman",
+                               "medians_di": "medians_diff_ANPP",
+                               "medians__1" : "medians_diff_slope_ANPP",
+                               "median_ANP" : "median_ANPP_change_as_perc",
+                               "state_majo" : "state_majority_area"}, 
+                      inplace=True)
 
 # %% [markdown]
-# ### Check if all locations have all years in it
+# # Make some plots
 
 # %%
-bpszone_ANPP.head(2)
-
-# %%
-len(bpszone_ANPP[bpszone_ANPP.fid == 1])
-
-# %%
-# %%time
-unique_number_of_years = {}
-
-for a_fid in bpszone_ANPP.fid.unique():
-    LL = str(len(bpszone_ANPP[bpszone_ANPP.fid == a_fid])) + "_years"
-    
-    if not (LL in unique_number_of_years.keys()):
-        unique_number_of_years[LL] = 1
-    else:
-        unique_number_of_years[LL] = \
-            unique_number_of_years[LL] + 1
-
-unique_number_of_years
-
-# %%
-print (f'{len(Albers_SF["fid"].unique()) = }')
-print (f'{len(bpszone_ANPP["fid"].unique())= }')
-print (f'{bpszone_ANPP["fid"].unique().max()= }')
-print (f'{Albers_SF["fid"].unique().max()= }')
-
-# %% [markdown]
-# ### Read State FIPS, abbreviation, etc
+# Albers_SF_west.plot(column='EW_meridian', categorical=True, legend=True);
 
 # %%
 county_fips_dict = pd.read_pickle(rangeland_reOrganized + "county_fips.sav")
@@ -177,74 +132,6 @@ state_fips = county_fips_dict["state_fips"]
 
 state_fips = state_fips[state_fips.state != "VI"].copy()
 state_fips.head(2)
-
-# %%
-print ((Albers_SF["state_majority_area"] == Albers_SF["state_1"]).sum())
-print ((Albers_SF["state_majority_area"] == Albers_SF["state_2"]).sum())
-print (Albers_SF.shape)
-print (len(Albers_SF) - (Albers_SF["state_1"] == Albers_SF["state_2"]).sum())
-print ((Albers_SF["state_1"] == Albers_SF["state_2"]).sum())
-
-# %%
-Albers_SF = pd.merge(Albers_SF, state_fips[["EW_meridian", "state_full"]], 
-                     how="left", left_on="state_majority_area", right_on="state_full")
-
-Albers_SF.drop(columns=["state_full"], inplace=True)
-
-print (Albers_SF.shape)
-Albers_SF.head(2)
-
-# %%
-Albers_SF_west = Albers_SF[Albers_SF["EW_meridian"] == "W"].copy()
-Albers_SF_west.shape
-
-# %%
-bpszone_ANPP.head(2)
-
-# %%
-# I think Min mentioned that FID is the same as Min_statID
-# So, let us subset the west metidians
-bpszone_ANPP_west = bpszone_ANPP[bpszone_ANPP["fid"].isin(list(Albers_SF_west["fid"]))].copy()
-
-print (bpszone_ANPP.shape)
-print (bpszone_ANPP_west.shape)
-
-print (len(bpszone_ANPP) - len(bpszone_ANPP_west))
-
-# %%
-# %%time
-unique_number_of_years = {}
-for a_fid in bpszone_ANPP_west.fid.unique():
-    LL = str(len(bpszone_ANPP_west[bpszone_ANPP_west.fid == a_fid])) + "_years"
-    
-    if not (LL in unique_number_of_years.keys()):
-        unique_number_of_years[LL] = 1
-    else:
-        unique_number_of_years[LL] = \
-            unique_number_of_years[LL] + 1
-
-unique_number_of_years
-
-# %%
-# {'39_years': 22430,
-#  '40_years': 4332,
-#  '38_years': 447,
-#  '37_years': 4,
-#  '35_years': 16}
-
-# %%
-bpszone_ANPP_west.head(2)
-
-# %%
-cols_ = ["fid", "state_majority_area", "state_1", "state_2", "EW_meridian"]
-bpszone_ANPP_west = pd.merge(bpszone_ANPP_west, Albers_SF[cols_], how="left", on = "fid")
-bpszone_ANPP_west.head(2)
-
-# %% [markdown]
-# # Make some plots
-
-# %%
-Albers_SF.plot(column='EW_meridian', categorical=True, legend=True);
 
 # %%
 from shapely.geometry import Polygon
@@ -285,197 +172,16 @@ plt.rcParams["ytick.labelleft"] = False
 plt.rcParams.update(params)
 
 # %%
-fig, ax = plt.subplots(1, 1, figsize=(2, 3), sharex=True, sharey=True, dpi=dpi_)
-plt.title('rangeland polygons on western meridian')
-# divider = make_axes_locatable(ax)
-# cax = divider.append_axes("right", size="1%", pad=0, alpha=1)
-plot_SF(SF=visframe_mainLand_west, ax_=ax, cmap_ = "Pastel1", col="EW_meridian")
-Albers_SF_west["geometry"].centroid.plot(ax=ax, color='dodgerblue', markersize=0.051)
+# fig, ax = plt.subplots(1, 1, figsize=(2, 3), sharex=True, sharey=True, dpi=dpi_)
+# plt.title('rangeland polygons on western meridian')
+# # divider = make_axes_locatable(ax)
+# # cax = divider.append_axes("right", size="1%", pad=0, alpha=1)
+# plot_SF(SF=visframe_mainLand_west, ax_=ax, cmap_ = "Pastel1", col="EW_meridian")
+# Albers_SF_west["geometry"].centroid.plot(ax=ax, color='dodgerblue', markersize=0.051)
 
-plt.rcParams['axes.linewidth'] = .051
-# plt.legend(fontsize=10) # ax.axis('off')
-plt.show();
-
-# %%
-bpszone_ANPP_west.head(2)
-
-# %%
-num_locs = len(bpszone_ANPP_west["fid"].unique())
-num_locs
-
-# %%
-median_diff = bpszone_ANPP_west[["fid", "state_majority_area", "state_1", "state_2", "EW_meridian"]].copy()
-print (median_diff.shape)
-
-median_diff.drop_duplicates(inplace=True)
-median_diff.reset_index(drop=True, inplace=True)
-
-print (median_diff.shape)
-median_diff.head(3)
-
-# %%
-# %%time
-## Check if each ID has unique state_1, state_2, and state_majority_area
-bad_FIDs = []
-for a_FID in median_diff["fid"].unique():
-    curr_df = median_diff[median_diff.fid == a_FID]
-    if len(curr_df) > 1:
-        print (a_FID)
-        bad_FIDs += bad_FIDs + [a_FID]
-
-# %%
-median_diff.head(2)
-
-# %%
-# Not all locations have the same number of data in them
-# Lets just assume they do. The missing year
-median_diff["first_10_years_median_ANPP"] = -666
-median_diff["last_10_years_median_ANPP"]  = -666
-
-# %%
-# %%time
-# Find median of first decade and last decade of ANPP
-
-for a_FID in median_diff["fid"].unique():
-    curr_df = bpszone_ANPP_west[bpszone_ANPP_west["fid"] == a_FID]
-    
-    min_year = curr_df["year"].min()
-    max_year = curr_df["year"].max()
-    
-    first_decade = curr_df[curr_df["year"] < min_year + 10]
-    last_decade  = curr_df[curr_df["year"] > max_year - 10]
-    
-    median_diff.loc[median_diff["fid"] == a_FID, "first_10_years_median_ANPP"] = \
-                                                first_decade['mean_lb_per_acr'].median()
-
-    median_diff.loc[median_diff["fid"] == a_FID, "last_10_years_median_ANPP"] = \
-                                                    last_decade['mean_lb_per_acr'].median()
-
-# %%
-median_diff.head(2)
-
-# %%
-year_diff = bpszone_ANPP_west["year"].max() - bpszone_ANPP_west["year"].min()
-
-median_diff["medians_diff_ANPP"] = median_diff["last_10_years_median_ANPP"] - \
-                                      median_diff["first_10_years_median_ANPP"]
-
-median_diff["medians_diff_slope_ANPP"] = median_diff["medians_diff_ANPP"] / year_diff
-median_diff.head(2)
-
-# %%
-print (median_diff["medians_diff_slope_ANPP"].min())
-print (median_diff["medians_diff_slope_ANPP"].max())
-
-# %%
-median_diff[median_diff["medians_diff_slope_ANPP"] < -19]
-
-# %% [markdown]
-# ### change as percenatge of first decade
-
-# %%
-median_diff["median_ANPP_change_as_perc"] = (100 * median_diff["medians_diff_ANPP"]) / \
-                                                  median_diff["first_10_years_median_ANPP"]
-median_diff.head(2)
-
-# %%
-bpszone_ANPP_west.head(2)
-
-# %% [markdown]
-# # MK test for ANPP and Spearman's rank
-
-# %%
-ANPP_MK_df = bpszone_ANPP_west[["fid", "state_majority_area", "state_1", "state_2", "EW_meridian"]].copy()
-print (ANPP_MK_df.shape)
-
-ANPP_MK_df.drop_duplicates(inplace=True)
-ANPP_MK_df.reset_index(drop=True, inplace=True)
-
-print (ANPP_MK_df.shape)
-ANPP_MK_df.head(3)
-
-# %%
-##### z: normalized test statistics
-##### Tau: Kendall Tau
-MK_test_cols = ["trend", "p", "z", "Tau", "Mann_Kendal_score", "var_s", "sens_slope", "intercept",
-                "Spearman", "p_valueSpearman"]
-
-
-ANPP_MK_df = pd.concat([ANPP_MK_df, pd.DataFrame(columns = MK_test_cols)])
-ANPP_MK_df[MK_test_cols] = ["-666"] + [-666] * (len(MK_test_cols)-1)
-ANPP_MK_df.head(2)
-
-# %%
-# Why data type changed?!
-
-ANPP_MK_df["fid"] = ANPP_MK_df["fid"].astype(np.int64)
-
-# %%
-# %%time
-# populate the dataframe with MK test result now
-for a_FID in ANPP_MK_df["fid"].unique():
-    ANPP_TS = bpszone_ANPP_west.loc[bpszone_ANPP_west.fid==a_FID, "mean_lb_per_acr"].values
-    year_TS = bpszone_ANPP_west.loc[bpszone_ANPP_west.fid==a_FID, "year"].values
-    
-    # MK test
-    trend, _, p, z, Tau, s, var_s, slope, intercept = mk.original_test(ANPP_TS)
-
-    # Spearman's rank
-    Spearman, p_valueSpearman = stats.spearmanr(year_TS, ANPP_TS)
-
-    # Update dataframe by MK result
-    L_ = [trend, p, z, Tau, s, var_s, slope, intercept, Spearman, p_valueSpearman]
-    ANPP_MK_df.loc[median_diff["fid"]==a_FID, MK_test_cols] = L_
-
-ANPP_MK_df.head(2)
-
-# %%
-# Round the columns to 6-decimals
-for a_col in list(ANPP_MK_df.columns[6:]):
-    ANPP_MK_df[a_col] = ANPP_MK_df[a_col].round(6)
-
-# %%
-some_col = ["fid", "medians_diff_ANPP", "medians_diff_slope_ANPP", "median_ANPP_change_as_perc"]
-
-ANPP_MK_df = pd.merge(ANPP_MK_df, median_diff[some_col], on="fid", how="left")
-ANPP_MK_df.head(2)
-
-# %%
-ANPP_MK_df[["trend", "fid"]].groupby(["trend"]).count()
-
-# %%
-Albers_SF.head(2)
-
-# %%
-some_col = ["fid", "sens_slope", "trend", "Tau", "Spearman", "p_valueSpearman",
-            "medians_diff_ANPP", "medians_diff_slope_ANPP", "median_ANPP_change_as_perc"]
-
-Albers_SF_west = pd.merge(Albers_SF_west, ANPP_MK_df[some_col], on="fid", how="left")
-Albers_SF_west.head(2)
-
-Albers_SF_west["centroid"] = Albers_SF_west["geometry"].centroid
-Albers_SF_west.head(2)
-
-# %%
-import pickle
-from datetime import datetime
-
-filename = bio_reOrganized + "ANPP_MK_Spearman.sav"
-
-export_ = {"ANPP_MK_df": ANPP_MK_df, 
-           "source_code" : "NB1",
-           "Author": "HN",
-           "Date" : datetime.now().strftime('%Y-%m-%d %H:%M:%S')}
-
-pickle.dump(export_, open(filename, 'wb'))
-
-# %%
-Albers_SF_west_noCentroid = Albers_SF_west.copy()
-Albers_SF_west_noCentroid.drop(columns=["centroid"], inplace=True)
-f_name = bio_reOrganized + 'Albers_SF_west_ANPP_MK_Spearman.shp.zip'
-Albers_SF_west_noCentroid.to_file(filename=f_name, driver='ESRI Shapefile')
-
-# %%
+# plt.rcParams['axes.linewidth'] = .051
+# # plt.legend(fontsize=10) # ax.axis('off')
+# plt.show();
 
 # %%
 
@@ -501,6 +207,15 @@ plt.rcParams["ytick.labelleft"] = True
 plt.rcParams.update(params)
 
 # %%
+Albers_SF_west.head(2)
+
+# %%
+bpszone_ANPP_west = bpszone_ANPP.copy()
+
+# %%
+cols_ = ["fid", "state_majority_area", "state_1", "state_2", "EW_meridian"]
+bpszone_ANPP_west = pd.merge(bpszone_ANPP_west, Albers_SF_west[cols_], how="left", on = "fid")
+bpszone_ANPP_west.head(2)
 
 # %%
 fig, axes = plt.subplots(3, 1, figsize=(10, 6), sharex=True, 
@@ -652,17 +367,10 @@ y_txt = int(df[y_var].max()) - (int(df[y_var].max())/2.5)
 ax2.text(2010, y_txt, text_, fontsize = 12);
 
 # %%
-
-# %%
-ANPP_MK_df.head(3)
-
-# %%
 sorted(list(ANPP_MK_df.loc[ANPP_MK_df["trend"] == "increasing", "sens_slope"]))[:10]
 
 # %%
 sorted(list(ANPP_MK_df.loc[ANPP_MK_df["trend"] == "increasing", "sens_slope"]))[-10:]
-
-# %%
 
 # %% [markdown]
 # ### Plot everything and color based on slope
@@ -1050,6 +758,9 @@ text_ = "trend: {}\nSen's slope {}, \nregression slope: {}\nstate: {},\nFID: {}"
 y_txt = int(df[y_var].max()) - (int(df[y_var].max())/2)
 axes.text(1984, y_txt, text_, fontsize = 12);
 
+plt.tight_layout()
+plt.show();
+
 
 # %%
 
@@ -1094,22 +805,15 @@ axes[3].legend(["medians_diff_slope_ANPP"], loc='upper right');
 sns.histplot(data=Albers_SF_west["median_ANPP_change_as_perc"], ax=axes[4], bins=100, kde=True); # height=5
 axes[4].legend(["median_ANPP_change (%)"], loc='upper right');
 
-axes[0].set_xlabel("");
-axes[1].set_xlabel("");
-axes[2].set_xlabel("");
-axes[3].set_xlabel("");
-axes[4].set_xlabel("");
+axes[0].set_xlabel(""); axes[1].set_xlabel("");
+axes[2].set_xlabel(""); axes[3].set_xlabel(""); axes[4].set_xlabel("");
 
 # plt.suptitle(title_, fontsize=15, y=.94);
+# plt.tight_layout()
+# plt.show();
 
 # %% [markdown]
 # # Same plot as above. Just pick the ones with low p-value
-
-# %%
-Albers_SF_west.head(2)
-
-# %%
-Albers_SF_west.trend.unique()
 
 # %%
 significant_sens = Albers_SF_west[Albers_SF_west["trend"].isin(["increasing", "decreasing"])].copy()
@@ -1119,11 +823,11 @@ significant_spearman = Albers_SF_west[Albers_SF_west["p_valueSpearman"] < 0.05].
 fig, axes = plt.subplots(3, 1, figsize=(10, 8), sharey=False, sharex=False)
 sns.set_style({'axes.grid' : True})
 
-sns.histplot(data=significant_sens["Tau"], ax=axes[0], bins=100, kde=True); # height=5
-axes[0].legend(["Kendal's Tau"], loc='upper left');
+sns.histplot(data=significant_spearman["Spearman"], ax=axes[0], bins=100, kde=True); # height=5
+axes[0].legend(["Spearman's rank"], loc='upper left');
 
-sns.histplot(data=significant_spearman["Spearman"], ax=axes[1], bins=100, kde=True); # height=5
-axes[1].legend(["Spearman's rank"], loc='upper left');
+sns.histplot(data=significant_sens["Tau"], ax=axes[1], bins=100, kde=True); # height=5
+axes[1].legend(["Kendal's Tau"], loc='upper left');
 
 sns.histplot(data=significant_sens["sens_slope"], ax=axes[2], bins=100, kde=True); # height=5
 axes[2].legend(["Sen's slope"], loc='upper left');
@@ -1134,13 +838,13 @@ axes[2].legend(["Sen's slope"], loc='upper left');
 # sns.histplot(data=Albers_SF_west["median_ANPP_change_as_perc"], ax=axes[4], bins=100, kde=True); # height=5
 # axes[4].legend(["median_ANPP_change_as_perc"], loc='upper right');
 
-axes[0].set_xlabel("");
-axes[1].set_xlabel("");
-axes[2].set_xlabel("");
+axes[0].set_xlabel(""); axes[1].set_xlabel(""); axes[2].set_xlabel("");
 # axes[3].set_xlabel("");
 # axes[4].set_xlabel("");
 
 # plt.suptitle(title_, fontsize=15, y=.94);
+# plt.tight_layout()
+# plt.show();
 
 # %% [markdown]
 # # Outliers of Spearman's?
