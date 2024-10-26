@@ -5,20 +5,12 @@
 #       extension: .py
 #       format_name: percent
 #       format_version: '1.3'
-#       jupytext_version: 1.15.2
+#       jupytext_version: 1.16.1
 #   kernelspec:
 #     display_name: Python 3 (ipykernel)
 #     language: python
 #     name: python3
 # ---
-
-# %%
-# # !pip3 install pymannkendall
-
-# %%
-def plot_SF(SF, ax_, cmap_ = "Pastel1", col="EW_meridian"):
-    SF.plot(column=col, ax=ax_, alpha=1, cmap=cmap_, edgecolor='k', legend=False, linewidth=0.1)
-
 
 # %%
 import warnings
@@ -49,6 +41,12 @@ from matplotlib import cm
 sys.path.append("/Users/hn/Documents/00_GitHub/Ag/rangeland/Python_Codes/")
 import rangeland_core as rc
 
+
+# %%
+def plot_SF(SF, ax_, cmap_ = "Pastel1", col="EW_meridian"):
+    SF.plot(column=col, ax=ax_, alpha=1, cmap=cmap_, edgecolor='k', legend=False, linewidth=0.1)
+
+
 # %%
 dpi_ = 300
 map_dpi_ = 200
@@ -77,11 +75,11 @@ os.makedirs(bio_reOrganized, exist_ok=True)
 bio_plots = rangeland_bio_base + "plots/"
 os.makedirs(bio_plots, exist_ok=True)
 # ####### Laptop
-# rangeland_bio_base = "/Users/hn/Documents/01_research_data/RangeLand_bio/"
-# min_bio_dir = rangeland_bio_base
+rangeland_bio_base = "/Users/hn/Documents/01_research_data/RangeLand_bio/"
+min_bio_dir = rangeland_bio_base
 
-# rangeland_base = rangeland_bio_base
-# rangeland_reOrganized = rangeland_base
+rangeland_base = rangeland_bio_base
+rangeland_reOrganized = rangeland_base
 
 # %%
 bpszone_ANPP = pd.read_csv(min_bio_dir + "bpszone_annual_productivity_rpms_MEAN.csv")
@@ -117,14 +115,13 @@ Albers_SF_west.rename(columns={"EW_meridia": "EW_meridian",
                                "state_majo" : "state_majority_area"}, 
                       inplace=True)
 
+# %% [markdown]
+# # Read Weather Data
+
 # %%
-bps_weather = pd.read_csv(min_bio_dir + "bps_gridmet_mean_indices.csv")
-bps_weather.rename(columns=lambda x: x.lower().replace(' ', '_'), inplace=True)
+filename = bio_reOrganized + "bps_weather.sav"
+bps_weather = pd.read_pickle(filename)
+bps_weather = bps_weather["bps_weather"]
 bps_weather.head(2)
-
-# %%
-
-
-bps_weather.columns
 
 # %%

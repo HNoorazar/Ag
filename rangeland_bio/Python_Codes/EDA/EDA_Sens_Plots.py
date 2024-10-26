@@ -5,7 +5,7 @@
 #       extension: .py
 #       format_name: percent
 #       format_version: '1.3'
-#       jupytext_version: 1.15.2
+#       jupytext_version: 1.16.1
 #   kernelspec:
 #     display_name: Python 3 (ipykernel)
 #     language: python
@@ -14,11 +14,6 @@
 
 # %%
 # # !pip3 install pymannkendall
-
-# %%
-def plot_SF(SF, ax_, cmap_ = "Pastel1", col="EW_meridian"):
-    SF.plot(column=col, ax=ax_, alpha=1, cmap=cmap_, edgecolor='k', legend=False, linewidth=0.1)
-
 
 # %%
 import warnings
@@ -48,6 +43,12 @@ from matplotlib import cm
 
 sys.path.append("/Users/hn/Documents/00_GitHub/Ag/rangeland/Python_Codes/")
 import rangeland_core as rc
+
+
+# %%
+def plot_SF(SF, ax_, cmap_ = "Pastel1", col="EW_meridian"):
+    SF.plot(column=col, ax=ax_, alpha=1, cmap=cmap_, edgecolor='k', legend=False, linewidth=0.1)
+
 
 # %%
 dpi_ = 300
@@ -139,13 +140,11 @@ state_fips.head(2)
 
 # %%
 from shapely.geometry import Polygon
-
 gdf = geopandas.read_file(rangeland_base +'cb_2018_us_state_500k.zip')
 # gdf = geopandas.read_file(rangeland_bio_base +'cb_2018_us_state_500k')
 
 gdf.rename(columns={"STUSPS": "state"}, inplace=True)
 gdf = gdf[~gdf.state.isin(["PR", "VI", "AS", "GU", "MP"])]
-
 gdf = pd.merge(gdf, state_fips[["EW_meridian", "state"]], how="left", on="state")
 
 # %%
@@ -490,7 +489,7 @@ plt.rcParams["ytick.labelleft"] = False
 plt.rcParams.update(params)
 
 # %%
-fig, ax = plt.subplots(1,1, figsize=(3, 3), sharex=True, sharey=True, dpi=map_dpi_)
+fig, ax = plt.subplots(1, 1, figsize=(3, 3), sharex=True, sharey=True, dpi=map_dpi_)
 ax.set_xticks([]); ax.set_yticks([])
 
 plot_SF(SF=visframe_mainLand_west, ax_=ax, col="EW_meridian", cmap_="Pastel1")
@@ -526,9 +525,7 @@ plt.show();
 # ### Plot positive Spearman's with p-value smaller than 0.05
 
 # %%
-Albers_SF_west["Spearman"].min()
-
-# %%
+print (Albers_SF_west["Spearman"].min())
 Albers_SF_west.head(2)
 
 # %%
@@ -576,7 +573,8 @@ file_name = bio_plots + "medianNPP_percChange.png"
 plt.savefig(file_name)
 
 # %%
-# Creating the figure and axes
+
+# %%
 fig, axes = plt.subplots(1, 1, figsize=(3, 3), sharex=True, sharey=True, dpi=300)
 axes.set_xticks([]); axes.set_yticks([])
 
@@ -609,9 +607,6 @@ params = {"legend.fontsize": tick_legend_FontSize,
           "ytick.labelsize": tick_legend_FontSize * 0.7,
           "axes.titlepad": 5,    'legend.handlelength': 2}
 plt.rcParams.update(params)
-
-# %%
-map_dpi_
 
 # %%
 fig, axes = plt.subplots(1, 2, figsize=(8, 4), sharex=True, sharey=True, dpi=map_dpi_)
