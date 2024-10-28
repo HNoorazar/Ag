@@ -5,7 +5,7 @@
 #       extension: .py
 #       format_name: percent
 #       format_version: '1.3'
-#       jupytext_version: 1.16.1
+#       jupytext_version: 1.15.2
 #   kernelspec:
 #     display_name: Python 3 (ipykernel)
 #     language: python
@@ -77,11 +77,26 @@ os.makedirs(bio_reOrganized, exist_ok=True)
 bio_plots = rangeland_bio_base + "plots/"
 os.makedirs(bio_plots, exist_ok=True)
 ####### Laptop
-rangeland_bio_base = "/Users/hn/Documents/01_research_data/RangeLand_bio/"
-min_bio_dir = rangeland_bio_base
+# rangeland_bio_base = "/Users/hn/Documents/01_research_data/RangeLand_bio/"
+# min_bio_dir = rangeland_bio_base
 
-rangeland_base = rangeland_bio_base
-rangeland_reOrganized = rangeland_base
+# rangeland_base = rangeland_bio_base
+# rangeland_reOrganized = rangeland_base
+
+# %% [markdown]
+# ## Read the shapefile
+# And keep the vegtype in subsequent dataframes
+
+# %%
+# %%time
+Albers_SF_name = min_bio_dir + "Albers_BioRangeland_Min_Ehsan"
+Albers_SF = geopandas.read_file(Albers_SF_name)
+Albers_SF.rename(columns=lambda x: x.lower().replace(' ', '_'), inplace=True)
+Albers_SF.rename(columns={"minstatsid": "fid", 
+                          "satae_max": "state_majority_area"}, inplace=True)
+Albers_SF.head(2)
+
+# %%
 
 # %%
 bps_weather = pd.read_csv(min_bio_dir + "bps_gridmet_mean_indices.csv")
@@ -104,7 +119,7 @@ bps_weather.rename(columns={"rmin_min" : "min_of_dailyMin_rel_hum",
                     inplace=True)
 bps_weather.head(2)
 
-drop_cols = ['alert', 'danger', 'emergency', 'thi_90', 'thi_std', 
+drop_cols = ['alert', 'danger', 'emergency', 'thi_90', 'thi_std', "normal",
              
              'min_of_dailyMin_rel_hum',
              'avg_of_dailyMin_rel_hum',
@@ -117,13 +132,16 @@ drop_cols = ['alert', 'danger', 'emergency', 'thi_90', 'thi_std',
              'min_of_dailyMinTemp_C']
 
 bps_weather.drop(columns = drop_cols, axis="columns", inplace=True)
+bps_weather = bps_weather[[bps_weather.columns[-1]] + list(bps_weather.columns[:-1])]
 bps_weather.head(2)
 
 # %%
 filename = bio_reOrganized + "bps_weather.sav"
 
+bps_weather.reset_index(drop=True, inplace=True)
+
 export_ = {"bps_weather": bps_weather, 
-           "source_code" : "NB1",
+           "source_code" : "clean_dump",
            "Author": "HN",
            "Date" : datetime.now().strftime('%Y-%m-%d %H:%M:%S')}
 
@@ -132,6 +150,16 @@ pickle.dump(export_, open(filename, 'wb'))
 del(bps_weather)
 
 # %%
+FID_veg = Albers_SF[['fid', 'groupveg']].copy()
+filename = bio_reOrganized + "FID_veg.sav"
+FID_veg.reset_index(drop=True, inplace=True)
+export_ = {"FID_veg": FID_veg, 
+           "source_code" : "clean_dump",
+           "Author": "HN",
+           "Date" : datetime.now().strftime('%Y-%m-%d %H:%M:%S')}
+
+pickle.dump(export_, open(filename, 'wb'))
+del(FID_veg)
 
 # %%
 bpszone_ANPP = pd.read_csv(min_bio_dir + "bpszone_annual_productivity_rpms_MEAN.csv")
@@ -142,24 +170,23 @@ bpszone_ANPP.rename(columns={"area": "area_sqMeter",
                              "mean" : "mean_lb_per_acr"}, inplace=True)
 
 bpszone_ANPP.sort_values(by= ['fid', 'year'], inplace=True)
+bpszone_ANPP.reset_index(drop=True, inplace=True)
 bpszone_ANPP.head(2)
 
 # %%
-len(bpszone_ANPP["fid"].unique())
+# bpszone_ANPP = pd.merge(bpszone_ANPP, Albers_SF[["fid", "groupveg"]], how="left", on="fid")
+# bpszone_ANPP.head(2)
 
 # %%
-# f_name = "albers_HucsGreeningBpSAtts250_For_Zonal_Stats"
-# bps_SF = geopandas.read_file(min_bio_dir + f_name + "/" + f_name + ".shp")
-# bps_SF.head(2)
+filename = bio_reOrganized + "bpszone_ANPP.sav"
+export_ = {"bpszone_ANPP": bpszone_ANPP, 
+           "source_code" : "clean_dump",
+           "Author": "HN",
+           "Date" : datetime.now().strftime('%Y-%m-%d %H:%M:%S')}
+
+pickle.dump(export_, open(filename, 'wb'))
 
 # %%
-# %%time
-Albers_SF_name = min_bio_dir + "Albers_BioRangeland_Min_Ehsan"
-Albers_SF = geopandas.read_file(Albers_SF_name)
-Albers_SF.rename(columns=lambda x: x.lower().replace(' ', '_'), inplace=True)
-Albers_SF.rename(columns={"minstatsid": "fid", 
-                          "satae_max": "state_majority_area"}, inplace=True)
-Albers_SF.head(2)
 
 # %%
 print (len(Albers_SF["fid"].unique()))
@@ -444,7 +471,8 @@ bpszone_ANPP_west.head(2)
 # # MK test for ANPP and Spearman's rank
 
 # %%
-ANPP_MK_df = bpszone_ANPP_west[["fid", "state_majority_area", "state_1", "state_2", "EW_meridian"]].copy()
+need_cols = ["fid", "state_majority_area", "state_1", "state_2", "EW_meridian"]
+ANPP_MK_df = bpszone_ANPP_west[need_cols].copy()
 print (ANPP_MK_df.shape)
 
 ANPP_MK_df.drop_duplicates(inplace=True)
@@ -485,12 +513,10 @@ for a_FID in ANPP_MK_df["fid"].unique():
     ANPP_MK_df.loc[median_diff["fid"]==a_FID, MK_test_cols] = L_
 
 # Round the columns to 6-decimals
-for a_col in list(ANPP_MK_df.columns[6:]):
+for a_col in list(ANPP_MK_df.columns[7:]):
     ANPP_MK_df[a_col] = ANPP_MK_df[a_col].round(6)
 
 ANPP_MK_df.head(2)
-
-# %%
 
 # %%
 some_col = ["fid", "medians_diff_ANPP", "medians_diff_slope_ANPP", "median_ANPP_change_as_perc"]
@@ -500,6 +526,12 @@ ANPP_MK_df.head(2)
 
 # %%
 ANPP_MK_df[["trend", "fid"]].groupby(["trend"]).count().reset_index()
+
+# %%
+decreasing_df = ANPP_MK_df[ANPP_MK_df.trend == "decreasing"].copy()
+decreasing_df[["fid", "state_majority_area"]].groupby(["state_majority_area"]).count().reset_index()
+
+# %%
 
 # %%
 Albers_SF.head(2)
@@ -513,6 +545,8 @@ Albers_SF_west.head(2)
 
 Albers_SF_west["centroid"] = Albers_SF_west["geometry"].centroid
 Albers_SF_west.head(2)
+
+# %%
 
 # %%
 import pickle

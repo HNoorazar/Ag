@@ -5,7 +5,7 @@
 #       extension: .py
 #       format_name: percent
 #       format_version: '1.3'
-#       jupytext_version: 1.16.1
+#       jupytext_version: 1.15.2
 #   kernelspec:
 #     display_name: Python 3 (ipykernel)
 #     language: python
@@ -75,22 +75,18 @@ os.makedirs(bio_reOrganized, exist_ok=True)
 bio_plots = rangeland_bio_base + "plots/"
 os.makedirs(bio_plots, exist_ok=True)
 # ####### Laptop
-rangeland_bio_base = "/Users/hn/Documents/01_research_data/RangeLand_bio/"
-min_bio_dir = rangeland_bio_base
+# rangeland_bio_base = "/Users/hn/Documents/01_research_data/RangeLand_bio/"
+# min_bio_dir = rangeland_bio_base
 
-rangeland_base = rangeland_bio_base
-rangeland_reOrganized = rangeland_base
+# rangeland_base = rangeland_bio_base
+# rangeland_reOrganized = rangeland_base
 
 # %%
-bpszone_ANPP = pd.read_csv(min_bio_dir + "bpszone_annual_productivity_rpms_MEAN.csv")
-
-bpszone_ANPP.rename(columns=lambda x: x.lower().replace(' ', '_'), inplace=True)
-bpszone_ANPP.rename(columns={"area": "area_sqMeter", 
-                             "count": "pixel_count",
-                             "mean" : "mean_lb_per_acr"}, inplace=True)
-
-bpszone_ANPP.sort_values(by= ['fid', 'year'], inplace=True)
+bpszone_ANPP = pd.read_pickle(bio_reOrganized + "bpszone_ANPP.sav")
+bpszone_ANPP = bpszone_ANPP["bpszone_ANPP"]
 bpszone_ANPP.head(2)
+# bpszone_ANPP.sort_values(by= ['fid', 'year'], inplace=True)
+# bpszone_ANPP.head(2)
 
 # %%
 filename = bio_reOrganized + "ANPP_MK_Spearman.sav"
@@ -122,6 +118,7 @@ Albers_SF_west.rename(columns={"EW_meridia": "EW_meridian",
 filename = bio_reOrganized + "bps_weather.sav"
 bps_weather = pd.read_pickle(filename)
 bps_weather = bps_weather["bps_weather"]
+# change the order of columns!
 bps_weather.head(2)
 
 # %%
