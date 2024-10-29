@@ -426,7 +426,7 @@ plt.title(r"rangeland trends (Sen's slope)")
 # plt.show();
 fig.subplots_adjust(top=0.91, bottom=0.01, left=0.01, right=0.981)
 file_name = bio_plots + "sensSlopes.png"
-# plt.savefig(file_name)
+plt.savefig(file_name)
 
 # %% [markdown]
 # In order to have the center at ```yellow``` we manipulated ```vmin``` and ```vmax```.
@@ -455,7 +455,7 @@ plt.title("rangeland trends (Sen's slope)")
 # plt.show();
 fig.subplots_adjust(top=0.91, bottom=0.01, left=0.01, right=0.981)
 file_name = bio_plots + "sensSlopes_centerColorBar.png"
-# plt.savefig(file_name)
+plt.savefig(file_name)
 
 # %%
 
@@ -501,8 +501,8 @@ plt.title(r"rangelands with greening trends")
 # plt.tight_layout()
 plt.show();
 fig.subplots_adjust(top=0.91, bottom=0.01, left=0.01, right=0.981)
-# file_name = bio_plots + "greening_sensSlope.png"
-# plt.savefig(file_name)
+file_name = bio_plots + "greening_sensSlope.png"
+plt.savefig(file_name)
 
 # %%
 
@@ -1062,11 +1062,9 @@ plt.tight_layout()
 plt.show();
 
 # %%
-
-# %%
 min_color = min(no_trend_df['Spearman'].min(), green_df_MK_based['Spearman'].min())
 max_color = max(no_trend_df['Spearman'].max(), green_df_MK_based['Spearman'].max())
-norm_colorB = Normalize(vmin = -.3, vmax = 0.8)
+norm_colorB = Normalize(vmin =min_color, vmax=max_color)
 
 fig, axes = plt.subplots(1, 2, figsize=(8, 4), sharex=True, sharey=True, dpi=map_dpi_)
 (ax1, ax2) = axes
@@ -1093,7 +1091,7 @@ plt.show();
 # %%
 min_color = min(no_trend_df['Tau'].min(), green_df_MK_based['Tau'].min())
 max_color = max(no_trend_df['Tau'].max(), green_df_MK_based['Tau'].max())
-norm_colorB = Normalize(vmin = -.3, vmax = 0.8)
+norm_colorB = Normalize(vmin =min_color, vmax = max_color)
 
 fig, axes = plt.subplots(1, 2, figsize=(8, 4), sharex=True, sharey=True, dpi=map_dpi_)
 (ax1, ax2) = axes

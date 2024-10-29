@@ -471,7 +471,7 @@ bpszone_ANPP_west.head(2)
 # # MK test for ANPP and Spearman's rank
 
 # %%
-need_cols = ["fid", "state_majority_area", "state_1", "state_2", "EW_meridian"]
+need_cols = ["fid", "state_majority_area", "EW_meridian"]
 ANPP_MK_df = bpszone_ANPP_west[need_cols].copy()
 print (ANPP_MK_df.shape)
 
@@ -486,7 +486,6 @@ ANPP_MK_df.head(3)
 ##### Tau: Kendall Tau
 MK_test_cols = ["trend", "p", "z", "Tau", "Mann_Kendal_score", "var_s", "sens_slope", "intercept",
                 "Spearman", "p_valueSpearman"]
-
 
 ANPP_MK_df = pd.concat([ANPP_MK_df, pd.DataFrame(columns = MK_test_cols)])
 ANPP_MK_df[MK_test_cols] = ["-666"] + [-666] * (len(MK_test_cols)-1)
@@ -510,7 +509,7 @@ for a_FID in ANPP_MK_df["fid"].unique():
 
     # Update dataframe by MK result
     L_ = [trend, p, z, Tau, s, var_s, slope, intercept, Spearman, p_valueSpearman]
-    ANPP_MK_df.loc[median_diff["fid"]==a_FID, MK_test_cols] = L_
+    ANPP_MK_df.loc[ANPP_MK_df["fid"]==a_FID, MK_test_cols] = L_
 
 # Round the columns to 6-decimals
 for a_col in list(ANPP_MK_df.columns[7:]):
