@@ -42,7 +42,6 @@
 
 # %%
 import shutup
-
 shutup.please()
 
 import pandas as pd

@@ -21,8 +21,6 @@
 # https://geographicdata.science/book/data/airbnb/regression_cleaning.html
 
 # %%
-
-# %%
 import shutup
 shutup.please()
 
@@ -45,6 +43,8 @@ import seaborn
 
 # ttest_ind(coastal, not_coastal)
 
+# %%
+
 # %% [markdown]
 # #### Fit OLS model with Spreg
 #
@@ -65,8 +65,8 @@ import seaborn
 # %%
 # %matplotlib inline
 
-import numpy as np
 import requests
+import numpy as np
 import pandas as pd
 import geopandas as gpd
 #import googlemaps
@@ -213,17 +213,17 @@ gmaps = googlemaps.Client(key="AIzaSyDrD8vsMZPof9F9YYqPFMPtgtOU_PsHTZg")
 
 # %%
 # Google takes lat/lon instead of lon/lat
-gmaps.elevation([b_ll[::-1]])
+# gmaps.elevation([b_ll[::-1]])
 
 # %%
-pts = gdb['geometry'].apply(lambda pt: (pt.y, pt.x))
-# %time ele = gmaps.elevation(pts.head().tolist())
-ele
+# pts = gdb['geometry'].apply(lambda pt: (pt.y, pt.x))
+# # %time ele = gmaps.elevation(pts.head().tolist())
+# ele
 
 # %%
-extract_ele = lambda x: pd.Series(x)['elevation']
-eleS = pd.Series(ele).apply(extract_ele)
-eleS
+# extract_ele = lambda x: pd.Series(x)['elevation']
+# eleS = pd.Series(ele).apply(extract_ele)
+# eleS
 
 # %%
 # Coastal neighborhood?
@@ -453,7 +453,8 @@ knn = weights.KNN.from_dataframe(db, k=1)
 db.head(2)
 
 # %%
-lag_residual = weights.spatial_lag.lag_spatial(knn, m1.u)
+lag_residual = weights.lag_spatial(knn, m1.u)
+
 ax = seaborn.regplot(x=m1.u.flatten(),
                      y=lag_residual.flatten(),
                      line_kws=dict(color="orangered"),
@@ -478,8 +479,7 @@ error_clusters &= outliers.p_sim <= 0.001
 
 # Add `error_clusters` and `local_I` columns
 ax = (db.assign(error_clusters=error_clusters,
-                local_I=outliers.Is
-                # Retain error clusters only
+                local_I=outliers.Is # Retain error clusters only
                )
       .query("error_clusters" # Sort by I value to largest plot on top
             )
@@ -522,7 +522,7 @@ pd.DataFrame({# Pull out regression coefficients and
               index=m2.name_x)
 
 # %%
-lag_residual = weights.spatial_lag.lag_spatial(knn, m2.u)
+lag_residual = weights.lag_spatial(knn, m2.u)
 ax = seaborn.regplot(x=m2.u.flatten(),
                      y=lag_residual.flatten(),
                      line_kws=dict(color="orangered"),
@@ -676,10 +676,12 @@ pd.DataFrame(m5.chow.regi, # Chow results by variable
 
 # %% [markdown]
 # # Exogenous effects: The SLX model
+#
+# keeps complaining about ```weights.spatial_lag.lag_spatial``` and I removed ```spatial_lag``` from the middle
 
 # %%
 # Select only columns in `db` containing the keyword `pg_`
-wx = db.filter(like="pg_").apply(lambda y: weights.spatial_lag.lag_spatial(knn, y))\
+wx = db.filter(like="pg_").apply(lambda y: weights.lag_spatial(knn, y))\
                               .rename(columns=lambda c: "w_" + c)
 wx.drop("w_pg_Apartment", axis=1)
 
@@ -746,7 +748,7 @@ db_scenario.head(2)
 # %%
 # Select only columns in `db_scenario` containing the keyword `pg_`
 wx_scenario = db_scenario.filter(like="pg")\
-                     .apply(lambda y: weights.spatial_lag.lag_spatial(knn, y))
+                     .apply(lambda y: weights.lag_spatial(knn, y))
 
 wx_scenario.rename(columns=lambda c: "w_" + c, inplace=True)
 wx_scenario.drop("w_pg_Apartment", axis=1)
@@ -843,10 +845,10 @@ nulls = []
 for order in range(1, 51, 5):
     knn.reweight(k=order, inplace=True) # operates in place, quickly and efficiently avoiding copies
     knn.transform = "r"
-    lag_residual = weights.spatial_lag.lag_spatial(knn, m1.u)
+    lag_residual = weights.lag_spatial(knn, m1.u)
     random_residual = m1.u[np.random.permutation(len(m1.u))]
     # identical to random neighbors in KNN
-    random_lag_residual = weights.spatial_lag.lag_spatial(knn, random_residual)
+    random_lag_residual = weights.lag_spatial(knn, random_residual)
     correlations.append(np.corrcoef(m1.u.flatten(), lag_residual.flatten())[0, 1])
     nulls.append(np.corrcoef(m1.u.flatten(), random_lag_residual.flatten())[0, 1])
 

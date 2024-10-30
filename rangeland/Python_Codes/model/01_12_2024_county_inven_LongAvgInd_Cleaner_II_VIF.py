@@ -131,32 +131,12 @@ df_OuterJoined.reset_index(drop=True, inplace=True)
 df_OuterJoined.head(2)
 
 # %%
-df_OuterJoined.drop(
-    labels=[
-        "normal",
-        "alert",
-        "danger",
-        "emergency",
-        "s1_normal",
-        "s1_alert",
-        "s1_danger",
-        "s1_emergency",
-        "s2_normal",
-        "s2_alert",
-        "s2_danger",
-        "s2_emergency",
-        "s3_normal",
-        "s3_alert",
-        "s3_danger",
-        "s3_emergency",
-        "s4_normal",
-        "s4_alert",
-        "s4_danger",
-        "s4_emergency",
-    ],
-    axis=1,
-    inplace=True,
-)
+df_OuterJoined.drop(labels=["normal", "alert", "danger", "emergency", "s1_normal",
+                            "s1_alert", "s1_danger", "s1_emergency", "s2_normal",
+                            "s2_alert", "s2_danger", "s2_emergency", "s3_normal",
+                            "s3_alert", "s3_danger", "s3_emergency", "s4_normal",
+                            "s4_alert", "s4_danger", "s4_emergency"],
+                    axis=1, inplace=True)
 
 # %% [markdown]
 # ## Inventory
@@ -275,9 +255,7 @@ NPP_SW_heat_avg.head(2)
 inventory_2017.head(2)
 
 # %%
-inv_2017_NPP_SW_heat_avg = pd.merge(
-    inventory_2017, NPP_SW_heat_avg, on=["county_fips"], how="left"
-)
+inv_2017_NPP_SW_heat_avg = pd.merge(inventory_2017, NPP_SW_heat_avg, on=["county_fips"], how="left")
 inv_2017_NPP_SW_heat_avg.head(2)
 
 # %% [markdown]
@@ -344,31 +322,22 @@ controls.head(2)
 # %%
 variable_controls = ["population", "slaughter", "feed_expense"]
 
-constant_controls = [
-    "herb_avg",
-    "herb_area_acr",
-    "rangeland_fraction",
-    "rangeland_acre",
-    "irr_hay_area",
-    "irr_hay_as_perc",
-]
+constant_controls = ["herb_avg", "herb_area_acr",
+                     "rangeland_fraction", "rangeland_acre",
+                     "irr_hay_area", "irr_hay_as_perc"]
 
 constant_control_df = controls[["county_fips"] + constant_controls].drop_duplicates()
 constant_control_df.reset_index(drop=True, inplace=True)
 constant_control_df.head(2)
 
 # %%
-controls_avg = (
-    controls[["county_fips"] + variable_controls].groupby("county_fips").mean()
-)
+controls_avg = (controls[["county_fips"] + variable_controls].groupby("county_fips").mean())
 controls_avg.reset_index(drop=False, inplace=True)
 controls_avg = controls_avg.round(3)
 controls_avg.head(2)
 
 # %%
-controls_avg = pd.merge(
-    controls_avg, constant_control_df, on=["county_fips"], how="left"
-)
+controls_avg = pd.merge(controls_avg, constant_control_df, on=["county_fips"], how="left")
 print(controls_avg.shape)
 controls_avg.head(2)
 
@@ -378,25 +347,14 @@ controls_avg.head(2)
 # Otherwise, when we drop NAs in different cases differently, colums will not have norm 1.
 
 # %%
-all_df = pd.merge(
-    inv_2017_NPP_SW_heat_avg, controls_avg, on=["county_fips"], how="outer"
-)
+all_df = pd.merge(inv_2017_NPP_SW_heat_avg, controls_avg, on=["county_fips"], how="outer")
 print(all_df.shape)
 all_df.head(2)
 
 # %%
-normalize_cols = [
-    "population",
-    "slaughter",
-    "feed_expense",
-    "herb_avg",
-    "herb_area_acr",
-    "rangeland_fraction",
-    "rangeland_acre",
-    "irr_hay_area",
-    "irr_hay_as_perc",
-]
-
+normalize_cols = ["population", "slaughter", "feed_expense",
+                  "herb_avg", "herb_area_acr", "rangeland_fraction",
+                  "rangeland_acre", "irr_hay_area", "irr_hay_as_perc"]
 normalize_cols = all_indp_vars + normalize_cols
 
 # %%
@@ -440,17 +398,9 @@ X
 normalize_cols
 
 # %%
-cc = [
-    "county_total_npp",
-    # 'unit_npp',
-    "population",
-    "herb_avg",
-    # 'herb_area_acr',
-    # 'rangeland_fraction',
-    "rangeland_acre",
-    "irr_hay_area",
-]
-
+cc = ["county_total_npp", # 'unit_npp',
+      "population", "herb_avg", # 'herb_area_acr', # 'rangeland_fraction',
+      "rangeland_acre", "irr_hay_area"]
 
 X = all_df_normal[cc].values
 XT_X = np.dot(np.transpose(X), X)
@@ -460,15 +410,9 @@ VIFs = np.diagonal(inv_Xt_X)
 
 # %%
 cc = [  # 'county_total_npp',
-    "unit_npp",
-    "population",
-    "herb_avg",
-    # 'herb_area_acr',
-    # 'rangeland_fraction',
-    "rangeland_acre",
-    "irr_hay_area",
-]
-
+      "unit_npp", "population",
+      "herb_avg", # 'herb_area_acr', # 'rangeland_fraction',
+      "rangeland_acre", "irr_hay_area"]
 
 X = all_df_normal[cc].values
 XT_X = np.dot(np.transpose(X), X)

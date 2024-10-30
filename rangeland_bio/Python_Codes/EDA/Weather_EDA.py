@@ -38,9 +38,29 @@ import matplotlib.colors as colors
 from matplotlib.colors import ListedColormap, Normalize
 from matplotlib import cm
 
+from sklearn.model_selection import train_test_split
 sys.path.append("/Users/hn/Documents/00_GitHub/Ag/rangeland/Python_Codes/")
 import rangeland_core as rc
 
+# %%
+rangeland_bio_base = "/Users/hn/Documents/01_research_data/RangeLand_bio/"
+rangeland_bio_data = rangeland_bio_base + "Data/"
+min_bio_dir = rangeland_bio_data + "Min_Data/"
+
+rangeland_base = "/Users/hn/Documents/01_research_data/RangeLand/Data/"
+rangeland_reOrganized = rangeland_base + "reOrganized/"
+
+bio_reOrganized = rangeland_bio_data + "reOrganized/"
+os.makedirs(bio_reOrganized, exist_ok=True)
+
+bio_plots = rangeland_bio_base + "plots/"
+os.makedirs(bio_plots, exist_ok=True)
+# ####### Laptop
+# rangeland_bio_base = "/Users/hn/Documents/01_research_data/RangeLand_bio/"
+# min_bio_dir = rangeland_bio_base
+
+# rangeland_base = rangeland_bio_base
+# rangeland_reOrganized = rangeland_base
 
 # %%
 def plot_SF(SF, ax_, cmap_ = "Pastel1", col="EW_meridian"):
@@ -91,24 +111,6 @@ visframe_mainLand_west = visframe[visframe.EW_meridian.isin(["W"])].copy()
 visframe_mainLand_west = visframe_mainLand_west[~visframe_mainLand_west.state.isin(["AK", "HI"])].copy()
 
 # %%
-rangeland_bio_base = "/Users/hn/Documents/01_research_data/RangeLand_bio/"
-rangeland_bio_data = rangeland_bio_base + "Data/"
-min_bio_dir = rangeland_bio_data + "Min_Data/"
-
-rangeland_base = "/Users/hn/Documents/01_research_data/RangeLand/Data/"
-rangeland_reOrganized = rangeland_base + "reOrganized/"
-
-bio_reOrganized = rangeland_bio_data + "reOrganized/"
-os.makedirs(bio_reOrganized, exist_ok=True)
-
-bio_plots = rangeland_bio_base + "plots/"
-os.makedirs(bio_plots, exist_ok=True)
-# ####### Laptop
-# rangeland_bio_base = "/Users/hn/Documents/01_research_data/RangeLand_bio/"
-# min_bio_dir = rangeland_bio_base
-
-# rangeland_base = rangeland_bio_base
-# rangeland_reOrganized = rangeland_base
 
 # %%
 ANPP = pd.read_pickle(bio_reOrganized + "bpszone_ANPP.sav")
@@ -194,8 +196,6 @@ for a_fid in FIDs_weather_ANPP_common:
     else:
         unique_number_of_years[LL] = \
             unique_number_of_years[LL] + 1
-
-unique_number_of_years
 
 unique_number_of_years
 
@@ -441,20 +441,17 @@ plot_SF(SF=visframe_mainLand_west, cmap_="Pastel1", ax_=ax2, col="EW_meridian")
 
 ####################################################################################
 p1 = SF_west_Spearman_95.plot(column='temp_Spearman', ax=ax1, cmap=cmap_RYG, norm=norm_colorB, legend=False)
-ax1.set_title("temperature (Spearman's rank)")
+ax1.set_title("temperature (Spearman's rank; 95% significant)")
 
 p2 = SF_west_Spearman_95.plot(column='precip_Spearman', ax=ax2, cmap=cmap_RYG, norm=norm_colorB, legend=False)
 
-ax2.set_title("precipitation (Spearman's rank)")
+ax2.set_title("precipitation (Spearman's rank; 95% significant)")
 ####################################################################################
-cbar = fig.colorbar(p1.get_children()[1], ax=ax1,
-                    fraction=0.02, orientation='vertical', location="right")
-
+# fig.subplots_adjust(top=0.91, bottom=0.08, left=0.082, right=0.981, wspace=0.1, hspace=0.01)
+fig.subplots_adjust(top=0.91, bottom=0.08, left=0.082, right=0.981, wspace=-0.2, hspace=0)
+fig.colorbar(p1.get_children()[1], ax=ax2, fraction=0.02, orientation='vertical', location="right")
 # ax1.inset_axes([0.3, 0.07, 0.4, 0.04])
-
-# plt.tight_layout()
-fig.subplots_adjust(top=0.91, bottom=0.08, left=0.082, right=0.981,
-                    wspace=0.1, hspace=0.01)
+fig.suptitle('All locations (not just greening)', y=1.01)
 plt.show();
 
 # %%
@@ -488,19 +485,315 @@ plot_SF(SF=visframe_mainLand_west, cmap_="Pastel1", ax_=ax1, col="EW_meridian")
 plot_SF(SF=visframe_mainLand_west, cmap_="Pastel1", ax_=ax2, col="EW_meridian")
 ####################################################################################
 p1 = SF_west_Spearman_95_green.plot(column='temp_Spearman', ax=ax1, cmap=cmap_RYG, norm=norm_colorB)
-ax1.set_title("temperature (Spearman's rank)")
+ax1.set_title("temperature (Spearman's rank; 95% significant)")
 
 p2 = SF_west_Spearman_95_green.plot(column='precip_Spearman', ax=ax2, cmap=cmap_RYG, norm=norm_colorB)
-ax2.set_title("precipitation (Spearman's rank)")
+ax2.set_title("precipitation (Spearman's rank; 95% significant)")
 ####################################################################################
 cax = ax2.inset_axes([1.05, 0.3, 0.04, 0.4])
 fig.colorbar(p1.get_children()[1], cax=cax, orientation='vertical')
-
+fig.subplots_adjust(top=0.91, bottom=0.08, left=0.082, right=0.981, wspace=-0.1, hspace=0)
 fig.suptitle('Greening locations', y=1.01)
-# plt.tight_layout()
-fig.subplots_adjust(top=0.91, bottom=0.08, left=0.082, right=0.981,
-                    wspace=-0.1, hspace=0)
 plt.show();
+
+# %% [markdown]
+# # Regression
+#
+# origin of spreg.OLS_ in ```04_02_2024_NonNormalModelsInterpret.ipynb```.
+
+# %%
+from pysal.lib import weights
+from pysal.model import spreg
+from pysal.explore import esda
+import geopandas, contextily
+
+from scipy.stats import ttest_ind
+
+# %%
+annual_WA_ANPP.head(2)
+
+# %%
+annual_WA_ANPP['precip_mm_yr'] = annual_WA_ANPP['precip_mm_yr'] / 10
+annual_WA_ANPP.rename(columns={"precip_mm_yr": "precip_cm_yr"}, inplace=True)
+annual_WA_ANPP.head(2)
+
+# %%
+annual_WA_ANPP["temp_X_precip"] = annual_WA_ANPP["precip_cm_yr"] * \
+                                  annual_WA_ANPP["avg_of_dailyAvgTemp_C_AvgOverMonths"]
+    
+annual_WA_ANPP.head(2)
+
+# %%
+print (len(annual_WA_ANPP.fid.unique()))
+
+# %%
+print (SF_west.shape)
+SF_west.head(2)
+
+# %%
+annual_WA_ANPP = pd.merge(annual_WA_ANPP, SF_west[["fid", "groupveg"]], on="fid", how="left")
+annual_WA_ANPP.head(2)
+
+# %%
+print (f'{round(annual_WA_ANPP["precip_cm_yr"].min(), 2) = }')
+print (f'{round(annual_WA_ANPP["precip_cm_yr"].max(), 2) = }')
+
+print (f'{round(annual_WA_ANPP["avg_of_dailyAvgTemp_C_AvgOverMonths"].min()) = }')
+print (f'{round(annual_WA_ANPP["avg_of_dailyAvgTemp_C_AvgOverMonths"].max()) = }')
+
+# %%
+groupveg = sorted(annual_WA_ANPP["groupveg"].unique())
+groupveg
+
+# %%
+depen_var = "mean_lb_per_acr"
+indp_vars = ["precip_cm_yr", "avg_of_dailyAvgTemp_C_AvgOverMonths"]
+
+m5 = spreg.OLS_Regimes(y = annual_WA_ANPP[depen_var].values,
+                       x = annual_WA_ANPP[indp_vars].values, 
+
+                       # Variable specifying neighborhood membership
+                       regimes = annual_WA_ANPP["groupveg"].tolist(),
+              
+                       # Variables to be allowed to vary (True) or kept
+                       # constant (False). Here we set all to False
+                       # cols2regi=[False] * len(indp_vars),
+                        
+                       # Allow the constant term to vary by group/regime
+                       constant_regi="many",
+                        
+                       # Allow separate sigma coefficients to be estimated
+                       # by regime (False so a single sigma)
+                       regime_err_sep=False,
+                       name_y=depen_var, # Dependent variable name
+                       name_x=indp_vars)
+
+print (f"{m5.r2.round(2) = }")
+
+m5_results = pd.DataFrame({"Coeff.": m5.betas.flatten(), # Pull out regression coefficients and
+                           "Std. Error": m5.std_err.flatten(), # Pull out and flatten standard errors
+                           "P-Value": [i[1] for i in m5.t_stat], # Pull out P-values from t-stat object
+                           }, index=m5.name_x)
+
+# %%
+groupveg
+
+# %%
+# West regime
+## Extract variables for the west side 
+Barren_m = [i for i in m5_results.index if "Barren" in i]
+Conifer_m = [i for i in m5_results.index if "Conifer" in i]
+Grassland_m = [i for i in m5_results.index if "Grassland" in i]
+Hardwood_m = [i for i in m5_results.index if "Hardwood" in i]
+Riparian_m = [i for i in m5_results.index if "Riparian" in i]
+Shrubland_m = [i for i in m5_results.index if "Shrubland" in i]
+Sparse_m = [i for i in m5_results.index if "Sparse" in i]
+
+
+## Subset results to Barren
+veg_ = "Barren"
+rep_ = [x for x in groupveg if veg_ in x][0] + "_"
+Barren = m5_results.loc[Barren_m, :].rename(lambda i: i.replace(rep_, ""))
+Barren.columns = pd.MultiIndex.from_product([[veg_], Barren.columns])
+
+## Subset results to Conifer
+veg_ = "Conifer"
+rep_ = [x for x in groupveg if veg_ in x][0] + "_"
+Conifer = m5_results.loc[Conifer_m, :].rename(lambda i: i.replace(rep_, ""))
+Conifer.columns = pd.MultiIndex.from_product([[veg_], Conifer.columns])
+
+## Subset results to Grassland
+veg_ = "Grassland"
+rep_ = [x for x in groupveg if veg_ in x][0] + "_"
+Grassland = m5_results.loc[Grassland_m, :].rename(lambda i: i.replace(rep_, ""))
+Grassland.columns = pd.MultiIndex.from_product([[veg_], Grassland.columns])
+
+## Subset results to Grassland
+veg_ = "Grassland"
+rep_ = [x for x in groupveg if veg_ in x][0] + "_"
+Grassland = m5_results.loc[Grassland_m, :].rename(lambda i: i.replace(rep_, ""))
+Grassland.columns = pd.MultiIndex.from_product([[veg_], Grassland.columns])
+
+## Subset results to Hardwood
+veg_ = "Hardwood"
+rep_ = [x for x in groupveg if veg_ in x][0] + "_"
+Hardwood = m5_results.loc[Hardwood_m, :].rename(lambda i: i.replace(rep_, ""))
+Hardwood.columns = pd.MultiIndex.from_product([[veg_], Hardwood.columns])
+
+## Subset results to Riparian
+veg_ = "Riparian"
+rep_ = [x for x in groupveg if veg_ in x][0] + "_"
+Riparian = m5_results.loc[Riparian_m, :].rename(lambda i: i.replace(rep_, ""))
+Riparian.columns = pd.MultiIndex.from_product([[veg_], Riparian.columns])
+
+## Subset results to Shrubland
+veg_ = "Shrubland"
+rep_ = [x for x in groupveg if veg_ in x][0] + "_"
+Shrubland = m5_results.loc[Shrubland_m, :].rename(lambda i: i.replace(rep_, ""))
+Shrubland.columns = pd.MultiIndex.from_product([[veg_], Shrubland.columns])
+
+## Subset results to Sparse
+veg_ = "Sparse"
+rep_ = [x for x in groupveg if veg_ in x][0] + "_"
+Sparse = m5_results.loc[Sparse_m, :].rename(lambda i: i.replace(rep_, ""))
+Sparse.columns = pd.MultiIndex.from_product([[veg_], Sparse.columns])
+
+
+# Concat both models
+table_ = pd.concat([Barren, Conifer, Grassland, Hardwood, Riparian, Shrubland, Sparse], axis=1).round(5)
+table_ = table_.transpose()
+table_.rename(columns={"avg_of_dailyAvgTemp_C_AvgOverMonths": "temp"}, inplace=True)
+table_
+
+# %% [markdown]
+# # Split and normalize
+
+# %%
+annual_WA_ANPP.head(2)
+
+# %%
+# reorder the dataframe
+col_order = ['fid', 'year', 'mean_lb_per_acr',
+             "groupveg",
+             'precip_cm_yr',
+             'avg_of_dailyAvgTemp_C_AvgOverMonths',
+             'avg_of_dailyAvg_rel_hum_AvgOverMonths',
+             'temp_X_precip',
+             ]
+annual_WA_ANPP = annual_WA_ANPP[col_order]
+annual_WA_ANPP.head(2)
+
+# %%
+depen_var = "mean_lb_per_acr"
+indp_vars = list(annual_WA_ANPP.columns[3:])
+numeric_indp_vars = list(annual_WA_ANPP.columns[4:])
+
+y_df = annual_WA_ANPP[depen_var].copy()
+indp_df = annual_WA_ANPP[indp_vars].copy()
+
+# %%
+
+# %%
+X_train, X_test, y_train, y_test = train_test_split(indp_df, y_df, test_size=0.3, random_state=42)
+X_train.head(2)
+
+# %%
+train_idx = list(X_train.index)
+test_idx = list(X_test.index)
+
+# %%
+# standard_indp = preprocessing.scale(all_df[explain_vars_herb]) # this is biased
+means = X_train[numeric_indp_vars].mean()
+stds = X_train[numeric_indp_vars].std(ddof=1)
+
+X_train_normal = X_train.copy()
+X_test_normal = X_test.copy()
+
+X_train_normal[numeric_indp_vars] = (X_train_normal[numeric_indp_vars] - means) / stds
+X_test_normal[numeric_indp_vars]  = (X_test_normal[numeric_indp_vars]  - means) / stds
+X_train_normal.head(2)
+
+# %% [markdown]
+# # Model normalized data
+
+# %%
+depen_var = "mean_lb_per_acr"
+indp_vars = ["precip_cm_yr", "avg_of_dailyAvgTemp_C_AvgOverMonths"]
+
+m5 = spreg.OLS_Regimes(y = y_train.values,
+                       x = X_train_normal[indp_vars].values, 
+
+                       # Variable specifying neighborhood membership
+                       regimes = X_train_normal["groupveg"].tolist(),
+              
+                       # Variables to be allowed to vary (True) or kept
+                       # constant (False). Here we set all to False
+                       # cols2regi=[False] * len(indp_vars),
+                        
+                       # Allow the constant term to vary by group/regime
+                       constant_regi="many",
+                        
+                       # Allow separate sigma coefficients to be estimated
+                       # by regime (False so a single sigma)
+                       regime_err_sep=False,
+                       name_y=depen_var, # Dependent variable name
+                       name_x=indp_vars)
+
+print (f"{m5.r2.round(2) = }")
+
+m5_results = pd.DataFrame({"Coeff.": m5.betas.flatten(), # Pull out regression coefficients and
+                           "Std. Error": m5.std_err.flatten(), # Pull out and flatten standard errors
+                           "P-Value": [i[1] for i in m5.t_stat], # Pull out P-values from t-stat object
+                           }, index=m5.name_x)
+
+# %%
+# West regime
+## Extract variables for the west side 
+Barren_m = [i for i in m5_results.index if "Barren" in i]
+Conifer_m = [i for i in m5_results.index if "Conifer" in i]
+Grassland_m = [i for i in m5_results.index if "Grassland" in i]
+Hardwood_m = [i for i in m5_results.index if "Hardwood" in i]
+Riparian_m = [i for i in m5_results.index if "Riparian" in i]
+Shrubland_m = [i for i in m5_results.index if "Shrubland" in i]
+Sparse_m = [i for i in m5_results.index if "Sparse" in i]
+
+
+## Subset results to Barren
+veg_ = "Barren"
+rep_ = [x for x in groupveg if veg_ in x][0] + "_"
+Barren = m5_results.loc[Barren_m, :].rename(lambda i: i.replace(rep_, ""))
+Barren.columns = pd.MultiIndex.from_product([[veg_], Barren.columns])
+
+## Subset results to Conifer
+veg_ = "Conifer"
+rep_ = [x for x in groupveg if veg_ in x][0] + "_"
+Conifer = m5_results.loc[Conifer_m, :].rename(lambda i: i.replace(rep_, ""))
+Conifer.columns = pd.MultiIndex.from_product([[veg_], Conifer.columns])
+
+## Subset results to Grassland
+veg_ = "Grassland"
+rep_ = [x for x in groupveg if veg_ in x][0] + "_"
+Grassland = m5_results.loc[Grassland_m, :].rename(lambda i: i.replace(rep_, ""))
+Grassland.columns = pd.MultiIndex.from_product([[veg_], Grassland.columns])
+
+## Subset results to Grassland
+veg_ = "Grassland"
+rep_ = [x for x in groupveg if veg_ in x][0] + "_"
+Grassland = m5_results.loc[Grassland_m, :].rename(lambda i: i.replace(rep_, ""))
+Grassland.columns = pd.MultiIndex.from_product([[veg_], Grassland.columns])
+
+## Subset results to Hardwood
+veg_ = "Hardwood"
+rep_ = [x for x in groupveg if veg_ in x][0] + "_"
+Hardwood = m5_results.loc[Hardwood_m, :].rename(lambda i: i.replace(rep_, ""))
+Hardwood.columns = pd.MultiIndex.from_product([[veg_], Hardwood.columns])
+
+## Subset results to Riparian
+veg_ = "Riparian"
+rep_ = [x for x in groupveg if veg_ in x][0] + "_"
+Riparian = m5_results.loc[Riparian_m, :].rename(lambda i: i.replace(rep_, ""))
+Riparian.columns = pd.MultiIndex.from_product([[veg_], Riparian.columns])
+
+## Subset results to Shrubland
+veg_ = "Shrubland"
+rep_ = [x for x in groupveg if veg_ in x][0] + "_"
+Shrubland = m5_results.loc[Shrubland_m, :].rename(lambda i: i.replace(rep_, ""))
+Shrubland.columns = pd.MultiIndex.from_product([[veg_], Shrubland.columns])
+
+## Subset results to Sparse
+veg_ = "Sparse"
+rep_ = [x for x in groupveg if veg_ in x][0] + "_"
+Sparse = m5_results.loc[Sparse_m, :].rename(lambda i: i.replace(rep_, ""))
+Sparse.columns = pd.MultiIndex.from_product([[veg_], Sparse.columns])
+
+
+# Concat both models
+table_ = pd.concat([Barren, Conifer, Grassland, Hardwood, Riparian, Shrubland, Sparse], axis=1).round(5)
+table_ = table_.transpose()
+table_.rename(columns={"avg_of_dailyAvgTemp_C_AvgOverMonths": "temp"}, inplace=True)
+table_
+
+# %%
 
 # %%
 

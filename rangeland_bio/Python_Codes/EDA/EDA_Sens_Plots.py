@@ -664,11 +664,13 @@ ax1.set_title("greening trends (Spearman's rank based)")
 p2 = Albers_SF_west_increase.plot(column='Tau', ax=ax2, cmap=cmap_G, norm=norm_col)
 ax2.set_title(r"greening trends (Kendall's $\tau$ - MK based)")
 
-cbar = fig.colorbar(p1.get_children()[1], ax=axes, fraction=0.02,
-                    location='bottom', orientation='horizontal')
-# plt.tight_layout()
 fig.subplots_adjust(top=0.91, bottom=0.01, left=0.01, right=0.981, hspace=0.01, wspace=0.01)
+cax = ax2.inset_axes([1.05, 0.3, 0.04, 0.4])
+fig.colorbar(p1.get_children()[1], cax=cax, orientation='vertical')
+# fig.colorbar(p1.get_children()[1], ax=axes, fraction=0.02, location='bottom', orientation='horizontal')
+# plt.tight_layout()
 # plt.show();
+
 file_name = bio_plots + "Spearman_tau.png"
 plt.savefig(file_name);
 
@@ -732,10 +734,11 @@ ax1.set_title(r"greening trends (Sen's slope)")
 p2 = Albers_SF_west_median_diff_increase.plot(column='medians_diff_slope_ANPP', ax=ax2, cmap=cmap_G, norm=norm_col)
 ax2.set_title(r"greening trends (ANPP medians diff slope)")
 
-cbar = fig.colorbar(p1.get_children()[1], ax=axes, fraction=0.02,
-                    location='bottom', orientation='horizontal')
+fig.subplots_adjust(top=0.91, bottom=0.08, left=0.082, right=0.981, wspace=-0.1, hspace=0)
+cax = ax2.inset_axes([1.05, 0.3, 0.04, 0.4])
+fig.colorbar(p1.get_children()[1], cax=cax, orientation='vertical')
+#fig.colorbar(p1.get_children()[1], ax=axes, fraction=0.02, location='bottom', orientation='horizontal')
 # plt.tight_layout()
-fig.subplots_adjust(top=0.91, bottom=0.01, left=0.01, right=0.981, hspace=0.01, wspace=0.01)
 # plt.show();
 file_name = bio_plots + "Sens_MedianDiffSlope.png"
 plt.savefig(file_name);
@@ -1031,8 +1034,12 @@ ax1.set_title("no trend locations (Spearman's rank - MK based)")
 p2 = no_trend_df.plot(column='Tau', ax=ax2, cmap=cmap_G, norm=norm1)
 ax2.set_title(r"no trend locations (Kendall's $\tau$ - MK based)")
 
-cbar = fig.colorbar(p1.get_children()[1], ax=axes, fraction=0.02, orientation='horizontal', location="bottom")
-plt.tight_layout();
+cax = ax2.inset_axes([1.05, 0.3, 0.04, 0.4])
+fig.colorbar(p1.get_children()[1], cax=cax, orientation='vertical')
+fig.subplots_adjust(top=0.91, bottom=0.08, left=0.082, right=0.981, wspace=-0.1, hspace=0)
+# fig.colorbar(p1.get_children()[1], ax=axes, fraction=0.02, orientation='horizontal', location="bottom")
+# plt.tight_layout();
+
 plt.show();
 
 # %%
@@ -1057,9 +1064,15 @@ ax1.set_title(r"no trend locations (Sen's slope)")
 p2 = green_df_MK_based.plot(column='sens_slope', ax=ax2, cmap=cmap_G, norm=norm_colorB, legend=False)
 ax2.set_title(r"greening locations (Sen's slope)")
 
-p2 = fig.colorbar(p1.get_children()[1], ax=axes, fraction=0.02, orientation='horizontal', location="bottom")
-plt.tight_layout()
+fig.subplots_adjust(top=0.91, bottom=0.08, left=0.082, right=0.981, wspace=-0.1, hspace=0)
+cax = ax2.inset_axes([1.05, 0.3, 0.04, 0.4])
+fig.colorbar(p1.get_children()[1], cax=cax, orientation='vertical')
+# fig.colorbar(p1.get_children()[1], ax=axes, fraction=0.02, orientation='horizontal', location="bottom")
+# plt.tight_layout()
+
 plt.show();
+
+# %%
 
 # %%
 min_color = min(no_trend_df['Spearman'].min(), green_df_MK_based['Spearman'].min())
@@ -1081,9 +1094,11 @@ ax1.set_title("no trend locations (Spearman's rank - MK based)")
 p2 = green_df_MK_based.plot(column='Spearman', ax = ax2, cmap=cmap_G, norm=norm_colorB, legend=False)
 ax2.set_title("greening locations (Spearman's rank - MK based)")
 ####################################################################################
-cbar = fig.colorbar(p1.get_children()[1], ax=axes, fraction=0.02, orientation='horizontal', location="bottom")
-
-plt.tight_layout()
+fig.subplots_adjust(top=0.91, bottom=0.08, left=0.082, right=0.981, wspace=-0.1, hspace=0)
+cax = ax2.inset_axes([1.05, 0.3, 0.04, 0.4])
+fig.colorbar(p1.get_children()[1], cax=cax, orientation='vertical')
+# fig.colorbar(p1.get_children()[1], ax=axes,  fraction=0.02, orientation='horizontal', location="bottom")
+# plt.tight_layout()
 plt.show();
 
 # %%
@@ -1109,10 +1124,11 @@ ax1.set_title(r"no trend locations (Kenda's $\tau$ - MK based)")
 p2 = green_df_MK_based.plot(column='Tau', ax = ax2, cmap=cmap_G, norm=norm_colorB, legend=False)
 ax2.set_title(r"greening locations (Kenda's $\tau$ - MK based)")
 ####################################################################################
-cbar = fig.colorbar(p1.get_children()[1], ax=axes,  fraction=0.02,
-                    orientation='horizontal', location="bottom",)
-
-plt.tight_layout()
+fig.subplots_adjust(top=0.91, bottom=0.08, left=0.082, right=0.981, wspace=-0.1, hspace=0)
+cax = ax2.inset_axes([1.05, 0.3, 0.04, 0.4])
+fig.colorbar(p1.get_children()[1], cax=cax, orientation='vertical')
+# fig.colorbar(p1.get_children()[1], ax=axes,  fraction=0.02, orientation='horizontal', location="bottom")
+# plt.tight_layout()
 plt.show();
 
 # %%
