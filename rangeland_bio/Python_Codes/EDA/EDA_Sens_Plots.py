@@ -92,7 +92,7 @@ bpszone_ANPP.rename(columns={"area": "area_sqMeter",
                              "count": "pixel_count",
                              "mean" : "mean_lb_per_acr"}, inplace=True)
 
-bpszone_ANPP.sort_values(by= ['fid', 'year'], inplace=True)
+bpszone_ANPP.sort_values(by=['fid', 'year'], inplace=True)
 bpszone_ANPP.head(2)
 
 # %%
@@ -246,7 +246,7 @@ reg_slope = int(ks_result.params["year"].round())
 ax1.plot(X["year"], y_pred, color="red", linewidth=3, label="regression fit");
 ax1.legend(loc='best')
 
-text_ = "trend: {}\nSen's slope {}, reg. slope {}\nstate {}".format(trend_, slope_, reg_slope, state_)
+text_ = "trend: {}\nSen's slope {}, reg. slope {}\n{} (fid:{})".format(trend_, slope_, reg_slope, state_, a_fid)
 y_txt = int(df[y_var].max()) - (int(df[y_var].max())/1.2)
 ax1.text(2012, y_txt, text_, fontsize = 12);
 # ax1.set_ylim(3000, 4500);
@@ -274,7 +274,7 @@ y_pred = ks_result.predict(X)
 reg_slope = int(ks_result.params["year"].round())
 ax2.plot(X["year"], y_pred, color="red", linewidth=3);
 
-text_ = "trend: {}\nSen's slope {}, reg. slope {}\nstate {}".format(trend_, slope_, reg_slope, state_)
+text_ = "trend: {}\nSen's slope {}, reg. slope {}\n{} (fid:{})".format(trend_, slope_, reg_slope, state_, a_fid)
 y_txt = int(df[y_var].max()) - (int(df[y_var].max())/2.3)
 ax2.text(2012, y_txt, text_, fontsize = 12);
 # ax2.set_ylim(3000, 4500);
@@ -300,7 +300,7 @@ y_pred = ks_result.predict(X)
 reg_slope = int(ks_result.params["year"].round())
 ax3.plot(X["year"], y_pred, color="red", linewidth=3);
 
-text_ = "trend: {}\nSen's slope {}, reg. slope {}\nstate {}".format(trend_, slope_, reg_slope, state_)
+text_ = "trend: {}\nSen's slope {}, reg. slope {}\n{} (fid:{})".format(trend_, slope_, reg_slope, state_, a_fid)
 y_txt = int(df[y_var].max()) - (int(df[y_var].max())/3)
 ax3.text(2012, y_txt, text_, fontsize = 12);
 # ax3.set_ylim(3000, 4500);
@@ -309,7 +309,8 @@ ax1.set_title("three trend examples")
 # plt.tight_layout();
 fig.subplots_adjust(top=0.91, bottom=0.08, left=0.082, right=0.981)
 file_name = bio_plots + "three_trends.pdf"
-plt.savefig(file_name)
+# This is redone in Weather_EDA.ipynb to add temp and precipitation Spearman's
+# plt.savefig(file_name) 
 
 # %%
 np.sort(ANPP_MK_df["sens_slope"])[:10]
@@ -423,7 +424,6 @@ cbar1.set_label(r"Sen's slope")
 plt.title(r"rangeland trends (Sen's slope)")
 
 # plt.tight_layout()
-# plt.show();
 fig.subplots_adjust(top=0.91, bottom=0.01, left=0.01, right=0.981)
 file_name = bio_plots + "sensSlopes.png"
 plt.savefig(file_name)
@@ -452,7 +452,6 @@ cbar1.set_label(r"Sen's slope")
 plt.title("rangeland trends (Sen's slope)")
 
 # plt.tight_layout()
-# plt.show();
 fig.subplots_adjust(top=0.91, bottom=0.01, left=0.01, right=0.981)
 file_name = bio_plots + "sensSlopes_centerColorBar.png"
 plt.savefig(file_name)
@@ -489,6 +488,8 @@ plt.rcParams["ytick.labelleft"] = False
 plt.rcParams.update(params)
 
 # %%
+
+# %%
 fig, ax = plt.subplots(1, 1, figsize=(3, 3), sharex=True, sharey=True, dpi=map_dpi_)
 ax.set_xticks([]); ax.set_yticks([])
 
@@ -499,7 +500,7 @@ cbar1 = fig.colorbar(cent_plt.collections[1], ax=ax, orientation='vertical', shr
 cbar1.set_label(r"Sen's slope")
 plt.title(r"rangelands with greening trends")
 # plt.tight_layout()
-plt.show();
+# plt.show();
 fig.subplots_adjust(top=0.91, bottom=0.01, left=0.01, right=0.981)
 file_name = bio_plots + "greening_sensSlope.png"
 plt.savefig(file_name)
@@ -836,7 +837,7 @@ plt.rcParams.update(params)
 # %%
 
 # %%
-fig, axes = plt.subplots(5, 1, figsize=(10, 12), sharey=False, sharex=False)
+fig, axes = plt.subplots(5, 1, figsize=(10, 12), sharey=False, sharex=False, dpi=dpi_)
 sns.set_style({'axes.grid' : True})
 
 sns.histplot(data=Albers_SF_west["Tau"], ax=axes[0], bins=100, kde=True); # height=5
@@ -871,7 +872,7 @@ significant_sens = Albers_SF_west[Albers_SF_west["trend"].isin(["increasing", "d
 significant_spearman = Albers_SF_west[Albers_SF_west["p_valueSpearman"] < 0.05].copy()
 
 # %%
-fig, axes = plt.subplots(3, 1, figsize=(10, 8), sharey=False, sharex=False)
+fig, axes = plt.subplots(3, 1, figsize=(10, 8), sharey=False, sharex=False, dpi=dpi_)
 sns.set_style({'axes.grid' : True})
 
 sns.histplot(data=significant_spearman["Spearman"], ax=axes[0], bins=100, kde=True); # height=5
@@ -973,7 +974,7 @@ Albers_SF_west_intersec = Albers_SF_west_intersec[Albers_SF_west_intersec["sens_
 # %%
 
 # %%
-fig, axes = plt.subplots(3, 1, figsize=(10, 10), sharey=False, sharex=False)
+fig, axes = plt.subplots(3, 1, figsize=(10, 10), sharey=False, sharex=False, dpi=dpi_)
 sns.set_style({'axes.grid' : True})
 
 axes[0].set_title('Intersection of sigfinicant MK test and Spearman (increasing trend)');

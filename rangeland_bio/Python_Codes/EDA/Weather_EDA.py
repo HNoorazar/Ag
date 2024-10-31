@@ -185,37 +185,29 @@ SF_west = SF_west[SF_west["fid"].isin(FIDs_weather_ANPP_common)]
 monthly_weather.head(2)
 
 # %%
-# %%time
-unique_number_of_years = {}
-
-for a_fid in FIDs_weather_ANPP_common:
-    LL = str(len(monthly_weather[monthly_weather.fid == a_fid])) + "_months"
-    
-    if not (LL in unique_number_of_years.keys()):
-        unique_number_of_years[LL] = 1
-    else:
-        unique_number_of_years[LL] = \
-            unique_number_of_years[LL] + 1
-
-unique_number_of_years
+# # %%time
+# unique_number_of_years = {}
+# for a_fid in FIDs_weather_ANPP_common:
+#     LL = str(len(monthly_weather[monthly_weather.fid == a_fid])) + "_months"    
+#     if not (LL in unique_number_of_years.keys()):
+#         unique_number_of_years[LL] = 1
+#     else:
+#         unique_number_of_years[LL] = unique_number_of_years[LL] + 1
+# unique_number_of_years
 
 # %%
 528 / 12
 
 # %%
-# %%time
-unique_number_of_years = {}
-
-for a_fid in ANPP.fid.unique():
-    LL = str(len(ANPP[ANPP.fid == a_fid])) + "_years"
-    
-    if not (LL in unique_number_of_years.keys()):
-        unique_number_of_years[LL] = 1
-    else:
-        unique_number_of_years[LL] = \
-            unique_number_of_years[LL] + 1
-
-unique_number_of_years
+# # %%time
+# unique_number_of_years = {}
+# for a_fid in ANPP.fid.unique():
+#     LL = str(len(ANPP[ANPP.fid == a_fid])) + "_years"
+#     if not (LL in unique_number_of_years.keys()):
+#         unique_number_of_years[LL] = 1
+#     else:
+#         unique_number_of_years[LL] = unique_number_of_years[LL] + 1
+# unique_number_of_years
 
 # %%
 ANPP.head(2)
@@ -245,9 +237,9 @@ annual_WA_ANPP = pd.merge(annual_WA_ANPP, ANPP[["fid", "year", "mean_lb_per_acr"
                           how="left", on=["fid", "year"])
 
 annual_WA_ANPP.rename(columns={"precip_mm_month": "precip_mm_yr", 
-                          "avg_of_dailyAvgTemp_C": "avg_of_dailyAvgTemp_C_AvgOverMonths",
-                          "avg_of_dailyAvg_rel_hum": "avg_of_dailyAvg_rel_hum_AvgOverMonths"}, 
-                 inplace=True)
+                               "avg_of_dailyAvgTemp_C": "avg_of_dailyAvgTemp_C_AvgOverMonths",
+                               "avg_of_dailyAvg_rel_hum": "avg_of_dailyAvg_rel_hum_AvgOverMonths"}, 
+                      inplace=True)
 annual_WA_ANPP.head(2)
 
 # %%
@@ -269,95 +261,86 @@ SF_west.head(2)
 # ## Compute Spearman for ANPP and precip
 
 # %%
-need_cols = ["fid", "centroid"]
-precip_MK_df = SF_west[need_cols].copy()
-print (ANPP_MK_df.shape)
+# # %%time
+# need_cols = ["fid", "centroid"]
+# precip_MK_df = SF_west[need_cols].copy()
+# print (ANPP_MK_df.shape)
 
-precip_MK_df.drop_duplicates(inplace=True)
-precip_MK_df.reset_index(drop=True, inplace=True)
+# precip_MK_df.drop_duplicates(inplace=True)
+# precip_MK_df.reset_index(drop=True, inplace=True)
+# print (precip_MK_df.shape)
 
-print (precip_MK_df.shape)
+# MK_test_cols = ["precip_Spearman", "precip_p_valSpearman"]
+# precip_MK_df = pd.concat([precip_MK_df, pd.DataFrame(columns = MK_test_cols)])
+# precip_MK_df[MK_test_cols] = ["-666"] + [-666] * (len(MK_test_cols)-1)
+# # Why data type changed?!
+# precip_MK_df["fid"] = precip_MK_df["fid"].astype(np.int64)
+# precip_MK_df.drop(columns="centroid", inplace=True)
+# precip_MK_df.head(2)
 
-MK_test_cols = ["precip_Spearman", "precip_p_valSpearman"]
 
-precip_MK_df = pd.concat([precip_MK_df, pd.DataFrame(columns = MK_test_cols)])
-precip_MK_df[MK_test_cols] = ["-666"] + [-666] * (len(MK_test_cols)-1)
+# # populate the dataframe with MK test result now
+# for a_FID in precip_MK_df["fid"].unique():
+#     ANPP_TS = annual_WA_ANPP.loc[annual_WA_ANPP["fid"]==a_FID, "mean_lb_per_acr"].values
+#     precip_TS = annual_WA_ANPP.loc[annual_WA_ANPP["fid"]==a_FID, "precip_mm_yr"].values
+#     Spearman, p_valueSpearman = stats.spearmanr(precip_TS, ANPP_TS)
+#     L_ = [Spearman, p_valueSpearman]
+#     precip_MK_df.loc[precip_MK_df["fid"]==a_FID, MK_test_cols] = L_
 
-# Why data type changed?!
-precip_MK_df["fid"] = precip_MK_df["fid"].astype(np.int64)
-precip_MK_df.drop(columns="centroid", inplace=True)
-precip_MK_df.head(2)
-
-# %%
-# %%time
-# populate the dataframe with MK test result now
-for a_FID in precip_MK_df["fid"].unique():
-    ANPP_TS = annual_WA_ANPP.loc[annual_WA_ANPP["fid"]==a_FID, "mean_lb_per_acr"].values
-    precip_TS = annual_WA_ANPP.loc[annual_WA_ANPP["fid"]==a_FID, "precip_mm_yr"].values
-    
-    # MK test
-    # trend, _, p, z, Tau, s, var_s, slope, intercept = mk.original_test(ANPP_TS)
-
-    # Spearman's rank
-    Spearman, p_valueSpearman = stats.spearmanr(precip_TS, ANPP_TS)
-
-    # Update dataframe by MK result
-    # L_ = [trend, p, z, Tau, s, var_s, slope, intercept, Spearman, p_valueSpearman]
-    L_ = [Spearman, p_valueSpearman]
-    precip_MK_df.loc[precip_MK_df["fid"]==a_FID, MK_test_cols] = L_
-
-precip_MK_df.head(2)
+# precip_MK_df.head(2)
 
 # %% [markdown]
 # ## Compute Spearman for ANPP and Temp
 
 # %%
-need_cols = ["fid", "centroid"]
-temp_MK_df = SF_west[need_cols].copy()
-print (ANPP_MK_df.shape)
+# # %%time
 
-temp_MK_df.drop_duplicates(inplace=True)
-temp_MK_df.reset_index(drop=True, inplace=True)
+# need_cols = ["fid", "centroid"]
+# temp_MK_df = SF_west[need_cols].copy()
+# print (ANPP_MK_df.shape)
 
-print (temp_MK_df.shape)
+# temp_MK_df.drop_duplicates(inplace=True)
+# temp_MK_df.reset_index(drop=True, inplace=True)
+# print (temp_MK_df.shape)
 
-MK_test_cols = ["temp_Spearman", "temp_p_valSpearman"]
+# MK_test_cols = ["temp_Spearman", "temp_p_valSpearman"]
+# temp_MK_df = pd.concat([temp_MK_df, pd.DataFrame(columns = MK_test_cols)])
+# temp_MK_df[MK_test_cols] = ["-666"] + [-666] * (len(MK_test_cols)-1)
+# temp_MK_df.drop(columns="centroid", inplace=True)
+# # Why data type changed?!
+# temp_MK_df["fid"] = temp_MK_df["fid"].astype(np.int64)
+# temp_MK_df.head(2)
 
-temp_MK_df = pd.concat([temp_MK_df, pd.DataFrame(columns = MK_test_cols)])
-temp_MK_df[MK_test_cols] = ["-666"] + [-666] * (len(MK_test_cols)-1)
-temp_MK_df.drop(columns="centroid", inplace=True)
-# Why data type changed?!
-temp_MK_df["fid"] = temp_MK_df["fid"].astype(np.int64)
-temp_MK_df.head(2)
 
-# %%
-# %%time
-# populate the dataframe with MK test result now
-for a_FID in temp_MK_df["fid"].unique():
-    ANPP_TS = annual_WA_ANPP.loc[annual_WA_ANPP["fid"]==a_FID, "mean_lb_per_acr"].values
-    temp_TS = annual_WA_ANPP.loc[annual_WA_ANPP["fid"]==a_FID, "avg_of_dailyAvgTemp_C_AvgOverMonths"].values
+# # populate the dataframe with MK test result now
+# for a_FID in temp_MK_df["fid"].unique():
+#     ANPP_TS = annual_WA_ANPP.loc[annual_WA_ANPP["fid"]==a_FID, "mean_lb_per_acr"].values
+#     temp_TS = annual_WA_ANPP.loc[annual_WA_ANPP["fid"]==a_FID, "avg_of_dailyAvgTemp_C_AvgOverMonths"].values
+#     Spearman, p_valueSpearman = stats.spearmanr(temp_TS, ANPP_TS)
+#     L_ = [Spearman, p_valueSpearman]
+#     temp_MK_df.loc[temp_MK_df["fid"]==a_FID, MK_test_cols] = L_
 
-    # Spearman's rank
-    Spearman, p_valueSpearman = stats.spearmanr(temp_TS, ANPP_TS)
-
-    # Update dataframe
-    L_ = [Spearman, p_valueSpearman]
-    temp_MK_df.loc[temp_MK_df["fid"]==a_FID, MK_test_cols] = L_
-
-temp_MK_df.head(2)
+# temp_MK_df.head(2)
 
 # %%
-temp_precip_spear = pd.merge(temp_MK_df[["fid", "temp_Spearman", "temp_p_valSpearman"]], 
-                             precip_MK_df, how="left", on=["fid"])
+# temp_precip_spear = pd.merge(temp_MK_df[["fid", "temp_Spearman", "temp_p_valSpearman"]], 
+#                              precip_MK_df, how="left", on=["fid"])
 
-# temp_precip_spear = pd.merge(temp_precip_spear, 
-#                              SF_west[["fid", "trend"]], how="left", on=["fid"])
+filename = bio_reOrganized + "temp_precip_spearman.sav"
+# export_ = {"temp_precip_spear": temp_precip_spear, 
+#            "source_code" : "Weather_EDA",
+#            "Author": "HN",
+#            "Date" : datetime.now().strftime('%Y-%m-%d %H:%M:%S')}
+# pickle.dump(export_, open(filename, 'wb'))
 
+
+temp_precip_spear = pd.read_pickle(filename)
+temp_precip_spear = temp_precip_spear["temp_precip_spear"]
 temp_precip_spear.head(2)
 
 # %%
-temp = temp_MK_df[["fid", "temp_Spearman", "temp_p_valSpearman"]].copy()
-precip = precip_MK_df.copy()
+temp   = temp_precip_spear[["fid", "temp_Spearman", "temp_p_valSpearman"]].copy()
+precip = temp_precip_spear[["fid", "precip_Spearman", "precip_p_valSpearman"]].copy()
 
 temp = temp[temp["temp_p_valSpearman"] < 0.05].copy()
 precip = precip[precip["precip_p_valSpearman"] < 0.05].copy()
@@ -379,8 +362,8 @@ print (f"{temp_precip_spear.shape = }")
 print (f"{temp_precip_spear_sig_95.shape = }")
 
 # %%
-temp = temp_MK_df[["fid", "temp_Spearman", "temp_p_valSpearman"]].copy()
-precip = precip_MK_df.copy()
+temp   = temp_precip_spear[["fid", "temp_Spearman", "temp_p_valSpearman"]].copy()
+precip = temp_precip_spear[["fid", "precip_Spearman", "precip_p_valSpearman"]].copy()
 
 temp = temp[temp["temp_p_valSpearman"] < 0.1].copy()
 precip = precip[precip["precip_p_valSpearman"] < 0.1].copy()
@@ -435,16 +418,14 @@ fig, axes = plt.subplots(1, 2, figsize=(8, 4), sharex=True, sharey=True, dpi=map
 (ax1, ax2) = axes
 ax1.set_xticks([]); ax1.set_yticks([])
 ax2.set_xticks([]); ax2.set_yticks([])
-####### States
+####################################################################### States
 plot_SF(SF=visframe_mainLand_west, cmap_="Pastel1", ax_=ax1, col="EW_meridian")
 plot_SF(SF=visframe_mainLand_west, cmap_="Pastel1", ax_=ax2, col="EW_meridian")
-
 ####################################################################################
 p1 = SF_west_Spearman_95.plot(column='temp_Spearman', ax=ax1, cmap=cmap_RYG, norm=norm_colorB, legend=False)
 ax1.set_title("temperature (Spearman's rank; 95% significant)")
 
 p2 = SF_west_Spearman_95.plot(column='precip_Spearman', ax=ax2, cmap=cmap_RYG, norm=norm_colorB, legend=False)
-
 ax2.set_title("precipitation (Spearman's rank; 95% significant)")
 ####################################################################################
 # fig.subplots_adjust(top=0.91, bottom=0.08, left=0.082, right=0.981, wspace=0.1, hspace=0.01)
@@ -480,7 +461,7 @@ fig, axes = plt.subplots(1, 2, figsize=(8, 4), sharex=True, sharey=True, dpi=map
 (ax1, ax2) = axes
 ax1.set_xticks([]); ax1.set_yticks([])
 ax2.set_xticks([]); ax2.set_yticks([])
-####### States
+####################################################################### States
 plot_SF(SF=visframe_mainLand_west, cmap_="Pastel1", ax_=ax1, col="EW_meridian")
 plot_SF(SF=visframe_mainLand_west, cmap_="Pastel1", ax_=ax2, col="EW_meridian")
 ####################################################################################
@@ -495,6 +476,313 @@ fig.colorbar(p1.get_children()[1], cax=cax, orientation='vertical')
 fig.subplots_adjust(top=0.91, bottom=0.08, left=0.082, right=0.981, wspace=-0.1, hspace=0)
 fig.suptitle('Greening locations', y=1.01)
 plt.show();
+
+# %%
+temp_precip_spear.head(2)
+
+# %%
+
+# %%
+font = {"size": 10}
+matplotlib.rc("font", **font)
+tick_legend_FontSize = 12
+params = {"legend.fontsize": tick_legend_FontSize * 1,
+          "axes.labelsize": tick_legend_FontSize * 1.2,
+          "axes.titlesize": tick_legend_FontSize * 1.2,
+          "xtick.labelsize": tick_legend_FontSize * 1.1,
+          "ytick.labelsize": tick_legend_FontSize * 1.1,
+          "axes.titlepad": 10}
+
+plt.rcParams["xtick.bottom"] = True
+plt.rcParams["ytick.left"] = True
+plt.rcParams["xtick.labelbottom"] = True
+plt.rcParams["ytick.labelleft"] = True
+plt.rcParams.update(params)
+
+
+# %%
+def lin_reg(df):
+    X = df[["year", y_var]].copy()
+    X.dropna(how="any", inplace=True)
+    X = sm.add_constant(X)
+    Y = X[y_var].astype(float)
+    X = X.drop(y_var, axis=1)
+    ks = sm.OLS(Y, X)
+    ks_result = ks.fit()
+    y_pred = ks_result.predict(X)
+    reg_slope = int(ks_result.params["year"].round())
+    return(reg_slope, y_pred)
+
+
+# %%
+## re-plot this from EDA_Sens_Plots.ipynb and add
+## precip and temp spearmans to the plots
+
+fig, axes = plt.subplots(3, 1, figsize=(10, 6), sharex=True, 
+                        gridspec_kw={"hspace": 0.15, "wspace": 0.05}, dpi=dpi_)
+(ax1, ax2, ax3) = axes
+# ax1.grid(axis="both", which="both"); ax2.grid(axis="both", which="both"); 
+# ax3.grid(axis="both", which="both")
+y_var = "mean_lb_per_acr"
+######
+###### subplot 1
+######
+target_idx = SF_west["sens_slope"].max()
+a_fid = SF_west.loc[SF_west["sens_slope"] == target_idx, "fid"].values[0]
+
+df = annual_WA_ANPP[annual_WA_ANPP.fid == a_fid]
+trend_ = SF_west.loc[SF_west.fid == a_fid, "trend"].values[0]
+slope_ = int(SF_west.loc[SF_west.fid == a_fid, "sens_slope"].values[0])
+state_ = SF_west.loc[SF_west.fid == a_fid, "state_majority_area"].values[0]
+prec_sprear = round(temp_precip_spear[temp_precip_spear["fid"] == a_fid]["precip_Spearman"].values[0], 2)
+temp_sprear = round(temp_precip_spear[temp_precip_spear["fid"] == a_fid]["temp_Spearman"].values[0], 2)
+ax1.plot(df.year, df[y_var], linewidth=3);
+
+## regression line
+reg_slope, y_pred = lin_reg(df)
+ax1.plot(df["year"], y_pred, color="red", linewidth=3, label="regression fit");
+ax1.legend(loc='best')
+
+text_1 = "trend: {}\nSen's slope {}, reg. slope {}\n{}".format(trend_, slope_, reg_slope, state_)
+text_2 = " (FID: {})\nPrecip. Spearman {}\nTemp. Spearman {}".format(a_fid, prec_sprear, temp_sprear)
+text_ = text_1 + text_2
+y_txt = int(df[y_var].max()) - (int(df[y_var].max())/1.2)
+ax1.text(2012, y_txt, text_, fontsize = 12);
+# ax1.set_ylim(3000, 4500);
+######
+###### subplot 2
+target_idx = SF_west["sens_slope"].min()
+a_fid = SF_west.loc[SF_west["sens_slope"] == target_idx, "fid"].values[0]
+
+df = annual_WA_ANPP[annual_WA_ANPP.fid == a_fid]
+trend_ = SF_west.loc[SF_west.fid == a_fid, "trend"].values[0]
+slope_ = int(SF_west.loc[SF_west.fid == a_fid, "sens_slope"].values[0])
+state_ = SF_west.loc[SF_west.fid == a_fid, "state_majority_area"].values[0]
+prec_sprear = round(temp_precip_spear[temp_precip_spear["fid"] == a_fid]["precip_Spearman"].values[0], 2)
+temp_sprear = round(temp_precip_spear[temp_precip_spear["fid"] == a_fid]["temp_Spearman"].values[0], 2)
+ax2.plot(df.year, df[y_var], linewidth=3);
+
+## regression line
+reg_slope, y_pred = lin_reg(df)
+ax2.plot(df["year"], y_pred, color="red", linewidth=3, label="regression fit");
+ax2.legend(loc='lower left')
+
+text_1 = "trend: {}\nSen's slope {}, reg. slope {}\n{}".format(trend_, slope_, reg_slope, state_)
+text_2 = " (FID: {})\nPrecip. Spearman {}\nTemp. Spearman {}".format(a_fid, prec_sprear, temp_sprear)
+text_ = text_1 + text_2
+y_txt = int(df[y_var].max()) - (int(df[y_var].max())/2)
+ax2.text(2012, y_txt, text_, fontsize = 12);
+
+######
+###### subplot 3
+######
+a_fid = ANPP_MK_df.loc[ANPP_MK_df["trend"] == "no trend", "fid"].values[0]
+df = annual_WA_ANPP[annual_WA_ANPP.fid == a_fid]
+trend_ = SF_west.loc[SF_west.fid == a_fid, "trend"].values[0]
+slope_ = int(SF_west.loc[SF_west.fid == a_fid, "sens_slope"].values[0])
+state_ = SF_west.loc[SF_west.fid == a_fid, "state_majority_area"].values[0]
+prec_sprear = round(temp_precip_spear[temp_precip_spear["fid"] == a_fid]["precip_Spearman"].values[0], 2)
+temp_sprear = round(temp_precip_spear[temp_precip_spear["fid"] == a_fid]["temp_Spearman"].values[0], 2)
+ax3.plot(df.year, df[y_var], linewidth=3);
+
+## regression line
+reg_slope, y_pred = lin_reg(df)
+ax3.plot(df["year"], y_pred, color="red", linewidth=3); 
+
+text_1 = "trend: {}\nSen's slope {}, reg. slope {}\n{}".format(trend_, slope_, reg_slope, state_)
+text_2 = " (FID: {})\nPrecip. Spearman {}\nTemp. Spearman {}".format(a_fid, prec_sprear, temp_sprear)
+text_ = text_1 + text_2
+y_txt = int(df[y_var].max()) - (int(df[y_var].max())/3)
+ax3.text(2012, y_txt, text_, fontsize = 12);
+
+# plt.subplots_adjust(left=0.9, right=0.92, top=0.92, bottom=0.9)
+ax2.set_ylabel("ANPP (mean lb/acr)")
+ax1.set_title("three trend examples")
+# plt.tight_layout();
+fig.subplots_adjust(top=0.91, bottom=0.08, left=0.082, right=0.981)
+file_name = bio_plots + "three_trends.pdf"
+plt.savefig(file_name)
+
+# %%
+annual_WA_ANPP.head(2)
+
+# %%
+tick_legend_FontSize = 12
+params = {"legend.fontsize": tick_legend_FontSize * .81,
+          "axes.labelsize": tick_legend_FontSize * 1,
+          "axes.titlesize": tick_legend_FontSize * 1.2,
+          "xtick.labelsize": tick_legend_FontSize * .8,
+          "ytick.labelsize": tick_legend_FontSize * .8,
+          "axes.titlepad": 2,
+          "axes.titlesize": tick_legend_FontSize}
+
+plt.rcParams["xtick.bottom"] = True
+plt.rcParams["ytick.left"] = True
+plt.rcParams["xtick.labelbottom"] = True
+plt.rcParams["ytick.labelleft"] = True
+plt.rcParams.update(params)
+
+# %%
+annual_WA_ANPP['precip_mm_yr'] = annual_WA_ANPP['precip_mm_yr'] / 10
+annual_WA_ANPP.rename(columns={"precip_mm_yr": "precip_cm_yr"}, inplace=True)
+annual_WA_ANPP.head(2)
+
+# %%
+
+# %%
+fig, axes = plt.subplots(3, 1, figsize=(10, 6), sharex=True, 
+                        gridspec_kw={"hspace": 0.25, "wspace": 0.05}, dpi=dpi_)
+(ax1, ax2, ax3) = axes
+y_var = "mean_lb_per_acr"
+pre_title =  "{} (FID: {}), Spearmans': Precip. {}, Temp. {}"
+######
+###### subplot 1
+######
+target_idx = SF_west["sens_slope"].max()
+a_fid = SF_west.loc[SF_west["sens_slope"] == target_idx, "fid"].values[0]
+
+df = annual_WA_ANPP[annual_WA_ANPP.fid == a_fid]
+trend_ = SF_west.loc[SF_west.fid == a_fid, "trend"].values[0]
+slope_ = int(SF_west.loc[SF_west.fid == a_fid, "sens_slope"].values[0])
+state_ = SF_west.loc[SF_west.fid == a_fid, "state_majority_area"].values[0]
+prec_sprear = round(temp_precip_spear[temp_precip_spear["fid"] == a_fid]["precip_Spearman"].values[0], 2)
+temp_sprear = round(temp_precip_spear[temp_precip_spear["fid"] == a_fid]["temp_Spearman"].values[0], 2)
+ax1.plot(df["year"], df["mean_lb_per_acr"], linewidth=3, c="dodgerblue", label="ANPP");
+ax1.plot(df["year"], df["precip_cm_yr"]*20, linewidth=3, c="red", label= "precip (cm/yr) \u00D7 20");
+var = "avg_of_dailyAvgTemp_C_AvgOverMonths"
+ax1.plot(df["year"], df[var]*100, linewidth=3, c="k", label= "Temp \u00D7 100");
+ax1.legend(loc='best')
+
+title_ = pre_title.format(state_, a_fid, prec_sprear, temp_sprear)
+ax1.set_title(title_);
+######
+###### subplot 2
+######
+target_idx = SF_west["sens_slope"].min()
+a_fid = SF_west.loc[SF_west["sens_slope"] == target_idx, "fid"].values[0]
+
+df = annual_WA_ANPP[annual_WA_ANPP.fid == a_fid]
+trend_ = SF_west.loc[SF_west.fid == a_fid, "trend"].values[0]
+slope_ = int(SF_west.loc[SF_west.fid == a_fid, "sens_slope"].values[0])
+state_ = SF_west.loc[SF_west.fid == a_fid, "state_majority_area"].values[0]
+prec_sprear = round(temp_precip_spear[temp_precip_spear["fid"] == a_fid]["precip_Spearman"].values[0], 2)
+temp_sprear = round(temp_precip_spear[temp_precip_spear["fid"] == a_fid]["temp_Spearman"].values[0], 2)
+ax2.plot(df["year"], df["mean_lb_per_acr"], linewidth=3, c="dodgerblue", label="ANPP");
+ax2.plot(df["year"], df["precip_cm_yr"]*20, linewidth=3, c="red", label= "precip (cm/yr) \u00D7 20");
+var = "avg_of_dailyAvgTemp_C_AvgOverMonths"
+ax2.plot(df["year"], df[var]*100, linewidth=3, c="k", label= "Temp \u00D7 100");
+ax2.legend(loc='best')
+title_ = pre_title.format(state_, a_fid, prec_sprear, temp_sprear)
+ax2.set_title(title_);
+######
+###### subplot 3
+######
+a_fid = ANPP_MK_df.loc[ANPP_MK_df["trend"] == "no trend", "fid"].values[0]
+df = annual_WA_ANPP[annual_WA_ANPP.fid == a_fid]
+trend_ = SF_west.loc[SF_west.fid == a_fid, "trend"].values[0]
+slope_ = int(SF_west.loc[SF_west.fid == a_fid, "sens_slope"].values[0])
+state_ = SF_west.loc[SF_west.fid == a_fid, "state_majority_area"].values[0]
+prec_sprear = round(temp_precip_spear[temp_precip_spear["fid"] == a_fid]["precip_Spearman"].values[0], 2)
+temp_sprear = round(temp_precip_spear[temp_precip_spear["fid"] == a_fid]["temp_Spearman"].values[0], 2)
+ax3.plot(df["year"], df["mean_lb_per_acr"], linewidth=3, c="dodgerblue", label="ANPP");
+ax3.plot(df["year"], df["precip_cm_yr"]*20, linewidth=3, c="red", label= "precip (cm/yr) \u00D7 20");
+var = "avg_of_dailyAvgTemp_C_AvgOverMonths"
+ax3.plot(df["year"], df[var]*100, linewidth=3, c="k", label= "Temp \u00D7 100");
+ax3.legend(loc='best')
+
+title_ = pre_title.format(state_, a_fid, prec_sprear, temp_sprear)
+ax3.set_title(title_);
+
+fig.subplots_adjust(top=0.91, bottom=0.08, left=0.082, right=0.981)
+file_name = bio_plots + "time_ANPP_Temp_Prec_three_examples.pdf"
+plt.savefig(file_name)
+
+# %% [markdown]
+# ### Temp/Precipitation V ANPP plots
+
+# %%
+fig, axes = plt.subplots(3, 2, figsize=(10, 6), sharey=False, 
+                        gridspec_kw={"hspace": 0.5, "wspace": 0.03}, dpi=dpi_)
+(ax1, ax2), (ax3, ax4), (ax5, ax6) = axes
+y_var = "mean_lb_per_acr"
+pre_title =  "{} (FID: {}), Spearmans': P: {}, T: {}"
+######
+###### subplot 1
+######
+target_idx = SF_west["sens_slope"].max()
+a_fid = SF_west.loc[SF_west["sens_slope"] == target_idx, "fid"].values[0]
+
+df = annual_WA_ANPP[annual_WA_ANPP.fid == a_fid]
+trend_ = SF_west.loc[SF_west.fid == a_fid, "trend"].values[0]
+slope_ = int(SF_west.loc[SF_west.fid == a_fid, "sens_slope"].values[0])
+state_ = SF_west.loc[SF_west.fid == a_fid, "state_majority_area"].values[0]
+prec_sprear = round(temp_precip_spear[temp_precip_spear["fid"] == a_fid]["precip_Spearman"].values[0], 2)
+temp_sprear = round(temp_precip_spear[temp_precip_spear["fid"] == a_fid]["temp_Spearman"].values[0], 2)
+
+var = "avg_of_dailyAvgTemp_C_AvgOverMonths"
+df.sort_values(by=[var], inplace=True)
+ax1.plot(df[var], df[y_var], linewidth=3, c="r");
+
+var = "precip_cm_yr"
+df.sort_values(by=[var], inplace=True)
+ax2.plot(df[var], df[y_var], linewidth=3, c="dodgerblue");
+
+title_ = pre_title.format(state_, a_fid, prec_sprear, temp_sprear)
+ax1.set_title(title_); ax2.set_title(title_);
+#####################################################################################
+###### subplot 2
+target_idx = SF_west["sens_slope"].min()
+a_fid = SF_west.loc[SF_west["sens_slope"] == target_idx, "fid"].values[0]
+
+df = annual_WA_ANPP[annual_WA_ANPP.fid == a_fid]
+trend_ = SF_west.loc[SF_west.fid == a_fid, "trend"].values[0]
+slope_ = int(SF_west.loc[SF_west.fid == a_fid, "sens_slope"].values[0])
+state_ = SF_west.loc[SF_west.fid == a_fid, "state_majority_area"].values[0]
+prec_sprear = round(temp_precip_spear[temp_precip_spear["fid"] == a_fid]["precip_Spearman"].values[0], 2)
+temp_sprear = round(temp_precip_spear[temp_precip_spear["fid"] == a_fid]["temp_Spearman"].values[0], 2)
+
+var = "avg_of_dailyAvgTemp_C_AvgOverMonths"
+df.sort_values(by=[var], inplace=True)
+ax3.plot(df[var], df[y_var], linewidth=3, c="r");
+
+var = "precip_cm_yr"
+df.sort_values(by=[var], inplace=True)
+ax4.plot(df[var], df[y_var], linewidth=3, c="dodgerblue");
+
+title_ = pre_title.format(state_, a_fid, prec_sprear, temp_sprear)
+ax3.set_title(title_); ax4.set_title(title_);
+#####################################################################################
+###### subplot 3
+a_fid = ANPP_MK_df.loc[ANPP_MK_df["trend"] == "no trend", "fid"].values[0]
+
+df = annual_WA_ANPP[annual_WA_ANPP.fid == a_fid]
+trend_ = SF_west.loc[SF_west.fid == a_fid, "trend"].values[0]
+slope_ = int(SF_west.loc[SF_west.fid == a_fid, "sens_slope"].values[0])
+state_ = SF_west.loc[SF_west.fid == a_fid, "state_majority_area"].values[0]
+prec_sprear = round(temp_precip_spear[temp_precip_spear["fid"] == a_fid]["precip_Spearman"].values[0], 2)
+temp_sprear = round(temp_precip_spear[temp_precip_spear["fid"] == a_fid]["temp_Spearman"].values[0], 2)
+
+var = "avg_of_dailyAvgTemp_C_AvgOverMonths"
+df.sort_values(by=[var], inplace=True)
+ax5.plot(df[var], df[y_var], linewidth=3, c="r");
+
+var = "precip_cm_yr"
+df.sort_values(by=[var], inplace=True)
+ax6.plot(df[var], df[y_var], linewidth=3, c="dodgerblue");
+
+title_ = pre_title.format(state_, a_fid, prec_sprear, temp_sprear)
+ax5.set_title(title_); ax6.set_title(title_);
+#####################################################################################
+ax2.set_yticks([]), ax4.set_yticks([]), ax6.set_yticks([])
+ax3.set_ylabel("ANPP (mean lb/acr)");
+ax5.set_xlabel("Temp (°C)");
+ax6.set_xlabel("Precip (cm/yr)");
+
+fig.subplots_adjust(top=0.91, bottom=0.08, left=0.082, right=0.981)
+file_name = bio_plots + "ANPP_versus_T_P_3_examples.pdf"
+plt.savefig(file_name)
+
+# %%
 
 # %% [markdown]
 # # Regression
@@ -513,9 +801,6 @@ from scipy.stats import ttest_ind
 annual_WA_ANPP.head(2)
 
 # %%
-annual_WA_ANPP['precip_mm_yr'] = annual_WA_ANPP['precip_mm_yr'] / 10
-annual_WA_ANPP.rename(columns={"precip_mm_yr": "precip_cm_yr"}, inplace=True)
-annual_WA_ANPP.head(2)
 
 # %%
 annual_WA_ANPP["temp_X_precip"] = annual_WA_ANPP["precip_cm_yr"] * \
@@ -535,6 +820,84 @@ annual_WA_ANPP = pd.merge(annual_WA_ANPP, SF_west[["fid", "groupveg"]], on="fid"
 annual_WA_ANPP.head(2)
 
 # %%
+# Lets just forget abuot Sparse, Riparian, Barren-Rock/Sand/Clay, and Conifer?
+annual_WA_ANPP[["groupveg", "fid"]].drop_duplicates().groupby(["groupveg"]).count().reset_index()
+
+# %%
+print (annual_WA_ANPP[annual_WA_ANPP["fid"].isin([7627])]["groupveg"].unique())
+print (annual_WA_ANPP[annual_WA_ANPP["fid"].isin([18778])]["groupveg"].unique())
+print (annual_WA_ANPP[annual_WA_ANPP["fid"].isin([1])]["groupveg"].unique())
+
+# %%
+annual_WA_ANPP.describe()
+
+# %%
+groupveg = sorted(annual_WA_ANPP["groupveg"].unique())
+groupveg
+
+# %%
+veg_colors = {"Barren-Rock/Sand/Clay" : "blue",
+              "Conifer" : "green",
+              "Grassland" : "red",
+              "Hardwood" : "cyan",
+              "Riparian" : "magenta",
+              "Shrubland" : "yellow",
+              "Sparse" : "black"}
+
+SF_west.loc[SF_west['groupveg'] == "Barren-Rock/Sand/Clay", 'color'] = veg_colors["Barren-Rock/Sand/Clay"]
+SF_west.loc[SF_west['groupveg'] == "Conifer", 'color'] = veg_colors["Conifer"]
+SF_west.loc[SF_west['groupveg'] == "Grassland", 'color'] = veg_colors["Grassland"]
+SF_west.loc[SF_west['groupveg'] == "Hardwood", 'color'] = veg_colors["Hardwood"]
+SF_west.loc[SF_west['groupveg'] == "Riparian", 'color'] = veg_colors["Riparian"]
+SF_west.loc[SF_west['groupveg'] == "Shrubland", 'color'] = veg_colors["Shrubland"]
+SF_west.loc[SF_west['groupveg'] == "Sparse", 'color'] = veg_colors["Sparse"]
+SF_west.head(2)
+
+# %%
+tick_legend_FontSize = 6
+params = {"legend.fontsize": tick_legend_FontSize,
+          "axes.labelsize": tick_legend_FontSize * .71,
+          "axes.titlesize": tick_legend_FontSize * 1,
+          "xtick.labelsize": tick_legend_FontSize * .7,
+          "ytick.labelsize": tick_legend_FontSize * .7,
+          "axes.titlepad": 5,
+          'legend.handlelength': 2}
+
+plt.rcParams["xtick.bottom"] = False
+plt.rcParams["ytick.left"] = False
+plt.rcParams["xtick.labelbottom"] = False
+plt.rcParams["ytick.labelleft"] = False
+plt.rcParams.update(params)
+
+# %%
+
+# %%
+fig, ax = plt.subplots(1, 1, figsize=(3, 3), sharex=True, sharey=True, dpi=dpi_)
+ax.set_xticks([]); ax.set_yticks([])
+plt.title('rangeland polygons in Albers shapefile')
+
+plot_SF(SF=visframe_mainLand_west, ax_=ax, col="EW_meridian", cmap_ = "Pastel1")
+SF_west["geometry"].centroid.plot(ax=ax, c=SF_west['color'], markersize=0.2)
+
+plt.rcParams['axes.linewidth'] = .051
+plt.tight_layout()
+# plt.legend(fontsize=3) # ax.axis('off')
+# plt.show();
+from matplotlib.lines import Line2D
+
+labels = list(veg_colors.keys())
+colors = list(veg_colors.values())
+lines = [Line2D([0], [0], color=c, linewidth=3, linestyle='--') for c in colors]
+plt.legend(lines, labels, fontsize=4, frameon=False)
+
+file_name = bio_plots + "Albers_SF_locs_vegType.png"
+plt.savefig(file_name)
+
+# %% [markdown]
+# # Drop 
+# ```Sparse```, ```Riparian```, ```Barren-Rock/Sand/Clay```, and ```Conifer```?
+
+# %%
 print (f'{round(annual_WA_ANPP["precip_cm_yr"].min(), 2) = }')
 print (f'{round(annual_WA_ANPP["precip_cm_yr"].max(), 2) = }')
 
@@ -542,8 +905,13 @@ print (f'{round(annual_WA_ANPP["avg_of_dailyAvgTemp_C_AvgOverMonths"].min()) = }
 print (f'{round(annual_WA_ANPP["avg_of_dailyAvgTemp_C_AvgOverMonths"].max()) = }')
 
 # %%
+good_vegs = ['Conifer', 'Grassland', 'Hardwood', 'Shrubland']
+annual_WA_ANPP = annual_WA_ANPP[annual_WA_ANPP["groupveg"].isin(good_vegs)].copy()
+annual_WA_ANPP.reset_index(drop=True, inplace=True)
 groupveg = sorted(annual_WA_ANPP["groupveg"].unique())
 groupveg
+
+# %%
 
 # %%
 depen_var = "mean_lb_per_acr"
@@ -581,32 +949,26 @@ groupveg
 # %%
 # West regime
 ## Extract variables for the west side 
-Barren_m = [i for i in m5_results.index if "Barren" in i]
+# Barren_m = [i for i in m5_results.index if "Barren" in i]
 Conifer_m = [i for i in m5_results.index if "Conifer" in i]
 Grassland_m = [i for i in m5_results.index if "Grassland" in i]
 Hardwood_m = [i for i in m5_results.index if "Hardwood" in i]
-Riparian_m = [i for i in m5_results.index if "Riparian" in i]
+# Riparian_m = [i for i in m5_results.index if "Riparian" in i]
 Shrubland_m = [i for i in m5_results.index if "Shrubland" in i]
-Sparse_m = [i for i in m5_results.index if "Sparse" in i]
+# Sparse_m = [i for i in m5_results.index if "Sparse" in i]
 
 
 ## Subset results to Barren
-veg_ = "Barren"
-rep_ = [x for x in groupveg if veg_ in x][0] + "_"
-Barren = m5_results.loc[Barren_m, :].rename(lambda i: i.replace(rep_, ""))
-Barren.columns = pd.MultiIndex.from_product([[veg_], Barren.columns])
+# veg_ = "Barren"
+# rep_ = [x for x in groupveg if veg_ in x][0] + "_"
+# Barren = m5_results.loc[Barren_m, :].rename(lambda i: i.replace(rep_, ""))
+# Barren.columns = pd.MultiIndex.from_product([[veg_], Barren.columns])
 
 ## Subset results to Conifer
 veg_ = "Conifer"
 rep_ = [x for x in groupveg if veg_ in x][0] + "_"
 Conifer = m5_results.loc[Conifer_m, :].rename(lambda i: i.replace(rep_, ""))
 Conifer.columns = pd.MultiIndex.from_product([[veg_], Conifer.columns])
-
-## Subset results to Grassland
-veg_ = "Grassland"
-rep_ = [x for x in groupveg if veg_ in x][0] + "_"
-Grassland = m5_results.loc[Grassland_m, :].rename(lambda i: i.replace(rep_, ""))
-Grassland.columns = pd.MultiIndex.from_product([[veg_], Grassland.columns])
 
 ## Subset results to Grassland
 veg_ = "Grassland"
@@ -621,10 +983,10 @@ Hardwood = m5_results.loc[Hardwood_m, :].rename(lambda i: i.replace(rep_, ""))
 Hardwood.columns = pd.MultiIndex.from_product([[veg_], Hardwood.columns])
 
 ## Subset results to Riparian
-veg_ = "Riparian"
-rep_ = [x for x in groupveg if veg_ in x][0] + "_"
-Riparian = m5_results.loc[Riparian_m, :].rename(lambda i: i.replace(rep_, ""))
-Riparian.columns = pd.MultiIndex.from_product([[veg_], Riparian.columns])
+# veg_ = "Riparian"
+# rep_ = [x for x in groupveg if veg_ in x][0] + "_"
+# Riparian = m5_results.loc[Riparian_m, :].rename(lambda i: i.replace(rep_, ""))
+# Riparian.columns = pd.MultiIndex.from_product([[veg_], Riparian.columns])
 
 ## Subset results to Shrubland
 veg_ = "Shrubland"
@@ -633,14 +995,14 @@ Shrubland = m5_results.loc[Shrubland_m, :].rename(lambda i: i.replace(rep_, ""))
 Shrubland.columns = pd.MultiIndex.from_product([[veg_], Shrubland.columns])
 
 ## Subset results to Sparse
-veg_ = "Sparse"
-rep_ = [x for x in groupveg if veg_ in x][0] + "_"
-Sparse = m5_results.loc[Sparse_m, :].rename(lambda i: i.replace(rep_, ""))
-Sparse.columns = pd.MultiIndex.from_product([[veg_], Sparse.columns])
-
+# veg_ = "Sparse"
+# rep_ = [x for x in groupveg if veg_ in x][0] + "_"
+# Sparse = m5_results.loc[Sparse_m, :].rename(lambda i: i.replace(rep_, ""))
+# Sparse.columns = pd.MultiIndex.from_product([[veg_], Sparse.columns])
 
 # Concat both models
-table_ = pd.concat([Barren, Conifer, Grassland, Hardwood, Riparian, Shrubland, Sparse], axis=1).round(5)
+# table_ = pd.concat([Barren, Conifer, Grassland, Hardwood, Riparian, Shrubland, Sparse], axis=1).round(5)
+table_ = pd.concat([Conifer, Grassland, Hardwood, Shrubland], axis=1).round(5)
 table_ = table_.transpose()
 table_.rename(columns={"avg_of_dailyAvgTemp_C_AvgOverMonths": "temp"}, inplace=True)
 table_
@@ -662,6 +1024,8 @@ col_order = ['fid', 'year', 'mean_lb_per_acr',
              ]
 annual_WA_ANPP = annual_WA_ANPP[col_order]
 annual_WA_ANPP.head(2)
+
+# %%
 
 # %%
 depen_var = "mean_lb_per_acr"
@@ -700,24 +1064,10 @@ X_train_normal.head(2)
 depen_var = "mean_lb_per_acr"
 indp_vars = ["precip_cm_yr", "avg_of_dailyAvgTemp_C_AvgOverMonths"]
 
-m5 = spreg.OLS_Regimes(y = y_train.values,
-                       x = X_train_normal[indp_vars].values, 
-
-                       # Variable specifying neighborhood membership
+m5 = spreg.OLS_Regimes(y = y_train.values, x = X_train_normal[indp_vars].values, 
                        regimes = X_train_normal["groupveg"].tolist(),
-              
-                       # Variables to be allowed to vary (True) or kept
-                       # constant (False). Here we set all to False
-                       # cols2regi=[False] * len(indp_vars),
-                        
-                       # Allow the constant term to vary by group/regime
-                       constant_regi="many",
-                        
-                       # Allow separate sigma coefficients to be estimated
-                       # by regime (False so a single sigma)
-                       regime_err_sep=False,
-                       name_y=depen_var, # Dependent variable name
-                       name_x=indp_vars)
+                       constant_regi="many", regime_err_sep=False,
+                       name_y=depen_var, name_x=indp_vars)
 
 print (f"{m5.r2.round(2) = }")
 
@@ -727,34 +1077,26 @@ m5_results = pd.DataFrame({"Coeff.": m5.betas.flatten(), # Pull out regression c
                            }, index=m5.name_x)
 
 # %%
-# West regime
-## Extract variables for the west side 
-Barren_m = [i for i in m5_results.index if "Barren" in i]
-Conifer_m = [i for i in m5_results.index if "Conifer" in i]
+## Extract variables for each veg type
+# Barren_m    = [i for i in m5_results.index if "Barren"    in i]
+Conifer_m   = [i for i in m5_results.index if "Conifer"   in i]
 Grassland_m = [i for i in m5_results.index if "Grassland" in i]
-Hardwood_m = [i for i in m5_results.index if "Hardwood" in i]
-Riparian_m = [i for i in m5_results.index if "Riparian" in i]
+Hardwood_m  = [i for i in m5_results.index if "Hardwood"  in i]
+# Riparian_m  = [i for i in m5_results.index if "Riparian"  in i]
 Shrubland_m = [i for i in m5_results.index if "Shrubland" in i]
-Sparse_m = [i for i in m5_results.index if "Sparse" in i]
-
+# Sparse_m    = [i for i in m5_results.index if "Sparse"    in i]
 
 ## Subset results to Barren
-veg_ = "Barren"
-rep_ = [x for x in groupveg if veg_ in x][0] + "_"
-Barren = m5_results.loc[Barren_m, :].rename(lambda i: i.replace(rep_, ""))
-Barren.columns = pd.MultiIndex.from_product([[veg_], Barren.columns])
+# veg_ = "Barren"
+# rep_ = [x for x in groupveg if veg_ in x][0] + "_"
+# Barren = m5_results.loc[Barren_m, :].rename(lambda i: i.replace(rep_, ""))
+# Barren.columns = pd.MultiIndex.from_product([[veg_], Barren.columns])
 
 ## Subset results to Conifer
 veg_ = "Conifer"
 rep_ = [x for x in groupveg if veg_ in x][0] + "_"
 Conifer = m5_results.loc[Conifer_m, :].rename(lambda i: i.replace(rep_, ""))
 Conifer.columns = pd.MultiIndex.from_product([[veg_], Conifer.columns])
-
-## Subset results to Grassland
-veg_ = "Grassland"
-rep_ = [x for x in groupveg if veg_ in x][0] + "_"
-Grassland = m5_results.loc[Grassland_m, :].rename(lambda i: i.replace(rep_, ""))
-Grassland.columns = pd.MultiIndex.from_product([[veg_], Grassland.columns])
 
 ## Subset results to Grassland
 veg_ = "Grassland"
@@ -769,10 +1111,10 @@ Hardwood = m5_results.loc[Hardwood_m, :].rename(lambda i: i.replace(rep_, ""))
 Hardwood.columns = pd.MultiIndex.from_product([[veg_], Hardwood.columns])
 
 ## Subset results to Riparian
-veg_ = "Riparian"
-rep_ = [x for x in groupveg if veg_ in x][0] + "_"
-Riparian = m5_results.loc[Riparian_m, :].rename(lambda i: i.replace(rep_, ""))
-Riparian.columns = pd.MultiIndex.from_product([[veg_], Riparian.columns])
+# veg_ = "Riparian"
+# rep_ = [x for x in groupveg if veg_ in x][0] + "_"
+# Riparian = m5_results.loc[Riparian_m, :].rename(lambda i: i.replace(rep_, ""))
+# Riparian.columns = pd.MultiIndex.from_product([[veg_], Riparian.columns])
 
 ## Subset results to Shrubland
 veg_ = "Shrubland"
@@ -781,20 +1123,87 @@ Shrubland = m5_results.loc[Shrubland_m, :].rename(lambda i: i.replace(rep_, ""))
 Shrubland.columns = pd.MultiIndex.from_product([[veg_], Shrubland.columns])
 
 ## Subset results to Sparse
-veg_ = "Sparse"
-rep_ = [x for x in groupveg if veg_ in x][0] + "_"
-Sparse = m5_results.loc[Sparse_m, :].rename(lambda i: i.replace(rep_, ""))
-Sparse.columns = pd.MultiIndex.from_product([[veg_], Sparse.columns])
-
+# veg_ = "Sparse"
+# rep_ = [x for x in groupveg if veg_ in x][0] + "_"
+# Sparse = m5_results.loc[Sparse_m, :].rename(lambda i: i.replace(rep_, ""))
+# Sparse.columns = pd.MultiIndex.from_product([[veg_], Sparse.columns])
 
 # Concat both models
-table_ = pd.concat([Barren, Conifer, Grassland, Hardwood, Riparian, Shrubland, Sparse], axis=1).round(5)
+table_ = pd.concat([Conifer, Grassland, Hardwood, Shrubland], axis=1).round(5)
 table_ = table_.transpose()
 table_.rename(columns={"avg_of_dailyAvgTemp_C_AvgOverMonths": "temp"}, inplace=True)
 table_
 
 # %%
+annual_WA_ANPP.head(2)
 
 # %%
+SF_west.head(2)
+
+# %%
+
+# %%
+fig, axes = plt.subplots(1, 1, figsize=(10, 3), sharey=False, sharex=False, dpi=dpi_)
+sns.set_style({'axes.grid' : True})
+
+# axes.set_title('Intersection of sigfinicant MK test and Spearman (increasing trend)');
+sns.histplot(data=annual_WA_ANPP["mean_lb_per_acr"], ax=axes, bins=100, kde=True);
+# axes.legend(["ANPP (mean lb/acr)"], loc='upper right');
+axes.set_xlabel("ANPP (mean lb/acr)");
+
+# %%
+print (len(groupveg))
+groupveg
+
+# %%
+# Parameters for font sizes
+
+tick_legend_FontSize = 20
+params = {"legend.fontsize": tick_legend_FontSize*.8,
+          "axes.labelsize": tick_legend_FontSize * .8,
+          "axes.titlesize": tick_legend_FontSize * 1.5,
+          "xtick.labelsize": tick_legend_FontSize * 0.8,
+          "ytick.labelsize": tick_legend_FontSize * 0.8,
+          "axes.titlepad": 5,    'legend.handlelength': 2}
+
+plt.rcParams["xtick.bottom"] = True
+plt.rcParams["ytick.left"] = True
+plt.rcParams["xtick.labelbottom"] = True
+plt.rcParams["ytick.labelleft"] = True
+plt.rcParams.update(params)
+
+# %%
+fig, axes = plt.subplots(2, 2, figsize=(20, 5), sharey=True, sharex=True, 
+                         gridspec_kw={"hspace": 0.25, "wspace": 0.01}, dpi=dpi_)
+sns.set_style({'axes.grid' : True})
+
+veg_type = groupveg[0]
+df = annual_WA_ANPP[annual_WA_ANPP["groupveg"] == veg_type]
+sns.histplot(data=df["mean_lb_per_acr"], ax=axes[0][0], bins=100, kde=True, color=veg_colors[veg_type]);
+axes[0][0].legend([veg_type], loc='upper right');
+################################################################################
+veg_type = groupveg[1]
+df = annual_WA_ANPP[annual_WA_ANPP["groupveg"] == veg_type]
+sns.histplot(data=df["mean_lb_per_acr"], ax=axes[0][1], bins=100, kde=True, color=veg_colors[veg_type]);
+axes[0][1].legend([veg_type], loc='upper right');
+################################################################################
+veg_type = groupveg[2]
+df = annual_WA_ANPP[annual_WA_ANPP["groupveg"] == veg_type]
+sns.histplot(data=df["mean_lb_per_acr"], ax=axes[1][0], bins=100, kde=True, color=veg_colors[veg_type]);
+axes[1][0].legend([veg_type], loc='upper right');
+################################################################################
+veg_type = groupveg[3]
+df = annual_WA_ANPP[annual_WA_ANPP["groupveg"] == veg_type]
+sns.histplot(data=df["mean_lb_per_acr"], ax=axes[1][1], bins=100, kde=True, color=veg_colors[veg_type]);
+axes[1][1].legend([veg_type], loc='upper right');
+################################################################################
+
+axes[0][0].set_xlabel(""); axes[0][1].set_xlabel("");
+axes[1][0].set_xlabel("ANPP (mean lb/acr)"); axes[1][1].set_xlabel("ANPP (mean lb/acr)");
+
+fig.suptitle('ANPP distribution', y=0.95, fontsize=18)
+fig.subplots_adjust(top=0.85, bottom=0.15, left=0.052, right=0.981, wspace=-0.2, hspace=0)
+file_name = bio_plots + "vegType_ANPPDist.pdf"
+plt.savefig(file_name)
 
 # %%
