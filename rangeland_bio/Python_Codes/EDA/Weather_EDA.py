@@ -32,6 +32,11 @@ from scipy import stats
 import seaborn as sns
 import matplotlib
 import matplotlib.pyplot as plt
+plt.rc("font", family="Palatino")
+
+# font = {"size": 10}
+# matplotlib.rc("font", **font)
+
 import geopandas
 
 import matplotlib.colors as colors
@@ -130,6 +135,7 @@ print (len(ANPP_MK_df["fid"].unique()))
 ANPP_MK_df.head(2)
 
 # %%
+# %%time
 f_name = bio_reOrganized + 'Albers_SF_west_ANPP_MK_Spearman.shp.zip'
 SF_west = geopandas.read_file(f_name)
 SF_west["centroid"] = SF_west["geometry"].centroid
@@ -159,10 +165,8 @@ print (f'{len(monthly_weather["fid"].unique())=}')
 print (f'{len(ANPP["fid"].unique())=}')
 
 # %%
-len(set(monthly_weather["fid"].unique()).intersection(ANPP["fid"].unique()))
-
-# %%
-len(monthly_weather[monthly_weather["fid"].isin(list(ANPP["fid"].unique()))]["fid"].unique())
+print (len(set(monthly_weather["fid"].unique()).intersection(ANPP["fid"].unique())))
+print (len(monthly_weather[monthly_weather["fid"].isin(list(ANPP["fid"].unique()))]["fid"].unique()))
 
 # %%
 FIDs_weather_ANPP_common = list(set(monthly_weather["fid"].unique()).intersection(ANPP["fid"].unique()))
@@ -256,6 +260,154 @@ annual_WA_ANPP.head(2)
 
 # %%
 SF_west.head(2)
+
+# %%
+annual_WA_ANPP = pd.merge(annual_WA_ANPP, SF_west[["fid", "groupveg"]], on="fid", how="left")
+annual_WA_ANPP.head(2)
+
+# Lets just forget abuot Sparse, Riparian, Barren-Rock/Sand/Clay, and Conifer?
+annual_WA_ANPP[["groupveg", "fid"]].drop_duplicates().groupby(["groupveg"]).count().reset_index()
+
+# %%
+groupveg = sorted(annual_WA_ANPP["groupveg"].unique())
+groupveg
+
+# %%
+veg_colors = {"Barren-Rock/Sand/Clay" : "blue",
+              "Conifer" : "green",
+              "Grassland" : "red",
+              "Hardwood" : "cyan",
+              "Riparian" : "magenta",
+              "Shrubland" : "yellow",
+              "Sparse" : "black"}
+
+for a_veg in  groupveg:
+    SF_west.loc[SF_west['groupveg'] == a_veg, 'color'] = veg_colors[a_veg]
+
+SF_west.head(2)
+
+# %%
+
+# %%
+tick_legend_FontSize = 14
+params = {"legend.fontsize": tick_legend_FontSize*.8,
+          "axes.labelsize": tick_legend_FontSize * .8,
+          "axes.titlesize": tick_legend_FontSize * 1.5,
+          "xtick.labelsize": tick_legend_FontSize * 0.8,
+          "ytick.labelsize": tick_legend_FontSize * 0.8,
+          "axes.titlepad": 5,    'legend.handlelength': 2}
+
+plt.rcParams["xtick.bottom"] = True
+plt.rcParams["ytick.left"] = True
+plt.rcParams["xtick.labelbottom"] = True
+plt.rcParams["ytick.labelleft"] = True
+plt.rcParams.update(params)
+
+# %%
+fig, axes = plt.subplots(1, 1, figsize=(10, 3), sharey=False, sharex=False, dpi=dpi_)
+sns.set_style({'axes.grid' : True})
+
+# axes.set_title('Intersection of sigfinicant MK test and Spearman (increasing trend)');
+sns.histplot(data=annual_WA_ANPP["mean_lb_per_acr"], ax=axes, bins=100, kde=True);
+# axes.legend(["ANPP (mean lb/acr)"], loc='upper right');
+axes.set_xlabel("ANPP (mean lb/acr)");
+
+# %%
+
+# %%
+plt.rc("font", family="Palatino")
+tick_legend_FontSize = 20
+params = {"legend.fontsize": tick_legend_FontSize*.8,
+          "axes.labelsize": tick_legend_FontSize * .8,
+          "axes.titlesize": tick_legend_FontSize * 1.5,
+          "xtick.labelsize": tick_legend_FontSize * 0.8,
+          "ytick.labelsize": tick_legend_FontSize * 0.8,
+          "axes.titlepad": 5,    'legend.handlelength': 2}
+
+plt.rcParams["xtick.bottom"] = True
+plt.rcParams["ytick.left"] = True
+plt.rcParams["xtick.labelbottom"] = True
+plt.rcParams["ytick.labelleft"] = True
+plt.rcParams.update(params)
+
+# %%
+fig, axes = plt.subplots(2, 2, figsize=(20, 5), sharey=True, sharex=True, 
+                         gridspec_kw={"hspace": 0.25, "wspace": 0.01}, dpi=dpi_)
+sns.set_style({'axes.grid' : True})
+
+veg_type = groupveg[0]
+df = annual_WA_ANPP[annual_WA_ANPP["groupveg"] == veg_type]
+sns.histplot(data=df["mean_lb_per_acr"], ax=axes[0][0], bins=100, kde=True, color=veg_colors[veg_type]);
+axes[0][0].legend([veg_type], loc='upper right');
+################################################################################
+veg_type = groupveg[1]
+df = annual_WA_ANPP[annual_WA_ANPP["groupveg"] == veg_type]
+sns.histplot(data=df["mean_lb_per_acr"], ax=axes[0][1], bins=100, kde=True, color=veg_colors[veg_type]);
+axes[0][1].legend([veg_type], loc='upper right');
+################################################################################
+veg_type = groupveg[2]
+df = annual_WA_ANPP[annual_WA_ANPP["groupveg"] == veg_type]
+sns.histplot(data=df["mean_lb_per_acr"], ax=axes[1][0], bins=100, kde=True, color=veg_colors[veg_type]);
+axes[1][0].legend([veg_type], loc='upper right');
+################################################################################
+veg_type = groupveg[3]
+df = annual_WA_ANPP[annual_WA_ANPP["groupveg"] == veg_type]
+sns.histplot(data=df["mean_lb_per_acr"], ax=axes[1][1], bins=100, kde=True, color=veg_colors[veg_type]);
+axes[1][1].legend([veg_type], loc='upper right');
+################################################################################
+
+axes[0][0].set_xlabel(""); axes[0][1].set_xlabel("");
+axes[1][0].set_xlabel("ANPP (mean lb/acr)"); axes[1][1].set_xlabel("ANPP (mean lb/acr)");
+
+fig.suptitle('ANPP distribution', y=0.95, fontsize=18)
+fig.subplots_adjust(top=0.85, bottom=0.15, left=0.052, right=0.981, wspace=-0.2, hspace=0)
+file_name = bio_plots + "vegType_ANPPDist.pdf"
+plt.savefig(file_name)
+
+# %%
+print (annual_WA_ANPP[annual_WA_ANPP["fid"].isin([7627])]["groupveg"].unique())
+print (annual_WA_ANPP[annual_WA_ANPP["fid"].isin([18778])]["groupveg"].unique())
+print (annual_WA_ANPP[annual_WA_ANPP["fid"].isin([1])]["groupveg"].unique())
+
+annual_WA_ANPP.describe()
+
+# %%
+tick_legend_FontSize = 6
+params = {"legend.fontsize": tick_legend_FontSize,
+          "axes.labelsize": tick_legend_FontSize * .71,
+          "axes.titlesize": tick_legend_FontSize * 1,
+          "xtick.labelsize": tick_legend_FontSize * .7,
+          "ytick.labelsize": tick_legend_FontSize * .7,
+          "axes.titlepad": 5,
+          'legend.handlelength': 2}
+
+plt.rcParams["xtick.bottom"] = False
+plt.rcParams["ytick.left"] = False
+plt.rcParams["xtick.labelbottom"] = False
+plt.rcParams["ytick.labelleft"] = False
+plt.rcParams.update(params)
+
+# %%
+fig, ax = plt.subplots(1, 1, figsize=(3, 3), sharex=True, sharey=True, dpi=dpi_)
+ax.set_xticks([]); ax.set_yticks([])
+plt.title('rangeland polygons in Albers shapefile')
+
+plot_SF(SF=visframe_mainLand_west, ax_=ax, col="EW_meridian", cmap_ = "Pastel1")
+SF_west["geometry"].centroid.plot(ax=ax, c=SF_west['color'], markersize=0.2)
+
+plt.rcParams['axes.linewidth'] = .051
+plt.tight_layout()
+# plt.legend(fontsize=3) # ax.axis('off')
+# plt.show();
+from matplotlib.lines import Line2D
+
+labels = list(veg_colors.keys())
+colors = list(veg_colors.values())
+lines = [Line2D([0], [0], color=c, linewidth=3, linestyle='--') for c in colors]
+plt.legend(lines, labels, fontsize=4, frameon=False)
+
+file_name = bio_plots + "Albers_SF_locs_vegType.png"
+plt.savefig(file_name)
 
 # %% [markdown]
 # ## Compute Spearman for ANPP and precip
@@ -376,9 +528,6 @@ print (f"{temp_precip_spear.shape = }")
 print (f"{temp_precip_spear_sig_95.shape = }")
 print (f"{temp_precip_spear_sig_90.shape = }")
 
-# %% [markdown]
-#
-
 # %%
 temp_precip_spear_sig_95.head(2)
 
@@ -394,7 +543,6 @@ SF_west_Spearman_95 = pd.merge(SF_west, temp_precip_spear_sig_95, on="fid", how=
 
 # %%
 # Parameters for font sizes
-plt.rc("font", family="Palatino")
 tick_legend_FontSize = 8
 params = {"legend.fontsize": tick_legend_FontSize,
           "axes.labelsize": tick_legend_FontSize * 0.71,
@@ -446,6 +594,8 @@ SF_west_Spearman_95_green = SF_west_Spearman_95[SF_west_Spearman_95["trend"] == 
 SF_west_Spearman_95_green.head(2)
 
 # %%
+
+# %%
 min_color = min(SF_west_Spearman_95_green['temp_Spearman'].min(), 
                 SF_west_Spearman_95_green['precip_Spearman'].min())
 max_color = max(SF_west_Spearman_95_green['temp_Spearman'].max(), 
@@ -483,15 +633,14 @@ temp_precip_spear.head(2)
 # %%
 
 # %%
-font = {"size": 10}
-matplotlib.rc("font", **font)
 tick_legend_FontSize = 12
 params = {"legend.fontsize": tick_legend_FontSize * 1,
           "axes.labelsize": tick_legend_FontSize * 1.2,
           "axes.titlesize": tick_legend_FontSize * 1.2,
           "xtick.labelsize": tick_legend_FontSize * 1.1,
           "ytick.labelsize": tick_legend_FontSize * 1.1,
-          "axes.titlepad": 10}
+          "axes.titlepad": 10,
+          'axes.grid' : False}
 
 plt.rcParams["xtick.bottom"] = True
 plt.rcParams["ytick.left"] = True
@@ -521,6 +670,9 @@ def lin_reg(df):
 fig, axes = plt.subplots(3, 1, figsize=(10, 6), sharex=True, 
                         gridspec_kw={"hspace": 0.15, "wspace": 0.05}, dpi=dpi_)
 (ax1, ax2, ax3) = axes
+
+# for ax in axes.flat: ax.grid(False)
+
 # ax1.grid(axis="both", which="both"); ax2.grid(axis="both", which="both"); 
 # ax3.grid(axis="both", which="both")
 y_var = "mean_lb_per_acr"
@@ -633,6 +785,7 @@ annual_WA_ANPP.head(2)
 fig, axes = plt.subplots(3, 1, figsize=(10, 6), sharex=True, 
                         gridspec_kw={"hspace": 0.25, "wspace": 0.05}, dpi=dpi_)
 (ax1, ax2, ax3) = axes
+    
 y_var = "mean_lb_per_acr"
 pre_title =  "{} (FID: {}), Spearmans': Precip. {}, Temp. {}"
 ######
@@ -701,9 +854,13 @@ plt.savefig(file_name)
 # ### Temp/Precipitation V ANPP plots
 
 # %%
+LW_ = 3
+
+# %%
 fig, axes = plt.subplots(3, 2, figsize=(10, 6), sharey=False, 
                         gridspec_kw={"hspace": 0.5, "wspace": 0.03}, dpi=dpi_)
 (ax1, ax2), (ax3, ax4), (ax5, ax6) = axes
+
 y_var = "mean_lb_per_acr"
 pre_title =  "{} (FID: {}), Spearmans': P: {}, T: {}"
 ######
@@ -721,11 +878,11 @@ temp_sprear = round(temp_precip_spear[temp_precip_spear["fid"] == a_fid]["temp_S
 
 var = "avg_of_dailyAvgTemp_C_AvgOverMonths"
 df.sort_values(by=[var], inplace=True)
-ax1.plot(df[var], df[y_var], linewidth=3, c="r");
+ax1.plot(df[var], df[y_var], linewidth=LW_, c="r");
 
 var = "precip_cm_yr"
 df.sort_values(by=[var], inplace=True)
-ax2.plot(df[var], df[y_var], linewidth=3, c="dodgerblue");
+ax2.plot(df[var], df[y_var], linewidth=LW_, c="dodgerblue");
 
 title_ = pre_title.format(state_, a_fid, prec_sprear, temp_sprear)
 ax1.set_title(title_); ax2.set_title(title_);
@@ -743,11 +900,11 @@ temp_sprear = round(temp_precip_spear[temp_precip_spear["fid"] == a_fid]["temp_S
 
 var = "avg_of_dailyAvgTemp_C_AvgOverMonths"
 df.sort_values(by=[var], inplace=True)
-ax3.plot(df[var], df[y_var], linewidth=3, c="r");
+ax3.plot(df[var], df[y_var], linewidth=LW_, c="r");
 
 var = "precip_cm_yr"
 df.sort_values(by=[var], inplace=True)
-ax4.plot(df[var], df[y_var], linewidth=3, c="dodgerblue");
+ax4.plot(df[var], df[y_var], linewidth=LW_, c="dodgerblue");
 
 title_ = pre_title.format(state_, a_fid, prec_sprear, temp_sprear)
 ax3.set_title(title_); ax4.set_title(title_);
@@ -764,11 +921,14 @@ temp_sprear = round(temp_precip_spear[temp_precip_spear["fid"] == a_fid]["temp_S
 
 var = "avg_of_dailyAvgTemp_C_AvgOverMonths"
 df.sort_values(by=[var], inplace=True)
-ax5.plot(df[var], df[y_var], linewidth=3, c="r");
+ax5.plot(df[var], df[y_var], linewidth=LW_, c="r");
+# ax5.scatter(df[var], df[y_var], marker='s', facecolors='none', edgecolors='r', s=25);
 
 var = "precip_cm_yr"
 df.sort_values(by=[var], inplace=True)
-ax6.plot(df[var], df[y_var], linewidth=3, c="dodgerblue");
+ax6.plot(df[var], df[y_var], linewidth=LW_, c="dodgerblue");
+# ax6.scatter(df[var], df[y_var], marker='s', facecolors='none', edgecolors='dodgerblue', s=25);
+# ax6.scatter(df[var], df[y_var], marker='s', c='dodgerblue', s=25);
 
 title_ = pre_title.format(state_, a_fid, prec_sprear, temp_sprear)
 ax5.set_title(title_); ax6.set_title(title_);
@@ -816,85 +976,9 @@ print (SF_west.shape)
 SF_west.head(2)
 
 # %%
-annual_WA_ANPP = pd.merge(annual_WA_ANPP, SF_west[["fid", "groupveg"]], on="fid", how="left")
-annual_WA_ANPP.head(2)
-
-# %%
-# Lets just forget abuot Sparse, Riparian, Barren-Rock/Sand/Clay, and Conifer?
-annual_WA_ANPP[["groupveg", "fid"]].drop_duplicates().groupby(["groupveg"]).count().reset_index()
-
-# %%
-print (annual_WA_ANPP[annual_WA_ANPP["fid"].isin([7627])]["groupveg"].unique())
-print (annual_WA_ANPP[annual_WA_ANPP["fid"].isin([18778])]["groupveg"].unique())
-print (annual_WA_ANPP[annual_WA_ANPP["fid"].isin([1])]["groupveg"].unique())
-
-# %%
-annual_WA_ANPP.describe()
-
-# %%
-groupveg = sorted(annual_WA_ANPP["groupveg"].unique())
-groupveg
-
-# %%
-veg_colors = {"Barren-Rock/Sand/Clay" : "blue",
-              "Conifer" : "green",
-              "Grassland" : "red",
-              "Hardwood" : "cyan",
-              "Riparian" : "magenta",
-              "Shrubland" : "yellow",
-              "Sparse" : "black"}
-
-SF_west.loc[SF_west['groupveg'] == "Barren-Rock/Sand/Clay", 'color'] = veg_colors["Barren-Rock/Sand/Clay"]
-SF_west.loc[SF_west['groupveg'] == "Conifer", 'color'] = veg_colors["Conifer"]
-SF_west.loc[SF_west['groupveg'] == "Grassland", 'color'] = veg_colors["Grassland"]
-SF_west.loc[SF_west['groupveg'] == "Hardwood", 'color'] = veg_colors["Hardwood"]
-SF_west.loc[SF_west['groupveg'] == "Riparian", 'color'] = veg_colors["Riparian"]
-SF_west.loc[SF_west['groupveg'] == "Shrubland", 'color'] = veg_colors["Shrubland"]
-SF_west.loc[SF_west['groupveg'] == "Sparse", 'color'] = veg_colors["Sparse"]
-SF_west.head(2)
-
-# %%
-tick_legend_FontSize = 6
-params = {"legend.fontsize": tick_legend_FontSize,
-          "axes.labelsize": tick_legend_FontSize * .71,
-          "axes.titlesize": tick_legend_FontSize * 1,
-          "xtick.labelsize": tick_legend_FontSize * .7,
-          "ytick.labelsize": tick_legend_FontSize * .7,
-          "axes.titlepad": 5,
-          'legend.handlelength': 2}
-
-plt.rcParams["xtick.bottom"] = False
-plt.rcParams["ytick.left"] = False
-plt.rcParams["xtick.labelbottom"] = False
-plt.rcParams["ytick.labelleft"] = False
-plt.rcParams.update(params)
-
-# %%
-
-# %%
-fig, ax = plt.subplots(1, 1, figsize=(3, 3), sharex=True, sharey=True, dpi=dpi_)
-ax.set_xticks([]); ax.set_yticks([])
-plt.title('rangeland polygons in Albers shapefile')
-
-plot_SF(SF=visframe_mainLand_west, ax_=ax, col="EW_meridian", cmap_ = "Pastel1")
-SF_west["geometry"].centroid.plot(ax=ax, c=SF_west['color'], markersize=0.2)
-
-plt.rcParams['axes.linewidth'] = .051
-plt.tight_layout()
-# plt.legend(fontsize=3) # ax.axis('off')
-# plt.show();
-from matplotlib.lines import Line2D
-
-labels = list(veg_colors.keys())
-colors = list(veg_colors.values())
-lines = [Line2D([0], [0], color=c, linewidth=3, linestyle='--') for c in colors]
-plt.legend(lines, labels, fontsize=4, frameon=False)
-
-file_name = bio_plots + "Albers_SF_locs_vegType.png"
-plt.savefig(file_name)
 
 # %% [markdown]
-# # Drop 
+# # Drop bad Vegs
 # ```Sparse```, ```Riparian```, ```Barren-Rock/Sand/Clay```, and ```Conifer```?
 
 # %%
@@ -910,6 +994,75 @@ annual_WA_ANPP = annual_WA_ANPP[annual_WA_ANPP["groupveg"].isin(good_vegs)].copy
 annual_WA_ANPP.reset_index(drop=True, inplace=True)
 groupveg = sorted(annual_WA_ANPP["groupveg"].unique())
 groupveg
+
+# %%
+tick_legend_FontSize = 8
+params = {"legend.fontsize": tick_legend_FontSize,  # medium, large
+    # 'figure.figsize': (6, 4),
+    "axes.labelsize": tick_legend_FontSize * 1.4,
+    "axes.titlesize": tick_legend_FontSize * 2,
+    "xtick.labelsize": tick_legend_FontSize * 1,  #  * 0.75
+    "ytick.labelsize": tick_legend_FontSize * 1,  #  * 0.75
+    "axes.titlepad": 10}
+plt.rcParams.update(params)
+cols_ = ["mean_lb_per_acr", "precip_cm_yr", 
+         "avg_of_dailyAvgTemp_C_AvgOverMonths", "avg_of_dailyAvg_rel_hum_AvgOverMonths"]
+
+A = annual_WA_ANPP.copy()
+A.rename(columns={"mean_lb_per_acr": "NPP",
+                  "precip_cm_yr": "precip",
+                  "avg_of_dailyAvgTemp_C_AvgOverMonths": "Temp",
+                  "avg_of_dailyAvg_rel_hum_AvgOverMonths": "RH",
+                 }, inplace=True)
+cols_ = ["NPP", "precip", "Temp", "RH"]
+
+my_scatter = sns.pairplot(A[cols_], size=1.5, diag_kind="None", plot_kws={"s": 4}, corner=True)
+
+# %%
+
+# %%
+veg_ = groupveg[0]
+my_scatter = sns.pairplot(A[A["groupveg"] == veg_][cols_],  size=1.5, 
+                          diag_kind="None", plot_kws={"s": 4}, corner=True)
+my_scatter.fig.suptitle(veg_, y=1.08);
+
+# %%
+veg_ = groupveg[1]
+my_scatter = sns.pairplot(A[A["groupveg"] == veg_][cols_],  size=1.5, 
+                          diag_kind="None", plot_kws={"s": 4}, corner=True)
+my_scatter.fig.suptitle(veg_, y=1.08);
+
+# %%
+veg_ = groupveg[2]
+my_scatter = sns.pairplot(A[A["groupveg"] == veg_][cols_],  size=1.5, 
+                          diag_kind="None", plot_kws={"s": 4}, corner=True)
+my_scatter.fig.suptitle(veg_, y=1.08);
+
+# %%
+veg_ = groupveg[3]
+my_scatter = sns.pairplot(A[A["groupveg"] == veg_][cols_],  size=1.5, 
+                          diag_kind="None", plot_kws={"s": 4}, corner=True)
+my_scatter.fig.suptitle(veg_, y=1.08);
+
+# %%
+
+# %%
+
+# %%
+tick_legend_FontSize = 10
+params = {"legend.fontsize": tick_legend_FontSize,  # medium, large
+    # 'figure.figsize': (6, 4),
+    "axes.labelsize": tick_legend_FontSize * 1.4,
+    "axes.titlesize": tick_legend_FontSize * 2,
+    "xtick.labelsize": tick_legend_FontSize * 1,  #  * 0.75
+    "ytick.labelsize": tick_legend_FontSize * 1,  #  * 0.75
+    "axes.titlepad": 10}
+plt.rcParams.update(params)
+
+
+my_scatter = sns.pairplot(A[A["groupveg"] == groupveg[0]], size=2, diag_kind="None", plot_kws={"s": 4})
+
+# %%
 
 # %%
 
@@ -956,7 +1109,6 @@ Hardwood_m = [i for i in m5_results.index if "Hardwood" in i]
 # Riparian_m = [i for i in m5_results.index if "Riparian" in i]
 Shrubland_m = [i for i in m5_results.index if "Shrubland" in i]
 # Sparse_m = [i for i in m5_results.index if "Sparse" in i]
-
 
 ## Subset results to Barren
 # veg_ = "Barren"
@@ -1061,71 +1213,146 @@ X_train_normal.head(2)
 # # Model normalized data
 
 # %%
+annual_WA_ANPP.head(2)
+
+# %%
+SF_west.head(2)
+
+# %%
+tick_legend_FontSize = 12
+params = {"legend.fontsize": tick_legend_FontSize * 1,
+          "axes.labelsize": tick_legend_FontSize * 1.2,
+          "axes.titlesize": tick_legend_FontSize * 1.2,
+          "xtick.labelsize": tick_legend_FontSize * 1.1,
+          "ytick.labelsize": tick_legend_FontSize * 1.1,
+          "axes.titlepad": 10,
+          'axes.grid' : False}
+
+plt.rcParams["xtick.bottom"] = True
+plt.rcParams["ytick.left"] = True
+plt.rcParams["xtick.labelbottom"] = True
+plt.rcParams["ytick.labelleft"] = True
+plt.rcParams.update(params)
+
+# %% [markdown]
+#  - ToDo
+#     - train a model with a given veg and check if spreg is doing what you think it is doing.
+#        - Done. except SEs change!
+#
+#     - Look at R2 for each model separately. what does the general R2 mean that spreg spits out?
+#
+#     - Do modeling with interaction terms
+#
+#     - plot residual plots
+#
+#     - try model with log(y).
+
+# %%
 depen_var = "mean_lb_per_acr"
 indp_vars = ["precip_cm_yr", "avg_of_dailyAvgTemp_C_AvgOverMonths"]
 
-m5 = spreg.OLS_Regimes(y = y_train.values, x = X_train_normal[indp_vars].values, 
-                       regimes = X_train_normal["groupveg"].tolist(),
-                       constant_regi="many", regime_err_sep=False,
-                       name_y=depen_var, name_x=indp_vars)
+# pick a veg indices
+idx_ = X_train_normal[X_train_normal["groupveg"] == "Grassland"].index
+X_tr_ = X_train_normal.loc[idx_].copy()
+y_tr_ = y_train.loc[idx_].copy()
 
-print (f"{m5.r2.round(2) = }")
+m5_solo = spreg.OLS(y = y_tr_.values, x = X_tr_[indp_vars].values, 
+                    name_y=depen_var, name_x=indp_vars)
 
-m5_results = pd.DataFrame({"Coeff.": m5.betas.flatten(), # Pull out regression coefficients and
-                           "Std. Error": m5.std_err.flatten(), # Pull out and flatten standard errors
-                           "P-Value": [i[1] for i in m5.t_stat], # Pull out P-values from t-stat object
-                           }, index=m5.name_x)
+print (f"{m5_solo.r2.round(2) = }")
+
+m5_solo_results = pd.DataFrame({"Coeff.": m5_solo.betas.flatten(), 
+                                "Std. Error": m5_solo.std_err.flatten(), 
+                                "P-Value": [i[1] for i in m5_solo.t_stat]
+                               }, index=m5_solo.name_x)
 
 # %%
+m5_solo_results
+
+# %%
+# m5_solo.predy
+
+# %%
+X = X_tr_.copy()
+X.dropna(how="any", inplace=True)
+X = sm.add_constant(X)
+Y = y_train.loc[idx_].copy().astype(float)
+ks = sm.OLS(Y, X[["const", "precip_cm_yr", "avg_of_dailyAvgTemp_C_AvgOverMonths"]])
+ks_result = ks.fit()
+y_pred = ks_result.predict(X[["const", "precip_cm_yr", "avg_of_dailyAvgTemp_C_AvgOverMonths"]])
+ks_result.params
+
+# %% [markdown]
+# # Model based on Temp
+
+# %%
+depen_var = "mean_lb_per_acr"
+indp_vars = ["avg_of_dailyAvgTemp_C_AvgOverMonths"]
+
+m5_T_normal = spreg.OLS_Regimes(y = y_train.values, x = X_train_normal[indp_vars].values, 
+                                      regimes = X_train_normal["groupveg"].tolist(),
+                                      constant_regi="many", regime_err_sep=False,
+                                      name_y=depen_var, name_x=indp_vars)
+
+print (f"{m5_T_normal.r2.round(2) = }")
+
+m5_T_normal_results = pd.DataFrame({# Pull out regression coefficients and
+                                          "Coeff.": m5_T_normal.betas.flatten(), 
+                                          # Pull out and flatten standard errors
+                                          "Std. Error": m5_T_normal.std_err.flatten(), 
+                                          # Pull out P-values from t-stat object
+                                          "P-Value": [i[1] for i in m5_T_normal.t_stat], 
+                                           }, index=m5_T_normal.name_x)
+
 ## Extract variables for each veg type
-# Barren_m    = [i for i in m5_results.index if "Barren"    in i]
-Conifer_m   = [i for i in m5_results.index if "Conifer"   in i]
-Grassland_m = [i for i in m5_results.index if "Grassland" in i]
-Hardwood_m  = [i for i in m5_results.index if "Hardwood"  in i]
-# Riparian_m  = [i for i in m5_results.index if "Riparian"  in i]
-Shrubland_m = [i for i in m5_results.index if "Shrubland" in i]
-# Sparse_m    = [i for i in m5_results.index if "Sparse"    in i]
+# Barren_m    = [i for i in m5_T_normal_results.index if "Barren"    in i]
+Conifer_m   = [i for i in m5_T_normal_results.index if "Conifer"   in i]
+Grassland_m = [i for i in m5_T_normal_results.index if "Grassland" in i]
+Hardwood_m  = [i for i in m5_T_normal_results.index if "Hardwood"  in i]
+# Riparian_m  = [i for i in m5_T_normal_results.index if "Riparian"  in i]
+Shrubland_m = [i for i in m5_T_normal_results.index if "Shrubland" in i]
+# Sparse_m    = [i for i in m5_T_normal_results.index if "Sparse"    in i]
 
 ## Subset results to Barren
 # veg_ = "Barren"
 # rep_ = [x for x in groupveg if veg_ in x][0] + "_"
-# Barren = m5_results.loc[Barren_m, :].rename(lambda i: i.replace(rep_, ""))
+# Barren = m5_T_normal_results.loc[Barren_m, :].rename(lambda i: i.replace(rep_, ""))
 # Barren.columns = pd.MultiIndex.from_product([[veg_], Barren.columns])
 
 ## Subset results to Conifer
 veg_ = "Conifer"
 rep_ = [x for x in groupveg if veg_ in x][0] + "_"
-Conifer = m5_results.loc[Conifer_m, :].rename(lambda i: i.replace(rep_, ""))
+Conifer = m5_T_normal_results.loc[Conifer_m, :].rename(lambda i: i.replace(rep_, ""))
 Conifer.columns = pd.MultiIndex.from_product([[veg_], Conifer.columns])
 
 ## Subset results to Grassland
 veg_ = "Grassland"
 rep_ = [x for x in groupveg if veg_ in x][0] + "_"
-Grassland = m5_results.loc[Grassland_m, :].rename(lambda i: i.replace(rep_, ""))
+Grassland = m5_T_normal_results.loc[Grassland_m, :].rename(lambda i: i.replace(rep_, ""))
 Grassland.columns = pd.MultiIndex.from_product([[veg_], Grassland.columns])
 
 ## Subset results to Hardwood
 veg_ = "Hardwood"
 rep_ = [x for x in groupveg if veg_ in x][0] + "_"
-Hardwood = m5_results.loc[Hardwood_m, :].rename(lambda i: i.replace(rep_, ""))
+Hardwood = m5_T_normal_results.loc[Hardwood_m, :].rename(lambda i: i.replace(rep_, ""))
 Hardwood.columns = pd.MultiIndex.from_product([[veg_], Hardwood.columns])
 
 ## Subset results to Riparian
 # veg_ = "Riparian"
 # rep_ = [x for x in groupveg if veg_ in x][0] + "_"
-# Riparian = m5_results.loc[Riparian_m, :].rename(lambda i: i.replace(rep_, ""))
+# Riparian = m5_T_normal_results.loc[Riparian_m, :].rename(lambda i: i.replace(rep_, ""))
 # Riparian.columns = pd.MultiIndex.from_product([[veg_], Riparian.columns])
 
 ## Subset results to Shrubland
 veg_ = "Shrubland"
 rep_ = [x for x in groupveg if veg_ in x][0] + "_"
-Shrubland = m5_results.loc[Shrubland_m, :].rename(lambda i: i.replace(rep_, ""))
+Shrubland = m5_T_normal_results.loc[Shrubland_m, :].rename(lambda i: i.replace(rep_, ""))
 Shrubland.columns = pd.MultiIndex.from_product([[veg_], Shrubland.columns])
 
 ## Subset results to Sparse
 # veg_ = "Sparse"
 # rep_ = [x for x in groupveg if veg_ in x][0] + "_"
-# Sparse = m5_results.loc[Sparse_m, :].rename(lambda i: i.replace(rep_, ""))
+# Sparse = m5_T_normal_results.loc[Sparse_m, :].rename(lambda i: i.replace(rep_, ""))
 # Sparse.columns = pd.MultiIndex.from_product([[veg_], Sparse.columns])
 
 # Concat both models
@@ -1135,75 +1362,448 @@ table_.rename(columns={"avg_of_dailyAvgTemp_C_AvgOverMonths": "temp"}, inplace=T
 table_
 
 # %%
-annual_WA_ANPP.head(2)
+fig, axes = plt.subplots(1, 1, figsize=(10, 2), sharex=True, 
+                        gridspec_kw={"hspace": 0.25, "wspace": 0.05}, dpi=dpi_)
+
+axes.scatter(m5_T_normal.predy, m5_T_normal.u, c="dodgerblue", s=2);
+
+title_ = "model baed on temperature"
+axes.set_title(title_);
+axes.set_xlabel("prediction"); axes.set_ylabel("residual");
 
 # %%
-SF_west.head(2)
 
 # %%
 
 # %%
-fig, axes = plt.subplots(1, 1, figsize=(10, 3), sharey=False, sharex=False, dpi=dpi_)
-sns.set_style({'axes.grid' : True})
 
-# axes.set_title('Intersection of sigfinicant MK test and Spearman (increasing trend)');
-sns.histplot(data=annual_WA_ANPP["mean_lb_per_acr"], ax=axes, bins=100, kde=True);
-# axes.legend(["ANPP (mean lb/acr)"], loc='upper right');
-axes.set_xlabel("ANPP (mean lb/acr)");
+# %% [markdown]
+# # Model based on Precip
 
 # %%
-print (len(groupveg))
-groupveg
+depen_var = "mean_lb_per_acr"
+indp_vars = ["precip_cm_yr"]
+
+m5_P_normal = spreg.OLS_Regimes(y = y_train.values, x = X_train_normal[indp_vars].values, 
+                                regimes = X_train_normal["groupveg"].tolist(),
+                                constant_regi="many", regime_err_sep=False,
+                                name_y=depen_var, name_x=indp_vars)
+print (f"{m5_P_normal.r2.round(2) = }")
+
+m5_P_normal_results = pd.DataFrame({"Coeff.": m5_P_normal.betas.flatten(), 
+                                    "Std. Error": m5_P_normal.std_err.flatten(), 
+                                    "P-Value": [i[1] for i in m5_P_normal.t_stat], 
+                                    }, index=m5_P_normal.name_x)
+
+## Extract variables for each veg type
+Conifer_m   = [i for i in m5_P_normal_results.index if "Conifer"   in i]
+Grassland_m = [i for i in m5_P_normal_results.index if "Grassland" in i]
+Hardwood_m  = [i for i in m5_P_normal_results.index if "Hardwood"  in i]
+Shrubland_m = [i for i in m5_P_normal_results.index if "Shrubland" in i]
+
+## Subset results to Conifer
+veg_ = "Conifer"
+rep_ = [x for x in groupveg if veg_ in x][0] + "_"
+Conifer = m5_P_normal_results.loc[Conifer_m, :].rename(lambda i: i.replace(rep_, ""))
+Conifer.columns = pd.MultiIndex.from_product([[veg_], Conifer.columns])
+
+## Subset results to Grassland
+veg_ = "Grassland"
+rep_ = [x for x in groupveg if veg_ in x][0] + "_"
+Grassland = m5_P_normal_results.loc[Grassland_m, :].rename(lambda i: i.replace(rep_, ""))
+Grassland.columns = pd.MultiIndex.from_product([[veg_], Grassland.columns])
+
+## Subset results to Hardwood
+veg_ = "Hardwood"
+rep_ = [x for x in groupveg if veg_ in x][0] + "_"
+Hardwood = m5_P_normal_results.loc[Hardwood_m, :].rename(lambda i: i.replace(rep_, ""))
+Hardwood.columns = pd.MultiIndex.from_product([[veg_], Hardwood.columns])
+
+## Subset results to Shrubland
+veg_ = "Shrubland"
+rep_ = [x for x in groupveg if veg_ in x][0] + "_"
+Shrubland = m5_P_normal_results.loc[Shrubland_m, :].rename(lambda i: i.replace(rep_, ""))
+Shrubland.columns = pd.MultiIndex.from_product([[veg_], Shrubland.columns])
+
+# Concat both models
+table_ = pd.concat([Conifer, Grassland, Hardwood, Shrubland], axis=1).round(5)
+table_ = table_.transpose()
+table_.rename(columns={"avg_of_dailyAvgTemp_C_AvgOverMonths": "temp"}, inplace=True)
+table_
 
 # %%
-# Parameters for font sizes
+fig, axes = plt.subplots(1, 1, figsize=(10, 2), sharex=True, 
+                        gridspec_kw={"hspace": 0.25, "wspace": 0.05}, dpi=dpi_)
 
-tick_legend_FontSize = 20
-params = {"legend.fontsize": tick_legend_FontSize*.8,
-          "axes.labelsize": tick_legend_FontSize * .8,
-          "axes.titlesize": tick_legend_FontSize * 1.5,
-          "xtick.labelsize": tick_legend_FontSize * 0.8,
-          "ytick.labelsize": tick_legend_FontSize * 0.8,
-          "axes.titlepad": 5,    'legend.handlelength': 2}
+axes.scatter(m5_P_normal.predy, m5_P_normal.u, c="dodgerblue", s=2);
 
-plt.rcParams["xtick.bottom"] = True
-plt.rcParams["ytick.left"] = True
-plt.rcParams["xtick.labelbottom"] = True
-plt.rcParams["ytick.labelleft"] = True
-plt.rcParams.update(params)
+title_ = "model baed on precipitation"
+axes.set_title(title_);
+axes.set_xlabel("prediction"); axes.set_ylabel("residual");
 
 # %%
-fig, axes = plt.subplots(2, 2, figsize=(20, 5), sharey=True, sharex=True, 
-                         gridspec_kw={"hspace": 0.25, "wspace": 0.01}, dpi=dpi_)
-sns.set_style({'axes.grid' : True})
 
-veg_type = groupveg[0]
-df = annual_WA_ANPP[annual_WA_ANPP["groupveg"] == veg_type]
-sns.histplot(data=df["mean_lb_per_acr"], ax=axes[0][0], bins=100, kde=True, color=veg_colors[veg_type]);
-axes[0][0].legend([veg_type], loc='upper right');
-################################################################################
-veg_type = groupveg[1]
-df = annual_WA_ANPP[annual_WA_ANPP["groupveg"] == veg_type]
-sns.histplot(data=df["mean_lb_per_acr"], ax=axes[0][1], bins=100, kde=True, color=veg_colors[veg_type]);
-axes[0][1].legend([veg_type], loc='upper right');
-################################################################################
-veg_type = groupveg[2]
-df = annual_WA_ANPP[annual_WA_ANPP["groupveg"] == veg_type]
-sns.histplot(data=df["mean_lb_per_acr"], ax=axes[1][0], bins=100, kde=True, color=veg_colors[veg_type]);
-axes[1][0].legend([veg_type], loc='upper right');
-################################################################################
-veg_type = groupveg[3]
-df = annual_WA_ANPP[annual_WA_ANPP["groupveg"] == veg_type]
-sns.histplot(data=df["mean_lb_per_acr"], ax=axes[1][1], bins=100, kde=True, color=veg_colors[veg_type]);
-axes[1][1].legend([veg_type], loc='upper right');
-################################################################################
+# %% [markdown]
+# # Model by Temp and Precip
 
-axes[0][0].set_xlabel(""); axes[0][1].set_xlabel("");
-axes[1][0].set_xlabel("ANPP (mean lb/acr)"); axes[1][1].set_xlabel("ANPP (mean lb/acr)");
+# %%
+depen_var = "mean_lb_per_acr"
+indp_vars = ["precip_cm_yr", "avg_of_dailyAvgTemp_C_AvgOverMonths"]
 
-fig.suptitle('ANPP distribution', y=0.95, fontsize=18)
-fig.subplots_adjust(top=0.85, bottom=0.15, left=0.052, right=0.981, wspace=-0.2, hspace=0)
-file_name = bio_plots + "vegType_ANPPDist.pdf"
-plt.savefig(file_name)
+m5_TP_normal = spreg.OLS_Regimes(y = y_train.values, x = X_train_normal[indp_vars].values, 
+                                 regimes = X_train_normal["groupveg"].tolist(),
+                                 constant_regi="many", regime_err_sep=False,
+                                 name_y=depen_var, name_x=indp_vars)
+
+print (f"{m5_TP_normal.r2.round(2) = }")
+
+m5_TP_normal_results = pd.DataFrame({"Coeff.": m5_TP_normal.betas.flatten(), 
+                                     "Std. Error": m5_TP_normal.std_err.flatten(), 
+                                     "P-Value": [i[1] for i in m5_TP_normal.t_stat],
+                                    }, index=m5_TP_normal.name_x)
+
+## Extract variables for each veg type
+Conifer_m   = [i for i in m5_TP_normal_results.index if "Conifer"   in i]
+Grassland_m = [i for i in m5_TP_normal_results.index if "Grassland" in i]
+Hardwood_m  = [i for i in m5_TP_normal_results.index if "Hardwood"  in i]
+Shrubland_m = [i for i in m5_TP_normal_results.index if "Shrubland" in i]
+
+## Subset results to Conifer
+veg_ = "Conifer"
+rep_ = [x for x in groupveg if veg_ in x][0] + "_"
+Conifer = m5_TP_normal_results.loc[Conifer_m, :].rename(lambda i: i.replace(rep_, ""))
+Conifer.columns = pd.MultiIndex.from_product([[veg_], Conifer.columns])
+
+## Subset results to Grassland
+veg_ = "Grassland"
+rep_ = [x for x in groupveg if veg_ in x][0] + "_"
+Grassland = m5_TP_normal_results.loc[Grassland_m, :].rename(lambda i: i.replace(rep_, ""))
+Grassland.columns = pd.MultiIndex.from_product([[veg_], Grassland.columns])
+
+## Subset results to Hardwood
+veg_ = "Hardwood"
+rep_ = [x for x in groupveg if veg_ in x][0] + "_"
+Hardwood = m5_TP_normal_results.loc[Hardwood_m, :].rename(lambda i: i.replace(rep_, ""))
+Hardwood.columns = pd.MultiIndex.from_product([[veg_], Hardwood.columns])
+
+## Subset results to Shrubland
+veg_ = "Shrubland"
+rep_ = [x for x in groupveg if veg_ in x][0] + "_"
+Shrubland = m5_TP_normal_results.loc[Shrubland_m, :].rename(lambda i: i.replace(rep_, ""))
+Shrubland.columns = pd.MultiIndex.from_product([[veg_], Shrubland.columns])
+
+# Concat both models
+table_ = pd.concat([Conifer, Grassland, Hardwood, Shrubland], axis=1).round(5)
+table_ = table_.transpose()
+table_.rename(columns={"avg_of_dailyAvgTemp_C_AvgOverMonths": "temp"}, inplace=True)
+table_
+
+# %%
+fig, axes = plt.subplots(1, 1, figsize=(10, 2), sharex=True, 
+                        gridspec_kw={"hspace": 0.25, "wspace": 0.05}, dpi=dpi_)
+
+axes.scatter(m5_TP_normal.predy, m5_TP_normal.u, c="dodgerblue", s=2);
+
+title_ = "model baed on temp. and precipitation"
+axes.set_title(title_);
+axes.set_xlabel("prediction"); axes.set_ylabel("residual");
+
+# %%
+
+# %% [markdown]
+# # Model with interaction terms
+
+# %%
+depen_var = "mean_lb_per_acr"
+indp_vars = ["precip_cm_yr", "avg_of_dailyAvgTemp_C_AvgOverMonths", "temp_X_precip"]
+
+m5_TPinter_normal = spreg.OLS_Regimes(y = y_train.values, x = X_train_normal[indp_vars].values, 
+                                      regimes = X_train_normal["groupveg"].tolist(),
+                                      constant_regi="many", regime_err_sep=False,
+                                      name_y=depen_var, name_x=indp_vars)
+print (f"{m5_TPinter_normal.r2.round(2) = }")
+
+m5_TPinter_normal_results = pd.DataFrame({"Coeff.": m5_TPinter_normal.betas.flatten(), 
+                                          "Std. Error": m5_TPinter_normal.std_err.flatten(), 
+                                          "P-Value": [i[1] for i in m5_TPinter_normal.t_stat]}, 
+                                         index=m5_TPinter_normal.name_x)
+## Extract variables for each veg type
+Conifer_m   = [i for i in m5_TPinter_normal_results.index if "Conifer"   in i]
+Grassland_m = [i for i in m5_TPinter_normal_results.index if "Grassland" in i]
+Hardwood_m  = [i for i in m5_TPinter_normal_results.index if "Hardwood"  in i]
+Shrubland_m = [i for i in m5_TPinter_normal_results.index if "Shrubland" in i]
+
+## Subset results to Conifer
+veg_ = "Conifer"
+rep_ = [x for x in groupveg if veg_ in x][0] + "_"
+Conifer = m5_TPinter_normal_results.loc[Conifer_m, :].rename(lambda i: i.replace(rep_, ""))
+Conifer.columns = pd.MultiIndex.from_product([[veg_], Conifer.columns])
+
+## Subset results to Grassland
+veg_ = "Grassland"
+rep_ = [x for x in groupveg if veg_ in x][0] + "_"
+Grassland = m5_TPinter_normal_results.loc[Grassland_m, :].rename(lambda i: i.replace(rep_, ""))
+Grassland.columns = pd.MultiIndex.from_product([[veg_], Grassland.columns])
+
+## Subset results to Hardwood
+veg_ = "Hardwood"
+rep_ = [x for x in groupveg if veg_ in x][0] + "_"
+Hardwood = m5_TPinter_normal_results.loc[Hardwood_m, :].rename(lambda i: i.replace(rep_, ""))
+Hardwood.columns = pd.MultiIndex.from_product([[veg_], Hardwood.columns])
+
+## Subset results to Shrubland
+veg_ = "Shrubland"
+rep_ = [x for x in groupveg if veg_ in x][0] + "_"
+Shrubland = m5_TPinter_normal_results.loc[Shrubland_m, :].rename(lambda i: i.replace(rep_, ""))
+Shrubland.columns = pd.MultiIndex.from_product([[veg_], Shrubland.columns])
+
+# Concat both models
+table_ = pd.concat([Conifer, Grassland, Hardwood, Shrubland], axis=1).round(5)
+table_ = table_.transpose()
+table_.rename(columns={"avg_of_dailyAvgTemp_C_AvgOverMonths": "temp"}, inplace=True)
+table_
+
+# %%
+fig, axes = plt.subplots(1, 1, figsize=(10, 2), sharex=True, 
+                        gridspec_kw={"hspace": 0.25, "wspace": 0.05}, dpi=dpi_)
+
+axes.scatter(m5_TPinter_normal.predy, m5_TPinter_normal.u, c="dodgerblue", s=2);
+
+title_ = "model baed on temp. and precipitation and their interaction"
+axes.set_title(title_);
+axes.set_xlabel("prediction"); axes.set_ylabel("residual");
+
+# %%
+
+# %% [markdown]
+# # Temp, precipitation, humidity
+
+# %%
+X_train_normal.head(2)
+
+# %%
+
+# %%
+depen_var = "mean_lb_per_acr"
+indp_vars = ["precip_cm_yr", "avg_of_dailyAvgTemp_C_AvgOverMonths", "avg_of_dailyAvg_rel_hum_AvgOverMonths"]
+
+m5_TPH_normal = spreg.OLS_Regimes(y = y_train.values, x = X_train_normal[indp_vars].values, 
+                                 regimes = X_train_normal["groupveg"].tolist(),
+                                 constant_regi="many", regime_err_sep=False,
+                                 name_y=depen_var, name_x=indp_vars)
+
+print (f"{m5_TPH_normal.r2.round(2) = }")
+
+m5_TPH_normal_results = pd.DataFrame({"Coeff.": m5_TPH_normal.betas.flatten(), 
+                                      "Std. Error": m5_TPH_normal.std_err.flatten(), 
+                                      "P-Value": [i[1] for i in m5_TPH_normal.t_stat]}, 
+                                     index=m5_TPH_normal.name_x)
+
+## Extract variables for each veg type
+Conifer_m   = [i for i in m5_TPH_normal_results.index if "Conifer"   in i]
+Grassland_m = [i for i in m5_TPH_normal_results.index if "Grassland" in i]
+Hardwood_m  = [i for i in m5_TPH_normal_results.index if "Hardwood"  in i]
+Shrubland_m = [i for i in m5_TPH_normal_results.index if "Shrubland" in i]
+
+## Subset results to Conifer
+veg_ = "Conifer"
+rep_ = [x for x in groupveg if veg_ in x][0] + "_"
+Conifer = m5_TPH_normal_results.loc[Conifer_m, :].rename(lambda i: i.replace(rep_, ""))
+Conifer.columns = pd.MultiIndex.from_product([[veg_], Conifer.columns])
+
+## Subset results to Grassland
+veg_ = "Grassland"
+rep_ = [x for x in groupveg if veg_ in x][0] + "_"
+Grassland = m5_TPH_normal_results.loc[Grassland_m, :].rename(lambda i: i.replace(rep_, ""))
+Grassland.columns = pd.MultiIndex.from_product([[veg_], Grassland.columns])
+
+## Subset results to Hardwood
+veg_ = "Hardwood"
+rep_ = [x for x in groupveg if veg_ in x][0] + "_"
+Hardwood = m5_TPH_normal_results.loc[Hardwood_m, :].rename(lambda i: i.replace(rep_, ""))
+Hardwood.columns = pd.MultiIndex.from_product([[veg_], Hardwood.columns])
+
+## Subset results to Shrubland
+veg_ = "Shrubland"
+rep_ = [x for x in groupveg if veg_ in x][0] + "_"
+Shrubland = m5_TPH_normal_results.loc[Shrubland_m, :].rename(lambda i: i.replace(rep_, ""))
+Shrubland.columns = pd.MultiIndex.from_product([[veg_], Shrubland.columns])
+
+# Concat both models
+table_ = pd.concat([Conifer, Grassland, Hardwood, Shrubland], axis=1).round(5)
+table_ = table_.transpose()
+table_.rename(columns={"avg_of_dailyAvgTemp_C_AvgOverMonths": "temp", 
+                       "avg_of_dailyAvg_rel_hum_AvgOverMonths" : "RH"}, inplace=True)
+table_
+
+# %%
+fig, axes = plt.subplots(1, 1, figsize=(10, 2), sharex=True, 
+                        gridspec_kw={"hspace": 0.25, "wspace": 0.05}, dpi=dpi_)
+
+axes.scatter(m5_TPH_normal.predy, m5_TPH_normal.u, c="dodgerblue", s=2);
+
+title_ = "model baed on temp. and precip. and RH"
+axes.set_title(title_);
+axes.set_xlabel("prediction"); axes.set_ylabel("residual");
+
+# %%
+
+# %% [markdown]
+# # Add square terms
+
+# %%
+print (X_train_normal.shape)
+X_train_normal.head(2)
+
+# %%
+X_train_normal["temp_sq"] = X_train_normal["avg_of_dailyAvgTemp_C_AvgOverMonths"] ** 2
+X_train_normal["precip_sq"] = X_train_normal["precip_cm_yr"] ** 2
+X_train_normal.head(2)
+
+# %%
+depen_var = "mean_lb_per_acr"
+indp_vars = ["precip_cm_yr", "avg_of_dailyAvgTemp_C_AvgOverMonths", "temp_sq", "precip_sq", "temp_X_precip"]
+
+m5_TP_sq_normal = spreg.OLS_Regimes(y = y_train.values, x = X_train_normal[indp_vars].values, 
+                                  regimes = X_train_normal["groupveg"].tolist(),
+                                  constant_regi="many", regime_err_sep=False,
+                                  name_y=depen_var, name_x=indp_vars)
+
+print (f"{m5_TP_sq_normal.r2.round(2) = }")
+
+m5_TP_sq_normal_results = pd.DataFrame({"Coeff.": m5_TP_sq_normal.betas.flatten(), 
+                                      "Std. Error": m5_TP_sq_normal.std_err.flatten(), 
+                                      "P-Value": [i[1] for i in m5_TP_sq_normal.t_stat]}, 
+                                     index=m5_TP_sq_normal.name_x)
+
+## Extract variables for each veg type
+Conifer_m   = [i for i in m5_TP_sq_normal_results.index if "Conifer"   in i]
+Grassland_m = [i for i in m5_TP_sq_normal_results.index if "Grassland" in i]
+Hardwood_m  = [i for i in m5_TP_sq_normal_results.index if "Hardwood"  in i]
+Shrubland_m = [i for i in m5_TP_sq_normal_results.index if "Shrubland" in i]
+
+## Subset results to Conifer
+veg_ = "Conifer"
+rep_ = [x for x in groupveg if veg_ in x][0] + "_"
+Conifer = m5_TP_sq_normal_results.loc[Conifer_m, :].rename(lambda i: i.replace(rep_, ""))
+Conifer.columns = pd.MultiIndex.from_product([[veg_], Conifer.columns])
+
+## Subset results to Grassland
+veg_ = "Grassland"
+rep_ = [x for x in groupveg if veg_ in x][0] + "_"
+Grassland = m5_TP_sq_normal_results.loc[Grassland_m, :].rename(lambda i: i.replace(rep_, ""))
+Grassland.columns = pd.MultiIndex.from_product([[veg_], Grassland.columns])
+
+## Subset results to Hardwood
+veg_ = "Hardwood"
+rep_ = [x for x in groupveg if veg_ in x][0] + "_"
+Hardwood = m5_TP_sq_normal_results.loc[Hardwood_m, :].rename(lambda i: i.replace(rep_, ""))
+Hardwood.columns = pd.MultiIndex.from_product([[veg_], Hardwood.columns])
+
+## Subset results to Shrubland
+veg_ = "Shrubland"
+rep_ = [x for x in groupveg if veg_ in x][0] + "_"
+Shrubland = m5_TP_sq_normal_results.loc[Shrubland_m, :].rename(lambda i: i.replace(rep_, ""))
+Shrubland.columns = pd.MultiIndex.from_product([[veg_], Shrubland.columns])
+
+# Concat both models
+table_ = pd.concat([Conifer, Grassland, Hardwood, Shrubland], axis=1).round(5)
+table_ = table_.transpose()
+table_.rename(columns={"avg_of_dailyAvgTemp_C_AvgOverMonths": "temp", 
+                       "avg_of_dailyAvg_rel_hum_AvgOverMonths" : "RH"}, inplace=True)
+table_
+
+# %%
+
+# %%
+fig, axes = plt.subplots(1, 1, figsize=(10, 2), sharex=True, 
+                        gridspec_kw={"hspace": 0.25, "wspace": 0.05}, dpi=dpi_)
+
+axes.scatter(m5_TP_sq_normal.predy, m5_TP_sq_normal.u, c="dodgerblue", s=2);
+
+title_ = f"model baed on $T$ and $P$ and $T^2$, $P^2$, and $T \u00D7 P$ "
+axes.set_title(title_);
+axes.set_xlabel("prediction"); axes.set_ylabel("residual");
+
+# %% [markdown]
+# # log of Y based on Temp, Precip 
+
+# %%
+depen_var = "mean_lb_per_acr"
+indp_vars = ["precip_cm_yr", "avg_of_dailyAvgTemp_C_AvgOverMonths"]
+
+m5_TP_normal_logy = spreg.OLS_Regimes(y = np.log10(y_train.values), x = X_train_normal[indp_vars].values, 
+                                 regimes = X_train_normal["groupveg"].tolist(),
+                                 constant_regi="many", regime_err_sep=False,
+                                 name_y=depen_var, name_x=indp_vars)
+
+print (f"{m5_TP_normal_logy.r2.round(2) = }")
+
+m5_TP_normal_logy_results = pd.DataFrame({"Coeff.": m5_TP_normal_logy.betas.flatten(), 
+                                     "Std. Error": m5_TP_normal_logy.std_err.flatten(), 
+                                     "P-Value": [i[1] for i in m5_TP_normal_logy.t_stat],
+                                    }, index=m5_TP_normal_logy.name_x)
+
+## Extract variables for each veg type
+Conifer_m   = [i for i in m5_TP_normal_logy_results.index if "Conifer"   in i]
+Grassland_m = [i for i in m5_TP_normal_logy_results.index if "Grassland" in i]
+Hardwood_m  = [i for i in m5_TP_normal_logy_results.index if "Hardwood"  in i]
+Shrubland_m = [i for i in m5_TP_normal_logy_results.index if "Shrubland" in i]
+
+## Subset results to Conifer
+veg_ = "Conifer"
+rep_ = [x for x in groupveg if veg_ in x][0] + "_"
+Conifer = m5_TP_normal_logy_results.loc[Conifer_m, :].rename(lambda i: i.replace(rep_, ""))
+Conifer.columns = pd.MultiIndex.from_product([[veg_], Conifer.columns])
+
+## Subset results to Grassland
+veg_ = "Grassland"
+rep_ = [x for x in groupveg if veg_ in x][0] + "_"
+Grassland = m5_TP_normal_logy_results.loc[Grassland_m, :].rename(lambda i: i.replace(rep_, ""))
+Grassland.columns = pd.MultiIndex.from_product([[veg_], Grassland.columns])
+
+## Subset results to Hardwood
+veg_ = "Hardwood"
+rep_ = [x for x in groupveg if veg_ in x][0] + "_"
+Hardwood = m5_TP_normal_logy_results.loc[Hardwood_m, :].rename(lambda i: i.replace(rep_, ""))
+Hardwood.columns = pd.MultiIndex.from_product([[veg_], Hardwood.columns])
+
+## Subset results to Shrubland
+veg_ = "Shrubland"
+rep_ = [x for x in groupveg if veg_ in x][0] + "_"
+Shrubland = m5_TP_normal_logy_results.loc[Shrubland_m, :].rename(lambda i: i.replace(rep_, ""))
+Shrubland.columns = pd.MultiIndex.from_product([[veg_], Shrubland.columns])
+
+# Concat both models
+table_ = pd.concat([Conifer, Grassland, Hardwood, Shrubland], axis=1).round(5)
+table_ = table_.transpose()
+table_.rename(columns={"avg_of_dailyAvgTemp_C_AvgOverMonths": "temp"}, inplace=True)
+table_
+
+# %%
+fig, axes = plt.subplots(1, 1, figsize=(10, 2), sharex=True, 
+                        gridspec_kw={"hspace": 0.25, "wspace": 0.05}, dpi=dpi_)
+
+axes.scatter(m5_TP_normal_logy.predy, m5_TP_normal_logy.u, c="dodgerblue", s=2);
+
+title_ = f"$log(y) = f(T, P)$"
+axes.set_title(title_);
+axes.set_xlabel("prediction"); axes.set_ylabel("residual");
+
+# %%
+X_train_normal.head(2)
+
+# %%
+fig, axes = plt.subplots(1, 1, figsize=(10, 2), sharex=True, 
+                        gridspec_kw={"hspace": 0.25, "wspace": 0.05}, dpi=dpi_)
+
+axes.scatter(X_train["precip_cm_yr"], X_train["avg_of_dailyAvgTemp_C_AvgOverMonths"], 
+             c="dodgerblue", s=2);
+
+# title_ = f"$log(y) = f(T, P)$"
+# axes.set_title(title_);
+axes.set_xlabel("precip"); axes.set_ylabel("temp.");
+
+# %%
 
 # %%

@@ -52,7 +52,7 @@ def plot_SF(SF, ax_, cmap_ = "Pastel1", col="EW_meridian"):
 
 # %%
 dpi_ = 300
-map_dpi_ = 200
+map_dpi_ = 350
 custom_cmap_coral = ListedColormap(['lightcoral', 'black'])
 custom_cmap_BW = ListedColormap(['white', 'black'])
 cmap_G = cm.get_cmap('Greens') # 'PRGn', 'YlGn'
@@ -535,7 +535,6 @@ Albers_SF_west_spearmanP5 = Albers_SF_west[(Albers_SF_west["Spearman"] > 0) &
 
 
 # %%
-# Creating the figure and axes
 fig, axes = plt.subplots(1, 1, figsize=(3, 3), sharex=True, sharey=True, dpi=map_dpi_)
 axes.set_xticks([]); axes.set_yticks([])
 
@@ -555,7 +554,7 @@ Albers_SF_west.head(2)
 
 # %%
 # Creating the figure and axes
-fig, axes = plt.subplots(1, 1, figsize=(3, 3), sharex=True, sharey=True, dpi=300)
+fig, axes = plt.subplots(1, 1, figsize=(3, 3), sharex=True, sharey=True, dpi=map_dpi_)
 axes.set_xticks([]); axes.set_yticks([])
 
 plot_SF(SF=visframe_mainLand_west, ax_=axes, cmap_ = "Pastel1", col="EW_meridian")
@@ -576,7 +575,7 @@ plt.savefig(file_name)
 # %%
 
 # %%
-fig, axes = plt.subplots(1, 1, figsize=(3, 3), sharex=True, sharey=True, dpi=300)
+fig, axes = plt.subplots(1, 1, figsize=(3, 3), sharex=True, sharey=True, dpi=map_dpi_)
 axes.set_xticks([]); axes.set_yticks([])
 
 plot_SF(SF=visframe_mainLand_west, ax_=axes, cmap_ = "Pastel1", col="EW_meridian")
