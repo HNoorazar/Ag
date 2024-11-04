@@ -315,7 +315,6 @@ axes.set_xlabel("ANPP (mean lb/acr)");
 # %%
 
 # %%
-plt.rc("font", family="Palatino")
 tick_legend_FontSize = 20
 params = {"legend.fontsize": tick_legend_FontSize*.8,
           "axes.labelsize": tick_legend_FontSize * .8,
@@ -485,7 +484,6 @@ filename = bio_reOrganized + "temp_precip_spearman.sav"
 #            "Date" : datetime.now().strftime('%Y-%m-%d %H:%M:%S')}
 # pickle.dump(export_, open(filename, 'wb'))
 
-
 temp_precip_spear = pd.read_pickle(filename)
 temp_precip_spear = temp_precip_spear["temp_precip_spear"]
 temp_precip_spear.head(2)
@@ -585,9 +583,6 @@ plt.show();
 
 # %%
 # from mpl_toolkits.axes_grid1.inset_locator import inset_axes
-
-# %% [markdown]
-# ### Do Focus on greening locations only
 
 # %%
 SF_west_Spearman_95_green = SF_west_Spearman_95[SF_west_Spearman_95["trend"] == "increasing"].copy()
@@ -960,7 +955,21 @@ from scipy.stats import ttest_ind
 # %%
 annual_WA_ANPP.head(2)
 
+# %% [markdown]
+# # Focus on Greening areas only
+
 # %%
+print (ANPP_MK_df["trend"].unique())
+greening_FIDs = list(ANPP_MK_df[ANPP_MK_df["trend"] == "increasing"]["fid"].unique())
+greening_FIDs[1:3]
+
+annual_WA_ANPP = annual_WA_ANPP[annual_WA_ANPP["fid"].isin(greening_FIDs)]
+annual_WA_ANPP.reset_index(drop=True, inplace=True)
+annual_WA_ANPP.head(2)
+
+# %%
+print (len(ANPP_MK_df.fid.unique()))
+print (len(annual_WA_ANPP.fid.unique()))
 
 # %%
 annual_WA_ANPP["temp_X_precip"] = annual_WA_ANPP["precip_cm_yr"] * \
@@ -1043,26 +1052,6 @@ veg_ = groupveg[3]
 my_scatter = sns.pairplot(A[A["groupveg"] == veg_][cols_],  size=1.5, 
                           diag_kind="None", plot_kws={"s": 4}, corner=True)
 my_scatter.fig.suptitle(veg_, y=1.08);
-
-# %%
-
-# %%
-
-# %%
-tick_legend_FontSize = 10
-params = {"legend.fontsize": tick_legend_FontSize,  # medium, large
-    # 'figure.figsize': (6, 4),
-    "axes.labelsize": tick_legend_FontSize * 1.4,
-    "axes.titlesize": tick_legend_FontSize * 2,
-    "xtick.labelsize": tick_legend_FontSize * 1,  #  * 0.75
-    "ytick.labelsize": tick_legend_FontSize * 1,  #  * 0.75
-    "axes.titlepad": 10}
-plt.rcParams.update(params)
-
-
-my_scatter = sns.pairplot(A[A["groupveg"] == groupveg[0]], size=2, diag_kind="None", plot_kws={"s": 4})
-
-# %%
 
 # %%
 
@@ -1361,19 +1350,15 @@ table_ = table_.transpose()
 table_.rename(columns={"avg_of_dailyAvgTemp_C_AvgOverMonths": "temp"}, inplace=True)
 table_
 
-# %%
-fig, axes = plt.subplots(1, 1, figsize=(10, 2), sharex=True, 
-                        gridspec_kw={"hspace": 0.25, "wspace": 0.05}, dpi=dpi_)
-
-axes.scatter(m5_T_normal.predy, m5_T_normal.u, c="dodgerblue", s=2);
-
-title_ = "model baed on temperature"
-axes.set_title(title_);
-axes.set_xlabel("prediction"); axes.set_ylabel("residual");
-
-# %%
-
-# %%
+# %% [markdown]
+# fig, axes = plt.subplots(1, 1, figsize=(10, 2), sharex=True, 
+#                          gridspec_kw={"hspace": 0.25, "wspace": 0.05}, dpi=dpi_)
+#
+# axes.scatter(m5_T_normal.predy, m5_T_normal.u, c="dodgerblue", s=2);
+#
+# title_ = f"NPP = $f(T)$"
+# axes.set_title(title_);
+# axes.set_xlabel("prediction"); axes.set_ylabel("residual");
 
 # %%
 
@@ -1437,7 +1422,7 @@ fig, axes = plt.subplots(1, 1, figsize=(10, 2), sharex=True,
 
 axes.scatter(m5_P_normal.predy, m5_P_normal.u, c="dodgerblue", s=2);
 
-title_ = "model baed on precipitation"
+title_ = f"NPP = $f(P)$"
 axes.set_title(title_);
 axes.set_xlabel("prediction"); axes.set_ylabel("residual");
 
@@ -1504,7 +1489,7 @@ fig, axes = plt.subplots(1, 1, figsize=(10, 2), sharex=True,
 
 axes.scatter(m5_TP_normal.predy, m5_TP_normal.u, c="dodgerblue", s=2);
 
-title_ = "model baed on temp. and precipitation"
+title_ = f"NPP = $f(T, P)$"
 axes.set_title(title_);
 axes.set_xlabel("prediction"); axes.set_ylabel("residual");
 
@@ -1569,7 +1554,7 @@ fig, axes = plt.subplots(1, 1, figsize=(10, 2), sharex=True,
 
 axes.scatter(m5_TPinter_normal.predy, m5_TPinter_normal.u, c="dodgerblue", s=2);
 
-title_ = "model baed on temp. and precipitation and their interaction"
+title_ = f"NPP = $f(T, P, T \u00D7 P)$"
 axes.set_title(title_);
 axes.set_xlabel("prediction"); axes.set_ylabel("residual");
 
@@ -1642,7 +1627,7 @@ fig, axes = plt.subplots(1, 1, figsize=(10, 2), sharex=True,
 
 axes.scatter(m5_TPH_normal.predy, m5_TPH_normal.u, c="dodgerblue", s=2);
 
-title_ = "model baed on temp. and precip. and RH"
+title_ = f"NPP = $f(T, P, RH)$"
 axes.set_title(title_);
 axes.set_xlabel("prediction"); axes.set_ylabel("residual");
 
@@ -1721,7 +1706,7 @@ fig, axes = plt.subplots(1, 1, figsize=(10, 2), sharex=True,
 
 axes.scatter(m5_TP_sq_normal.predy, m5_TP_sq_normal.u, c="dodgerblue", s=2);
 
-title_ = f"model baed on $T$ and $P$ and $T^2$, $P^2$, and $T \u00D7 P$ "
+title_ = f"NPP = $f(T, P, T^2, P^2, T \u00D7 P)$"
 axes.set_title(title_);
 axes.set_xlabel("prediction"); axes.set_ylabel("residual");
 
@@ -1803,6 +1788,85 @@ axes.scatter(X_train["precip_cm_yr"], X_train["avg_of_dailyAvgTemp_C_AvgOverMont
 # title_ = f"$log(y) = f(T, P)$"
 # axes.set_title(title_);
 axes.set_xlabel("precip"); axes.set_ylabel("temp.");
+
+# %%
+
+# %% [markdown]
+# # Add Cubic terms
+
+# %%
+X_train_normal["temp_cube"] = X_train_normal["avg_of_dailyAvgTemp_C_AvgOverMonths"] ** 3
+X_train_normal["precip_cube"] = X_train_normal["precip_cm_yr"] ** 3
+X_train_normal.head(2)
+
+# %%
+depen_var = "mean_lb_per_acr"
+indp_vars = ["precip_cm_yr", "avg_of_dailyAvgTemp_C_AvgOverMonths", 
+             "temp_sq", "precip_sq", "temp_X_precip",
+             "temp_cube", "precip_cube"]
+
+m5_TP_cube_normal = spreg.OLS_Regimes(y = y_train.values, x = X_train_normal[indp_vars].values, 
+                                  regimes = X_train_normal["groupveg"].tolist(),
+                                  constant_regi="many", regime_err_sep=False,
+                                  name_y=depen_var, name_x=indp_vars)
+
+print (f"{m5_TP_cube_normal.r2.round(2) = }")
+
+m5_TP_cube_normal_results = pd.DataFrame({"Coeff.": m5_TP_cube_normal.betas.flatten(), 
+                                          "Std. Error": m5_TP_cube_normal.std_err.flatten(), 
+                                          "P-Value": [i[1] for i in m5_TP_cube_normal.t_stat]}, 
+                                          index=m5_TP_cube_normal.name_x)
+
+## Extract variables for each veg type
+Conifer_m   = [i for i in m5_TP_cube_normal_results.index if "Conifer"   in i]
+Grassland_m = [i for i in m5_TP_cube_normal_results.index if "Grassland" in i]
+Hardwood_m  = [i for i in m5_TP_cube_normal_results.index if "Hardwood"  in i]
+Shrubland_m = [i for i in m5_TP_cube_normal_results.index if "Shrubland" in i]
+
+## Subset results to Conifer
+veg_ = "Conifer"
+rep_ = [x for x in groupveg if veg_ in x][0] + "_"
+Conifer = m5_TP_cube_normal_results.loc[Conifer_m, :].rename(lambda i: i.replace(rep_, ""))
+Conifer.columns = pd.MultiIndex.from_product([[veg_], Conifer.columns])
+
+## Subset results to Grassland
+veg_ = "Grassland"
+rep_ = [x for x in groupveg if veg_ in x][0] + "_"
+Grassland = m5_TP_cube_normal_results.loc[Grassland_m, :].rename(lambda i: i.replace(rep_, ""))
+Grassland.columns = pd.MultiIndex.from_product([[veg_], Grassland.columns])
+
+## Subset results to Hardwood
+veg_ = "Hardwood"
+rep_ = [x for x in groupveg if veg_ in x][0] + "_"
+Hardwood = m5_TP_cube_normal_results.loc[Hardwood_m, :].rename(lambda i: i.replace(rep_, ""))
+Hardwood.columns = pd.MultiIndex.from_product([[veg_], Hardwood.columns])
+
+## Subset results to Shrubland
+veg_ = "Shrubland"
+rep_ = [x for x in groupveg if veg_ in x][0] + "_"
+Shrubland = m5_TP_cube_normal_results.loc[Shrubland_m, :].rename(lambda i: i.replace(rep_, ""))
+Shrubland.columns = pd.MultiIndex.from_product([[veg_], Shrubland.columns])
+
+# Concat both models
+table_ = pd.concat([Conifer, Grassland, Hardwood, Shrubland], axis=1).round(5)
+table_ = table_.transpose()
+table_.rename(columns={"avg_of_dailyAvgTemp_C_AvgOverMonths": "temp", 
+                       "avg_of_dailyAvg_rel_hum_AvgOverMonths" : "RH"}, inplace=True)
+table_
+
+# %%
+fig, axes = plt.subplots(1, 1, figsize=(10, 2), sharex=True, 
+                        gridspec_kw={"hspace": 0.25, "wspace": 0.05}, dpi=dpi_)
+
+axes.scatter(m5_TP_cube_normal.predy, m5_TP_cube_normal.u, c="dodgerblue", s=2);
+
+title_ = f"NPP = $f(T, P, T^2, P^2, T^3, P^3, T \u00D7 P)$ "
+axes.set_title(title_);
+axes.set_xlabel("prediction"); axes.set_ylabel("residual");
+
+# %%
+
+# %%
 
 # %%
 
