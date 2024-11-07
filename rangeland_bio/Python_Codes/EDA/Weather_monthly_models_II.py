@@ -5,7 +5,7 @@
 #       extension: .py
 #       format_name: percent
 #       format_version: '1.3'
-#       jupytext_version: 1.15.2
+#       jupytext_version: 1.16.1
 #   kernelspec:
 #     display_name: Python 3 (ipykernel)
 #     language: python
@@ -13,7 +13,7 @@
 # ---
 
 # %% [markdown]
-# ## copy of Weather_monthly_models.ipynb 
+# # copy of Weather_monthly_models.ipynb 
 #
 # where I deleted the trained model on all data and trained on splited data only. and
 # added some $R^2$ for test set
@@ -41,10 +41,14 @@ import matplotlib
 import matplotlib.pyplot as plt
 plt.rc("font", family="Palatino")
 
+from pysal.lib import weights
+from pysal.model import spreg
+from pysal.explore import esda
+import geopandas, contextily
+from scipy.stats import ttest_ind
+
 # font = {"size": 10}
 # matplotlib.rc("font", **font)
-
-import geopandas
 
 import matplotlib.colors as colors
 from matplotlib.colors import ListedColormap, Normalize
@@ -68,11 +72,12 @@ os.makedirs(bio_reOrganized, exist_ok=True)
 bio_plots = rangeland_bio_base + "plots/"
 os.makedirs(bio_plots, exist_ok=True)
 # ####### Laptop
-# rangeland_bio_base = "/Users/hn/Documents/01_research_data/RangeLand_bio/"
-# min_bio_dir = rangeland_bio_base
+rangeland_bio_base = "/Users/hn/Documents/01_research_data/RangeLand_bio/"
+min_bio_dir = rangeland_bio_base
 
-# rangeland_base = rangeland_bio_base
-# rangeland_reOrganized = rangeland_base
+rangeland_base = rangeland_bio_base
+rangeland_reOrganized = rangeland_base
+
 
 # %%
 def plot_SF(SF, ax_, cmap_ = "Pastel1", col="EW_meridian"):
@@ -316,7 +321,6 @@ veg_colors = {"Barren-Rock/Sand/Clay" : "blue",
 
 for a_veg in  groupveg:
     SF_west.loc[SF_west['groupveg'] == a_veg, 'color'] = veg_colors[a_veg]
-
 SF_west.head(2)
 
 # %%
@@ -325,14 +329,6 @@ SF_west.head(2)
 # # Regression
 #
 # origin of spreg.OLS_ in ```04_02_2024_NonNormalModelsInterpret.ipynb```.
-
-# %%
-from pysal.lib import weights
-from pysal.model import spreg
-from pysal.explore import esda
-import geopandas, contextily
-
-from scipy.stats import ttest_ind
 
 # %%
 print (len(ANPP_weather_wide.fid.unique()))
@@ -344,8 +340,6 @@ print (len(ANPP_weather_wide.fid.unique()))
 # %%
 ANPP_weather_wide = pd.merge(ANPP_weather_wide, SF_west[["fid", "groupveg"]], how="left", on=["fid"])
 ANPP_weather_wide.head(2)
-
-# %%
 
 # %%
 good_vegs = ['Conifer', 'Grassland', 'Hardwood', 'Shrubland']
@@ -455,7 +449,7 @@ ANPP_weather_wide_G.head(2)
 ANPP_weather_wide_G.reset_index(drop=True, inplace=True)
 
 # %% [markdown]
-# # Model only the years where precipitation is less than 600 mm.
+# #### Model only the years where precipitation is less than 600 mm.
 
 # %%
 bad_years_idx = set()
@@ -707,14 +701,14 @@ print ("test R2 = {}".format(r2_score(y_test.values, y_test_pred.values).round(4
 depen_var, indp_vars = "mean_lb_per_acr", TP_cols
 
 m5 = spreg.OLS_Regimes(y = y_train.values, x = X_train_normal[indp_vars].values, 
-                                 regimes = X_train_normal["groupveg"].tolist(),
-                                 constant_regi="many", regime_err_sep=False,
-                                 name_y=depen_var, name_x=indp_vars)
+                       regimes = X_train_normal["groupveg"].tolist(),
+                       constant_regi="many", regime_err_sep=False,
+                       name_y=depen_var, name_x=indp_vars)
 
 m5_results = pd.DataFrame({"Coeff.": m5.betas.flatten(), 
-                                     "Std. Error": m5.std_err.flatten(), 
-                                     "P-Value": [i[1] for i in m5.t_stat],
-                                    }, index=m5.name_x)
+                           "Std. Error": m5.std_err.flatten(), 
+                           "P-Value": [i[1] for i in m5.t_stat]}, 
+                          index=m5.name_x)
 
 ## Extract variables for each veg type
 Conifer_m   = [i for i in m5_results.index if "Conifer"   in i]
@@ -760,8 +754,6 @@ axes.set_xlabel("prediction"); axes.set_ylabel("residual");
 
 # %%
 y_test_pred = rc.pred_via_spreg_regime(regime_col="groupveg", a_model=m5, data_df=X_test_normal)
-
-
 print (f"train: {m5.r2.round(4) = }")
 print ("test R2 = {}".format(r2_score(y_test.values, y_test_pred.values).round(4)))
 
@@ -989,7 +981,7 @@ fig, axes = plt.subplots(1, 1, figsize=(10, 2), sharex=True,
 
 axes.scatter(m5_TP_sq_normal.predy, m5_TP_sq_normal.u, c="dodgerblue", s=2);
 
-title_ = f"NPP = $f(T, P, T^2, P^2, T \u00D7 P)$"
+title_ = f"train: NPP = $f(T, P, T^2, P^2, T \u00D7 P)$"
 axes.set_title(title_);
 axes.set_xlabel("prediction"); axes.set_ylabel("residual");
 
@@ -1007,39 +999,38 @@ print ("test R2 = {}".format(r2_score(y_test.values, y_test_pred.values).round(2
 # %%time
 depen_var, indp_vars = "mean_lb_per_acr", TP_cols
 
-m5_TP_normal_logy = spreg.OLS_Regimes(y=y_train.values ** (1. / 3), x=X_train_normal[indp_vars].values, 
-                                      regimes = X_train_normal["groupveg"].tolist(),
-                                      constant_regi="many", regime_err_sep=False,
-                                      name_y=depen_var, name_x=indp_vars)
+m5 = spreg.OLS_Regimes(y=y_train.values ** (1. / 3), x=X_train_normal[indp_vars].values, 
+                       regimes = X_train_normal["groupveg"].tolist(),
+                       constant_regi="many", regime_err_sep=False,
+                       name_y=depen_var, name_x=indp_vars)
 
-m5_TP_normal_logy_results = pd.DataFrame({"Coeff.": m5_TP_normal_logy.betas.flatten(), 
-                                          "Std. Error": m5_TP_normal_logy.std_err.flatten(), 
-                                          "P-Value": [i[1] for i in m5_TP_normal_logy.t_stat],
-                                          }, index=m5_TP_normal_logy.name_x)
+m5_results = pd.DataFrame({"Coeff.": m5.betas.flatten(), 
+                           "Std. Error": m5.std_err.flatten(), 
+                           "P-Value": [i[1] for i in m5.t_stat]}, index=m5.name_x)
 ## Extract variables for each veg type
-Conifer_m   = [i for i in m5_TP_normal_logy_results.index if "Conifer"   in i]
-Grassland_m = [i for i in m5_TP_normal_logy_results.index if "Grassland" in i]
-Hardwood_m  = [i for i in m5_TP_normal_logy_results.index if "Hardwood"  in i]
-Shrubland_m = [i for i in m5_TP_normal_logy_results.index if "Shrubland" in i]
+Conifer_m   = [i for i in m5_results.index if "Conifer"   in i]
+Grassland_m = [i for i in m5_results.index if "Grassland" in i]
+Hardwood_m  = [i for i in m5_results.index if "Hardwood"  in i]
+Shrubland_m = [i for i in m5_results.index if "Shrubland" in i]
 
 veg_ = "Conifer" ## Subset results to Conifer
 rep_ = [x for x in groupveg if veg_ in x][0] + "_"
-Conifer = m5_TP_normal_logy_results.loc[Conifer_m, :].rename(lambda i: i.replace(rep_, ""))
+Conifer = m5_results.loc[Conifer_m, :].rename(lambda i: i.replace(rep_, ""))
 Conifer.columns = pd.MultiIndex.from_product([[veg_], Conifer.columns])
 
 veg_ = "Grassland" ## Subset results to Grassland
 rep_ = [x for x in groupveg if veg_ in x][0] + "_"
-Grassland = m5_TP_normal_logy_results.loc[Grassland_m, :].rename(lambda i: i.replace(rep_, ""))
+Grassland = m5_results.loc[Grassland_m, :].rename(lambda i: i.replace(rep_, ""))
 Grassland.columns = pd.MultiIndex.from_product([[veg_], Grassland.columns])
 
 veg_ = "Hardwood" ## Subset results to Hardwood
 rep_ = [x for x in groupveg if veg_ in x][0] + "_"
-Hardwood = m5_TP_normal_logy_results.loc[Hardwood_m, :].rename(lambda i: i.replace(rep_, ""))
+Hardwood = m5_results.loc[Hardwood_m, :].rename(lambda i: i.replace(rep_, ""))
 Hardwood.columns = pd.MultiIndex.from_product([[veg_], Hardwood.columns])
 
 veg_ = "Shrubland" ## Subset results to Shrubland
 rep_ = [x for x in groupveg if veg_ in x][0] + "_"
-Shrubland = m5_TP_normal_logy_results.loc[Shrubland_m, :].rename(lambda i: i.replace(rep_, ""))
+Shrubland = m5_results.loc[Shrubland_m, :].rename(lambda i: i.replace(rep_, ""))
 Shrubland.columns = pd.MultiIndex.from_product([[veg_], Shrubland.columns])
 
 # Concat both models
@@ -1051,32 +1042,28 @@ table_
 # %%
 fig, axes = plt.subplots(1, 1, figsize=(10, 2), sharex=True, 
                          gridspec_kw={"hspace": 0.25, "wspace": 0.05}, dpi=dpi_)
-
-axes.scatter(m5_TP_normal_logy.predy, m5_TP_normal_logy.u, c="dodgerblue", s=2);
-
-title_ = f"cubic root$(y) = f(T, P)$ - from train"
-axes.set_title(title_);
+axes.scatter(m5.predy, m5.u, c="dodgerblue", s=2);
+title_ = f"train: cubic root$(y) = f(T, P)$"
+axes.set_title(title_); 
 axes.set_xlabel("prediction"); axes.set_ylabel("residual");
 
 # %%
-y_test_pred = rc.pred_via_spreg_regime(regime_col="groupveg", a_model=m5_TP_normal_logy, data_df=X_test_normal)
-print (f"train: {m5_TP_normal_logy.r2.round(2) = }")
-print ("test R2 = {}".format(r2_score(y_test.values ** (1. / 3), y_test_pred.values).round(2)))
+y_test_pred = rc.pred_via_spreg_regime(regime_col="groupveg", a_model=m5, data_df=X_test_normal)
+print (f"train: {m5.r2.round(4) = }")
+print ("test R2 = {}".format(r2_score(y_test.values ** (1. / 3), y_test_pred.values).round(4)))
 
 # %%
-test_u = y_test.values ** (1. / 3) - y_test_pred.values
+y_test_transformed = (y_test.values ** (1. / 3)).reshape(-1, 1)
+test_u = y_test_transformed - y_test_pred.values
 
 fig, axes = plt.subplots(1, 1, figsize=(10, 2), sharex=True, 
                          gridspec_kw={"hspace": 0.25, "wspace": 0.05}, dpi=dpi_)
 
 axes.scatter(y_test_pred.values, test_u, c="dodgerblue", s=2);
 
-title_ = f"cubic root$(y) = f(T, P)$ - from test"
+title_ = f"test: cubic root$(y) = f(T, P)$"
 axes.set_title(title_);
 axes.set_xlabel("prediction"); axes.set_ylabel("residual");
-
-# %%
-x = 2
 
 # %% [markdown]
 # # Model only Grassland
@@ -1088,27 +1075,147 @@ X_train_normal.head(2)
 
 # %%
 X_train_normal_grass = X_train_normal[X_train_normal["groupveg"] == "Grassland"]
+y_train_grass = y_train.loc[X_train_normal_grass.index]
 X_train_normal_grass.head(2)
 
 # %%
-y_train_grass = y_train.loc[X_train_normal_grass.index]
 y_train_grass.head(2)
 
 # %%
-indp_vars
 
 # %%
 depen_var, indp_vars = "mean_lb_per_acr", TP_cols
 
-m5_TP_normal = spreg.OLS(y = y_train_grass.values, x = X_train_normal_grass[indp_vars].values, 
-                         name_y=depen_var, name_x=indp_vars)
+m5 = spreg.OLS(y=y_train_grass.values, x=X_train_normal_grass[indp_vars].values, 
+               name_y=depen_var, name_x=indp_vars)
 
-m5_TP_normal_results = pd.DataFrame({"Coeff.": m5_TP_normal.betas.flatten(), 
-                                     "Std. Error": m5_TP_normal.std_err.flatten(), 
-                                     "P-Value": [i[1] for i in m5_TP_normal.t_stat],
-                                    }, index=m5_TP_normal.name_x).transpose()
+m5_results = pd.DataFrame({"Coeff.": m5.betas.flatten(), 
+                           "Std. Error": m5.std_err.flatten(), 
+                           "P-Value": [i[1] for i in m5.t_stat]}, 
+                          index=m5.name_x).transpose()
+m5_results
 
-m5_TP_normal_results
+# %%
+X = X_train_normal_grass[indp_vars]
+X = sm.add_constant(X)
+Y = y_train_grass.values.astype(float)
+ks = sm.OLS(Y, X)
+ks_result = ks.fit()
+ks_result.summary()
+
+# %%
+X_test_normal_grass = X_test_normal[X_test_normal["groupveg"] == "Grassland"]
+y_test_grass = y_test.loc[X_test_normal_grass.index]
+X_test_normal_grass.head(2)
+
+# %%
+tick_legend_FontSize = 4
+params = {"legend.fontsize": tick_legend_FontSize,
+          "axes.labelsize": tick_legend_FontSize * 1.4,
+          "axes.titlesize": tick_legend_FontSize * 1.5,
+          "xtick.labelsize": tick_legend_FontSize * 1,
+          "ytick.labelsize": tick_legend_FontSize * 1,
+          "axes.titlepad": 10}
+
+plt.rcParams["xtick.bottom"] = True
+plt.rcParams["ytick.left"] = True
+plt.rcParams["xtick.labelbottom"] = True
+plt.rcParams["ytick.labelleft"] = True
+plt.rcParams.update(params)
+
+# %%
+fig, axes = plt.subplots(2, 1, figsize=(4, 2), sharex=True, dpi=400)
+
+axes[0].scatter(ks_result.fittedvalues, ks_result.resid, c="dodgerblue", s=2);
+
+title_ = f"train LS: $(y) = f(T, P)$"
+axes[0].set_title(title_); axes[0].set_ylabel("residual");
+##############################################################################
+##############################################################################
+Xnew = X_test_normal_grass[indp_vars]
+Xnew = sm.add_constant(Xnew)
+
+y_test_grass_pred = ks_result.predict(Xnew)
+u = y_test_grass - y_test_grass_pred
+###########################################
+axes[1].scatter(y_test_grass_pred, u, c="dodgerblue", s=2);
+
+title_ = f"test LS: $(y) = f(T, P)$"
+axes[1].set_title(title_);
+axes[1].set_xlabel("prediction"); axes[1].set_ylabel("residual");
+plt.xlim(-1000, 7500)
+fig.subplots_adjust(top=0.9, bottom=0.2, left=0.12, right=0.981, wspace=-0.2, hspace=0.5)
+file_name = bio_plots + "grassland_OLS.png"
+plt.savefig(file_name, dpi=400)
+
+# %%
+
+# %%
+Xnew = X_test_normal_grass[indp_vars]
+Xnew = sm.add_constant(Xnew)
+
+y_test_pred_sm = ks_result.predict(Xnew)
+
+# %%
+print (f"train: {ks_result.rsquared.round(5) = }")
+print ("test R2 = {}".format(r2_score(y_test_grass, y_test_pred_sm.values).round(5)))
+
+# %%
+
+# %% [markdown]
+# ## Weighted least square
+
+# %%
+from statsmodels.formula.api import ols
+
+# %%
+d = {"resid_": ks_result.resid.abs(), "preds_" : ks_result.fittedvalues}
+df_2 = pd.DataFrame(d)
+
+y_wt = df_2['resid_']
+X_wt = df_2['preds_']
+X_wt = sm.add_constant(X_wt) # add constant to predictor variables
+fit_2 = sm.OLS(y_wt, X_wt).fit() # fit linear regression model
+
+# print(fit_2.summary());
+wt_2 = 1 / fit_2.fittedvalues**2
+
+# %%
+# fit weighted least squares regression model
+X = X_train_normal_grass[indp_vars]
+X = sm.add_constant(X)
+Y = y_train_grass.values.astype(float)
+
+fit_wls = sm.WLS(Y, X, weights=wt_2).fit()
+
+# view summary of weighted least squares regression model
+print(fit_wls.summary())
+
+# %%
+fig, axes = plt.subplots(2, 1, figsize=(8, 4), sharex=True, 
+                         gridspec_kw={"hspace": 0.45, "wspace": 0.05}, dpi=dpi_)
+
+axes[0].scatter(fit_wls.fittedvalues, fit_wls.resid, c="dodgerblue", s=2);
+
+title_ = f"train weighted LS: $(y) = f(T, P)$"
+axes[0].set_title(title_); axes[0].set_ylabel("residual");
+##############################################################################
+##############################################################################
+Xnew = X_test_normal_grass[indp_vars]
+Xnew = sm.add_constant(Xnew)
+
+y_test_grass_pred_weighted = fit_wls.predict(Xnew)
+u = y_test_grass - y_test_grass_pred_weighted
+###########################################
+axes[1].scatter(y_test_grass_pred_weighted, u, c="dodgerblue", s=2);
+
+title_ = f"test weighted LS: $(y) = f(T, P)$"
+axes[1].set_title(title_);
+axes[1].set_xlabel("prediction"); axes[1].set_ylabel("residual");
+plt.xlim(-1000, 7500)
+fig.subplots_adjust(top=0.9, bottom=0.2, left=0.12, right=0.981)
+file_name = bio_plots + "grassland_WLS.png"
+plt.savefig(file_name, dpi=300)
 
 # %%
 
