@@ -12,6 +12,46 @@ There are scipy.linalg.block_diag() and scipy.sparse.block_diag()
 """
 
 
+def pred_via_spreg_regime(regime_col, a_model, data_df):
+    """
+    model_results : a trained spreg.OLS_Regimes() model
+
+    """
+    model_results = pd.DataFrame(
+        {
+            "Coeff.": a_model.betas.flatten(),
+            "Std. Error": a_model.std_err.flatten(),
+            "P-Value": [i[1] for i in a_model.t_stat],
+        },
+        index=a_model.name_x,
+    )
+
+    betas = model_results["Coeff."]
+
+    # Create a list to store predictions
+    y_pred = pd.DataFrame(index=data_df.index)
+
+    # Get regime assignments (which regime each observation belongs to)
+    # This column defines which regime each observation belongs to
+    regimes = data_df[regime_col].unique()
+
+    # Loop over each observation and assign the correct betas based on its regime
+    for a_regime in regimes:
+        curr_X = data_df[data_df[regime_col] == a_regime].copy()
+        # curr_X = curr_X[indp_vars]
+        curr_coeffs_idx = [x for x in betas.index if a_regime in x]
+
+        ## we can be anal and use curr_coeffs_idx to re-order the columns of curr_X
+        ## so that we are SURE, the betas and columns are correctly multiplied!
+        ## first one is CONSTANT
+        ind_cols = [x.replace(a_regime, "")[1:] for x in curr_coeffs_idx][1:]
+        curr_pred = betas[curr_coeffs_idx][0] + np.dot(
+            curr_X[ind_cols], betas[curr_coeffs_idx][1:]
+        )
+        y_pred.loc[curr_X.index, "preds"] = curr_pred
+    return y_pred
+
+
 def GLS(X, y, weight_):
     """
     This function returns a generalized least square solution
