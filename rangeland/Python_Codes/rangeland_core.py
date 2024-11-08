@@ -49,7 +49,7 @@ def pred_via_spreg_regime(regime_col, a_model, data_df):
             curr_X[ind_cols], betas[curr_coeffs_idx][1:]
         )
         y_pred.loc[curr_X.index, "preds"] = curr_pred
-    return y_pred
+    return y_pred.values
 
 
 def GLS(X, y, weight_):

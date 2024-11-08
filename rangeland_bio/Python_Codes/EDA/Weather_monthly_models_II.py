@@ -5,7 +5,7 @@
 #       extension: .py
 #       format_name: percent
 #       format_version: '1.3'
-#       jupytext_version: 1.16.1
+#       jupytext_version: 1.15.2
 #   kernelspec:
 #     display_name: Python 3 (ipykernel)
 #     language: python
@@ -13,7 +13,7 @@
 # ---
 
 # %% [markdown]
-# # copy of Weather_monthly_models.ipynb 
+# copy of Weather_monthly_models.ipynb 
 #
 # where I deleted the trained model on all data and trained on splited data only. and
 # added some $R^2$ for test set
@@ -57,6 +57,8 @@ from matplotlib import cm
 from sklearn.model_selection import train_test_split
 sys.path.append("/Users/hn/Documents/00_GitHub/Ag/rangeland/Python_Codes/")
 import rangeland_core as rc
+
+from sklearn.metrics import mean_squared_error as MSE
 
 # %%
 rangeland_bio_base = "/Users/hn/Documents/01_research_data/RangeLand_bio/"
@@ -232,7 +234,7 @@ monthly_weather.head(2)
 monthly_weather.isna().sum()
 
 # %%
-# # %%time 
+# # %%time
 # monthly_weather_wide = monthly_weather.copy()
 # monthly_weather_wide.sort_values(by= ['fid', 'year', "month"], inplace=True)
 # monthly_weather_wide["month"] = monthly_weather_wide["month"].astype(str)
@@ -322,8 +324,6 @@ veg_colors = {"Barren-Rock/Sand/Clay" : "blue",
 for a_veg in  groupveg:
     SF_west.loc[SF_west['groupveg'] == a_veg, 'color'] = veg_colors[a_veg]
 SF_west.head(2)
-
-# %%
 
 # %% [markdown]
 # # Regression
@@ -580,8 +580,7 @@ m5 = spreg.OLS_Regimes(y = y_train.values, x = X_train_normal[indp_vars].values,
 
 m5_results = pd.DataFrame({"Coeff.": m5.betas.flatten(),
                            "Std. Error": m5.std_err.flatten(),
-                           "P-Value": [i[1] for i in m5.t_stat]}, 
-                          index=m5.name_x)
+                           "P-Value": [i[1] for i in m5.t_stat]}, index=m5.name_x)
 
 Conifer_m   = [i for i in m5_results.index if "Conifer"   in i]
 Grassland_m = [i for i in m5_results.index if "Grassland" in i]
@@ -608,7 +607,7 @@ rep_ = [x for x in groupveg if veg_ in x][0] + "_"
 Shrubland = m5_results.loc[Shrubland_m, :].rename(lambda i: i.replace(rep_, ""))
 Shrubland.columns = pd.MultiIndex.from_product([[veg_], Shrubland.columns])
 
-# Concat both models
+# Concat models
 table_ = pd.concat([Conifer, Grassland, Hardwood, Shrubland], axis=1).round(5).transpose()
 table_.rename(columns=lambda x: x.replace('avg_of_dailyAvgTemp_C_', 'temp_'), inplace=True)
 table_
@@ -626,9 +625,15 @@ axes.set_title(title_);
 axes.set_xlabel("prediction"); axes.set_ylabel("residual");
 
 # %%
-y_test_pred = rc.pred_via_spreg_regime(regime_col="groupveg", a_model=m5, data_df=X_test_normal)
-print (f"train: {m5.r2.round(2) = }")
-print ("test R2 = {}".format(r2_score(y_test.values, y_test_pred.values).round(2)))
+y_test_pred  = rc.pred_via_spreg_regime(regime_col="groupveg", a_model=m5, data_df=X_test_normal)
+y_train_pred = m5.predy
+
+df_metric = pd.DataFrame(columns=["R2", "RMSE"], index=("train", "test"))
+df_metric.loc["train", "R2"]   = m5.r2.round(4)
+df_metric.loc["test",  "R2"]   = r2_score(y_test, y_test_pred).round(4)
+df_metric.loc["train", "RMSE"] = np.sqrt(MSE(y_train, y_train_pred)).round(4)
+df_metric.loc["test",  "RMSE"] = np.sqrt(MSE(y_test, y_test_pred)).round(4)
+df_metric
 
 # %% [markdown]
 # # Model based on Precip
@@ -672,7 +677,7 @@ rep_ = [x for x in groupveg if veg_ in x][0] + "_"
 Shrubland = m5_results.loc[Shrubland_m, :].rename(lambda i: i.replace(rep_, ""))
 Shrubland.columns = pd.MultiIndex.from_product([[veg_], Shrubland.columns])
 
-# Concat both models
+# Concat models
 table_ = pd.concat([Conifer, Grassland, Hardwood, Shrubland], axis=1).round(5).transpose()
 table_.rename(columns=lambda x: x.replace('precip_mm_month_', 'precip_'), inplace=True)
 table_
@@ -688,10 +693,16 @@ axes.set_title(title_);
 axes.set_xlabel("prediction"); axes.set_ylabel("residual");
 
 # %%
-y_test_pred = rc.pred_via_spreg_regime(regime_col="groupveg", a_model=m5, data_df=X_test_normal)
+del(y_test_pred)
+y_test_pred  = rc.pred_via_spreg_regime(regime_col="groupveg", a_model=m5, data_df=X_test_normal)
+y_train_pred = m5.predy
 
-print (f"train: {m5.r2.round(4) = }")
-print ("test R2 = {}".format(r2_score(y_test.values, y_test_pred.values).round(4)))
+df_metric = pd.DataFrame(columns=["R2", "RMSE"], index=("train", "test"))
+df_metric.loc["train", "R2"]   = m5.r2.round(4)
+df_metric.loc["test",  "R2"]   = r2_score(y_test, y_test_pred).round(4)
+df_metric.loc["train", "RMSE"] = np.sqrt(MSE(y_train, y_train_pred)).round(4)
+df_metric.loc["test",  "RMSE"] = np.sqrt(MSE(y_test, y_test_pred)).round(4)
+df_metric
 
 # %% [markdown]
 # # Model by Temp and Precip
@@ -707,8 +718,7 @@ m5 = spreg.OLS_Regimes(y = y_train.values, x = X_train_normal[indp_vars].values,
 
 m5_results = pd.DataFrame({"Coeff.": m5.betas.flatten(), 
                            "Std. Error": m5.std_err.flatten(), 
-                           "P-Value": [i[1] for i in m5.t_stat]}, 
-                          index=m5.name_x)
+                           "P-Value": [i[1] for i in m5.t_stat]}, index=m5.name_x)
 
 ## Extract variables for each veg type
 Conifer_m   = [i for i in m5_results.index if "Conifer"   in i]
@@ -736,7 +746,7 @@ rep_ = [x for x in groupveg if veg_ in x][0] + "_"
 Shrubland = m5_results.loc[Shrubland_m, :].rename(lambda i: i.replace(rep_, ""))
 Shrubland.columns = pd.MultiIndex.from_product([[veg_], Shrubland.columns])
 
-# Concat both models
+# Concat models
 table_ = pd.concat([Conifer, Grassland, Hardwood, Shrubland], axis=1).round(5).transpose()
 table_.rename(columns=lambda x: x.replace('precip_mm_month_', 'precip_'), inplace=True)
 table_.rename(columns=lambda x: x.replace('avg_of_dailyAvgTemp_C_', 'temp_'), inplace=True)
@@ -753,15 +763,41 @@ axes.set_title(title_);
 axes.set_xlabel("prediction"); axes.set_ylabel("residual");
 
 # %%
-y_test_pred = rc.pred_via_spreg_regime(regime_col="groupveg", a_model=m5, data_df=X_test_normal)
-print (f"train: {m5.r2.round(4) = }")
-print ("test R2 = {}".format(r2_score(y_test.values, y_test_pred.values).round(4)))
+del(y_test_pred)
+y_test_pred  = rc.pred_via_spreg_regime(regime_col="groupveg", a_model=m5, data_df=X_test_normal)
+y_train_pred = m5.predy
+
+df_metric = pd.DataFrame(columns=["R2", "RMSE"], index=("train", "test"))
+df_metric.loc["train", "R2"]   = m5.r2.round(4)
+df_metric.loc["test",  "R2"]   = r2_score(y_test, y_test_pred).round(4)
+df_metric.loc["train", "RMSE"] = np.sqrt(MSE(y_train, y_train_pred)).round(4)
+df_metric.loc["test",  "RMSE"] = np.sqrt(MSE(y_test, y_test_pred)).round(4)
+df_metric
+
+# %%
+
+# %%
+coeffs = table_.loc["Grassland"].loc["Coeff."]
+temp_idx = [x for x in temp_coeffs.index if "temp" in x]
+precip_idx = [x for x in temp_coeffs.index if "precip" in x]
+# RH_idx = [x for x in temp_coeffs.index if "RH" in x]
+
+# coeffs[temp_idx], coeffs[precip_idx], coeffs[RH_idx]
+colnames = ["month_" + str(ii) for ii in range(1, 13)]
+coeff_df = pd.DataFrame(columns=colnames, index=["temp", "precip"])
+for ii in range(1, 13):
+    coeff_df.loc["temp", "month_" + str(ii)] = coeffs[temp_idx].loc["temp_"+str(ii)].round(0)
+    coeff_df.loc["precip", "month_" + str(ii)] = coeffs[precip_idx].loc["precip_"+str(ii)].round(0)
+    # coeff_df.loc["RH", "month_" + str(ii)] = coeffs[RH_idx].loc["RH_"+str(ii)].round(2)
+    
+coeff_df
 
 # %% [markdown]
 # # Model with interaction terms
 
 # %%
 # %%time
+# takes 3 minutes
 depen_var = "mean_lb_per_acr"
 indp_vars = [x for x in numeric_cols if ("Temp" in x) or ("precip" in x) ]
 
@@ -772,8 +808,7 @@ m5 = spreg.OLS_Regimes(y = y_train.values, x = X_train_normal[indp_vars].values,
 
 m5_results = pd.DataFrame({"Coeff.": m5.betas.flatten(), 
                            "Std. Error": m5.std_err.flatten(), 
-                           "P-Value": [i[1] for i in m5.t_stat]}, 
-                           index=m5.name_x)
+                           "P-Value": [i[1] for i in m5.t_stat]}, index=m5.name_x)
 ## Extract variables for each veg type
 Conifer_m   = [i for i in m5_results.index if "Conifer"   in i]
 Grassland_m = [i for i in m5_results.index if "Grassland" in i]
@@ -800,7 +835,7 @@ rep_ = [x for x in groupveg if veg_ in x][0] + "_"
 Shrubland = m5_results.loc[Shrubland_m, :].rename(lambda i: i.replace(rep_, ""))
 Shrubland.columns = pd.MultiIndex.from_product([[veg_], Shrubland.columns])
 
-# Concat both models
+# Concat models
 table_ = pd.concat([Conifer, Grassland, Hardwood, Shrubland], axis=1).round(5).transpose()
 table_.rename(columns=lambda x: x.replace('precip_mm_month_', 'precip_'), inplace=True)
 table_.rename(columns=lambda x: x.replace('avg_of_dailyAvgTemp_C_', 'temp_'), inplace=True)
@@ -817,30 +852,35 @@ axes.set_title(title_);
 axes.set_xlabel("prediction"); axes.set_ylabel("residual");
 
 # %%
-y_test_pred = rc.pred_via_spreg_regime(regime_col="groupveg", a_model=m5, data_df=X_test_normal)
-print (f"train: {m5.r2.round(4) = }")
-print ("test R2 = {}".format(r2_score(y_test.values, y_test_pred.values).round(4)))
+del(y_test_pred)
+y_test_pred  = rc.pred_via_spreg_regime(regime_col="groupveg", a_model=m5, data_df=X_test_normal)
+y_train_pred = m5.predy
+
+df_metric = pd.DataFrame(columns=["R2", "RMSE"], index=("train", "test"))
+df_metric.loc["train", "R2"]   = m5.r2.round(4)
+df_metric.loc["test",  "R2"]   = r2_score(y_test, y_test_pred).round(4)
+df_metric.loc["train", "RMSE"] = np.sqrt(MSE(y_train, y_train_pred)).round(4)
+df_metric.loc["test",  "RMSE"] = np.sqrt(MSE(y_test, y_test_pred)).round(4)
+df_metric
 
 # %% [markdown]
 # # Temp, precipitation, humidity
 
 # %%
-TPH_cols = TP_cols + [x for x in numeric_cols if "rel_hum" in x]
-
-# %%
 # %%time
+
+TPH_cols = TP_cols + [x for x in numeric_cols if "rel_hum" in x]
+# takes 3 minutes
 depen_var, indp_vars = "mean_lb_per_acr", TPH_cols
 
 m5 = spreg.OLS_Regimes(y = y_train.values, x = X_train_normal[indp_vars].values, 
-                                  regimes = X_train_normal["groupveg"].tolist(),
-                                  constant_regi="many", regime_err_sep=False,
-                                  name_y=depen_var, name_x=indp_vars)
+                       regimes = X_train_normal["groupveg"].tolist(),
+                       constant_regi="many", regime_err_sep=False,
+                       name_y=depen_var, name_x=indp_vars)
 
 m5_results = pd.DataFrame({"Coeff.": m5.betas.flatten(), 
                            "Std. Error": m5.std_err.flatten(), 
-                           "P-Value": [i[1] for i in m5.t_stat]}, 
-                          index=m5.name_x)
-
+                           "P-Value": [i[1] for i in m5.t_stat]}, index=m5.name_x)
 ## Extract variables for each veg type
 Conifer_m   = [i for i in m5_results.index if "Conifer"   in i]
 Grassland_m = [i for i in m5_results.index if "Grassland" in i]
@@ -867,7 +907,7 @@ rep_ = [x for x in groupveg if veg_ in x][0] + "_"
 Shrubland = m5_results.loc[Shrubland_m, :].rename(lambda i: i.replace(rep_, ""))
 Shrubland.columns = pd.MultiIndex.from_product([[veg_], Shrubland.columns])
 
-# Concat both models
+# Concat models
 table_ = pd.concat([Conifer, Grassland, Hardwood, Shrubland], axis=1).round(5).transpose()
 table_.rename(columns=lambda x: x.replace('precip_mm_month_', 'precip_'), inplace=True)
 table_.rename(columns=lambda x: x.replace('avg_of_dailyAvgTemp_C_', 'temp_'), inplace=True)
@@ -876,18 +916,48 @@ table_
 
 # %%
 fig, axes = plt.subplots(1, 1, figsize=(10, 2), sharex=True, 
-                        gridspec_kw={"hspace": 0.25, "wspace": 0.05}, dpi=dpi_)
-
+                         gridspec_kw={"hspace": 0.25, "wspace": 0.05}, dpi=dpi_)
 axes.scatter(m5.predy, m5.u, c="dodgerblue", s=2);
-
 title_ = f"train: NPP = $f(T, P, RH)$"
-axes.set_title(title_);
-axes.set_xlabel("prediction"); axes.set_ylabel("residual");
+axes.set_title(title_); axes.set_xlabel("prediction"); axes.set_ylabel("residual");
+
+# %% [markdown]
+# # Best model?
 
 # %%
-y_test_pred = rc.pred_via_spreg_regime(regime_col="groupveg", a_model=m5, data_df=X_test_normal)
-print (f"train: {m5.r2.round(4) = }")
-print ("test R2 = {}".format(r2_score(y_test.values, y_test_pred.values).round(4)))
+del(y_test_pred)
+y_test_pred  = rc.pred_via_spreg_regime(regime_col="groupveg", a_model=m5, data_df=X_test_normal)
+y_train_pred = m5.predy
+
+df_metric = pd.DataFrame(columns=["R2", "RMSE"], index=("train", "test"))
+df_metric.loc["train", "R2"]   = m5.r2.round(4)
+df_metric.loc["test",  "R2"]   = r2_score(y_test, y_test_pred).round(4)
+df_metric.loc["train", "RMSE"] = np.sqrt(MSE(y_train, y_train_pred)).round(4)
+df_metric.loc["test",  "RMSE"] = np.sqrt(MSE(y_test, y_test_pred)).round(4)
+df_metric
+
+# %%
+coeffs = table_.loc["Grassland"].loc["Coeff."]
+temp_idx = [x for x in temp_coeffs.index if "temp" in x]
+precip_idx = [x for x in temp_coeffs.index if "precip" in x]
+RH_idx = [x for x in temp_coeffs.index if "RH" in x]
+
+# coeffs[temp_idx], coeffs[precip_idx], coeffs[RH_idx]
+colnames = ["month_" + str(ii) for ii in range(1, 13)]
+coeff_df = pd.DataFrame(columns=colnames, index=["temp", "precip", "RH"])
+for ii in range(1, 13):
+    coeff_df.loc["temp", "month_" + str(ii)] = coeffs[temp_idx].loc["temp_"+str(ii)].round(0)
+    coeff_df.loc["precip", "month_" + str(ii)] = coeffs[precip_idx].loc["precip_"+str(ii)].round(0)
+    coeff_df.loc["RH", "month_" + str(ii)] = coeffs[RH_idx].loc["RH_"+str(ii)].round(0)
+    
+coeff_df
+
+# %%
+coeff_df.loc["RH"].values
+
+# %%
+
+# %%
 
 # %% [markdown]
 # # Add square terms
@@ -895,8 +965,6 @@ print ("test R2 = {}".format(r2_score(y_test.values, y_test_pred.values).round(4
 # %%
 print (X_train_normal.shape)
 X_train_normal.head(2)
-
-# %%
 
 # %%
 for ii in range(0, 12):
@@ -935,14 +1003,13 @@ depen_var = "mean_lb_per_acr"
 indp_vars = [x for x in X_train_normal.columns if ("precip" in x) or ("temp" in x) or ("Temp" in x)]
 
 m5 = spreg.OLS_Regimes(y = y_train.values, x = X_train_normal[indp_vars].values, 
-                                    regimes = X_train_normal["groupveg"].tolist(),
-                                    constant_regi="many", regime_err_sep=False,
-                                    name_y=depen_var, name_x=indp_vars)
+                       regimes = X_train_normal["groupveg"].tolist(),
+                       constant_regi="many", regime_err_sep=False,
+                       name_y=depen_var, name_x=indp_vars)
 
 m5_results = pd.DataFrame({"Coeff.": m5.betas.flatten(), 
                            "Std. Error": m5.std_err.flatten(), 
-                           "P-Value": [i[1] for i in m5.t_stat]},  
-                          index=m5.name_x)
+                           "P-Value": [i[1] for i in m5.t_stat]}, index=m5.name_x)
 ## Extract variables for each veg type
 Conifer_m   = [i for i in m5_results.index if "Conifer"   in i]
 Grassland_m = [i for i in m5_results.index if "Grassland" in i]
@@ -969,7 +1036,7 @@ rep_ = [x for x in groupveg if veg_ in x][0] + "_"
 Shrubland = m5_results.loc[Shrubland_m, :].rename(lambda i: i.replace(rep_, ""))
 Shrubland.columns = pd.MultiIndex.from_product([[veg_], Shrubland.columns])
 
-# Concat both models
+# Concat models
 table_ = pd.concat([Conifer, Grassland, Hardwood, Shrubland], axis=1).round(5).transpose()
 table_.rename(columns=lambda x: x.replace('precip_mm_month_', 'precip_'), inplace=True)
 table_.rename(columns=lambda x: x.replace('avg_of_dailyAvgTemp_C_', 'temp_'), inplace=True)
@@ -979,16 +1046,23 @@ table_
 fig, axes = plt.subplots(1, 1, figsize=(10, 2), sharex=True, 
                          gridspec_kw={"hspace": 0.25, "wspace": 0.05}, dpi=dpi_)
 
-axes.scatter(m5_TP_sq_normal.predy, m5_TP_sq_normal.u, c="dodgerblue", s=2);
+axes.scatter(m5.predy, m5.u, c="dodgerblue", s=2);
 
 title_ = f"train: NPP = $f(T, P, T^2, P^2, T \u00D7 P)$"
 axes.set_title(title_);
 axes.set_xlabel("prediction"); axes.set_ylabel("residual");
 
 # %%
-y_test_pred = rc.pred_via_spreg_regime(regime_col="groupveg", a_model=m5_TP_sq_normal, data_df=X_test_normal)
-print (f"train: {m5_TP_sq_normal.r2.round(2) = }")
-print ("test R2 = {}".format(r2_score(y_test.values, y_test_pred.values).round(2)))
+del(y_test_pred)
+y_test_pred  = rc.pred_via_spreg_regime(regime_col="groupveg", a_model=m5, data_df=X_test_normal)
+y_train_pred = m5.predy
+
+df_metric = pd.DataFrame(columns=["R2", "RMSE"], index=("train", "test"))
+df_metric.loc["train", "R2"]   = m5.r2.round(4)
+df_metric.loc["test",  "R2"]   = r2_score(y_test, y_test_pred).round(4)
+df_metric.loc["train", "RMSE"] = np.sqrt(MSE(y_train, y_train_pred)).round(4)
+df_metric.loc["test",  "RMSE"] = np.sqrt(MSE(y_test, y_test_pred)).round(4)
+df_metric
 
 # %%
 
@@ -997,6 +1071,7 @@ print ("test R2 = {}".format(r2_score(y_test.values, y_test_pred.values).round(2
 
 # %%
 # %%time
+# takes 1 minute
 depen_var, indp_vars = "mean_lb_per_acr", TP_cols
 
 m5 = spreg.OLS_Regimes(y=y_train.values ** (1. / 3), x=X_train_normal[indp_vars].values, 
@@ -1033,7 +1108,7 @@ rep_ = [x for x in groupveg if veg_ in x][0] + "_"
 Shrubland = m5_results.loc[Shrubland_m, :].rename(lambda i: i.replace(rep_, ""))
 Shrubland.columns = pd.MultiIndex.from_product([[veg_], Shrubland.columns])
 
-# Concat both models
+# Concat models
 table_ = pd.concat([Conifer, Grassland, Hardwood, Shrubland], axis=1).round(5).transpose()
 table_.rename(columns=lambda x: x.replace('precip_mm_month_', 'precip_'), inplace=True)
 table_.rename(columns=lambda x: x.replace('avg_of_dailyAvgTemp_C_', 'temp_'), inplace=True)
@@ -1048,18 +1123,26 @@ axes.set_title(title_);
 axes.set_xlabel("prediction"); axes.set_ylabel("residual");
 
 # %%
-y_test_pred = rc.pred_via_spreg_regime(regime_col="groupveg", a_model=m5, data_df=X_test_normal)
-print (f"train: {m5.r2.round(4) = }")
-print ("test R2 = {}".format(r2_score(y_test.values ** (1. / 3), y_test_pred.values).round(4)))
+del(y_test_pred)
+y_test_pred  = rc.pred_via_spreg_regime(regime_col="groupveg", a_model=m5, data_df=X_test_normal)
+y_train_pred = m5.predy
+
+y_test_transformed = (y_test.values).reshape(-1, 1)
+
+df_metric = pd.DataFrame(columns=["R2", "RMSE"], index=("train", "test"))
+df_metric.loc["train", "R2"]   = m5.r2.round(4)
+df_metric.loc["test",  "R2"]   = r2_score(y_test_transformed, y_test_pred).round(4)
+df_metric.loc["train", "RMSE"] = np.sqrt(MSE(y_train.values, y_train_pred**3)).round(4)
+df_metric.loc["test",  "RMSE"] = np.sqrt(MSE(y_test_transformed, y_test_pred**3)).round(4)
+df_metric
 
 # %%
-y_test_transformed = (y_test.values ** (1. / 3)).reshape(-1, 1)
-test_u = y_test_transformed - y_test_pred.values
+test_u = y_test_transformed - y_test_pred
 
 fig, axes = plt.subplots(1, 1, figsize=(10, 2), sharex=True, 
                          gridspec_kw={"hspace": 0.25, "wspace": 0.05}, dpi=dpi_)
 
-axes.scatter(y_test_pred.values, test_u, c="dodgerblue", s=2);
+axes.scatter(y_test_pred, test_u, c="dodgerblue", s=2);
 
 title_ = f"test: cubic root$(y) = f(T, P)$"
 axes.set_title(title_);
@@ -1079,11 +1162,6 @@ y_train_grass = y_train.loc[X_train_normal_grass.index]
 X_train_normal_grass.head(2)
 
 # %%
-y_train_grass.head(2)
-
-# %%
-
-# %%
 depen_var, indp_vars = "mean_lb_per_acr", TP_cols
 
 m5 = spreg.OLS(y=y_train_grass.values, x=X_train_normal_grass[indp_vars].values, 
@@ -1091,8 +1169,7 @@ m5 = spreg.OLS(y=y_train_grass.values, x=X_train_normal_grass[indp_vars].values,
 
 m5_results = pd.DataFrame({"Coeff.": m5.betas.flatten(), 
                            "Std. Error": m5.std_err.flatten(), 
-                           "P-Value": [i[1] for i in m5.t_stat]}, 
-                          index=m5.name_x).transpose()
+                           "P-Value": [i[1] for i in m5.t_stat]}, index=m5.name_x).transpose()
 m5_results
 
 # %%
@@ -1109,14 +1186,15 @@ y_test_grass = y_test.loc[X_test_normal_grass.index]
 X_test_normal_grass.head(2)
 
 # %%
-tick_legend_FontSize = 4
-params = {"legend.fontsize": tick_legend_FontSize,
-          "axes.labelsize": tick_legend_FontSize * 1.4,
-          "axes.titlesize": tick_legend_FontSize * 1.5,
-          "xtick.labelsize": tick_legend_FontSize * 1,
-          "ytick.labelsize": tick_legend_FontSize * 1,
+tick_legend_FontSize = 10
+params = {"legend.fontsize": tick_legend_FontSize * 1,
+          "axes.labelsize": tick_legend_FontSize * 1.2,
+          "axes.titlesize": tick_legend_FontSize * 1.2,
+          "xtick.labelsize": tick_legend_FontSize * 1.1,
+          "ytick.labelsize": tick_legend_FontSize * 1.1,
           "axes.titlepad": 10}
 
+plt.rc("font", family="Palatino")
 plt.rcParams["xtick.bottom"] = True
 plt.rcParams["ytick.left"] = True
 plt.rcParams["xtick.labelbottom"] = True
@@ -1124,7 +1202,8 @@ plt.rcParams["ytick.labelleft"] = True
 plt.rcParams.update(params)
 
 # %%
-fig, axes = plt.subplots(2, 1, figsize=(4, 2), sharex=True, dpi=400)
+fig, axes = plt.subplots(2, 1, figsize=(8, 4), sharex=True, 
+                         gridspec_kw={"hspace": 0.45, "wspace": 0.05}, dpi=dpi_)
 
 axes[0].scatter(ks_result.fittedvalues, ks_result.resid, c="dodgerblue", s=2);
 
@@ -1149,18 +1228,17 @@ file_name = bio_plots + "grassland_OLS.png"
 plt.savefig(file_name, dpi=400)
 
 # %%
-
-# %%
 Xnew = X_test_normal_grass[indp_vars]
 Xnew = sm.add_constant(Xnew)
+y_test_pred = ks_result.predict(Xnew)
+y_train_pred = ks_result.predict(X)
 
-y_test_pred_sm = ks_result.predict(Xnew)
-
-# %%
-print (f"train: {ks_result.rsquared.round(5) = }")
-print ("test R2 = {}".format(r2_score(y_test_grass, y_test_pred_sm.values).round(5)))
-
-# %%
+df_metric = pd.DataFrame(columns=["R2", "RMSE"], index=("train", "test"))
+df_metric.loc["train", "R2"] = ks_result.rsquared.round(5)
+df_metric.loc["test", "R2"]  = r2_score(y_test_grass, y_test_pred).round(4)
+df_metric.loc["train", "RMSE"] = np.sqrt(MSE(y_train_grass, y_train_pred)).round(4)
+df_metric.loc["test", "RMSE"]  = np.sqrt(MSE(y_test_grass, y_test_pred)).round(4)
+df_metric
 
 # %% [markdown]
 # ## Weighted least square
@@ -1192,6 +1270,8 @@ fit_wls = sm.WLS(Y, X, weights=wt_2).fit()
 print(fit_wls.summary())
 
 # %%
+
+# %%
 fig, axes = plt.subplots(2, 1, figsize=(8, 4), sharex=True, 
                          gridspec_kw={"hspace": 0.45, "wspace": 0.05}, dpi=dpi_)
 
@@ -1215,7 +1295,7 @@ axes[1].set_xlabel("prediction"); axes[1].set_ylabel("residual");
 plt.xlim(-1000, 7500)
 fig.subplots_adjust(top=0.9, bottom=0.2, left=0.12, right=0.981)
 file_name = bio_plots + "grassland_WLS.png"
-plt.savefig(file_name, dpi=300)
+plt.savefig(file_name, dpi=400)
 
 # %%
 
