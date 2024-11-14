@@ -178,16 +178,9 @@ print (f'{len(monthly_weather["fid"].unique())=}')
 print (f'{len(ANPP["fid"].unique())=}')
 
 # %%
-print (len(set(monthly_weather["fid"].unique()).intersection(ANPP["fid"].unique())))
-print (len(monthly_weather[monthly_weather["fid"].isin(list(ANPP["fid"].unique()))]["fid"].unique()))
-
-# %%
-FIDs_weather_ANPP_common = list(set(monthly_weather["fid"].unique()).intersection(ANPP["fid"].unique()))
-
-# Lets pick the ones are on the west
-print (len(FIDs_weather_ANPP_common))
-FIDs_weather_ANPP_common = list(set(FIDs_weather_ANPP_common).intersection(SF_west["fid"].unique()))
-print (len(FIDs_weather_ANPP_common))
+FIDs_weather_ANPP_common = pd.read_pickle(bio_reOrganized + "common_FID_NPP_weather_west.sav")
+FIDs_weather_ANPP_common = FIDs_weather_ANPP_common["common_FID_NPP_weather_west"]
+FIDs_weather_ANPP_common = list(FIDs_weather_ANPP_common["common_FIDs_NPP_WA_west"])
 
 # %% [markdown]
 # ### Subset to common FIDs:
@@ -575,8 +568,8 @@ depen_var, indp_vars = "mean_lb_per_acr", temp_cols
 
 m5 = spreg.OLS_Regimes(y = y_train.values, x = X_train_normal[indp_vars].values, 
                        regimes = X_train_normal["groupveg"].tolist(),
-                                constant_regi="many", regime_err_sep=False,
-                                name_y=depen_var, name_x=indp_vars)
+                       constant_regi="many", regime_err_sep=False,
+                       name_y=depen_var, name_x=indp_vars)
 
 m5_results = pd.DataFrame({"Coeff.": m5.betas.flatten(),
                            "Std. Error": m5.std_err.flatten(),
@@ -868,9 +861,8 @@ df_metric
 
 # %%
 # %%time
-
-TPH_cols = TP_cols + [x for x in numeric_cols if "rel_hum" in x]
 # takes 3 minutes
+TPH_cols = TP_cols + [x for x in numeric_cols if "rel_hum" in x]
 depen_var, indp_vars = "mean_lb_per_acr", TPH_cols
 
 m5 = spreg.OLS_Regimes(y = y_train.values, x = X_train_normal[indp_vars].values, 

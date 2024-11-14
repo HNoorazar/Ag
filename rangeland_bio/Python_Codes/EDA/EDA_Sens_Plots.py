@@ -664,7 +664,7 @@ ax1.set_title("greening trends (Spearman's rank based)")
 p2 = Albers_SF_west_increase.plot(column='Tau', ax=ax2, cmap=cmap_G, norm=norm_col)
 ax2.set_title(r"greening trends (Kendall's $\tau$ - MK based)")
 
-fig.subplots_adjust(top=0.91, bottom=0.01, left=0.01, right=0.981, hspace=0.01, wspace=0.01)
+# fig.subplots_adjust(top=0.91, bottom=0.01, left=0.01, right=0.981, hspace=0.01, wspace=0.01)
 cax = ax2.inset_axes([1.05, 0.3, 0.04, 0.4])
 fig.colorbar(p1.get_children()[1], cax=cax, orientation='vertical')
 # fig.colorbar(p1.get_children()[1], ax=axes, fraction=0.02, location='bottom', orientation='horizontal')

@@ -177,25 +177,17 @@ print (f'{len(monthly_weather["fid"].unique())=}')
 print (f'{len(ANPP["fid"].unique())=}')
 
 # %%
-print (len(set(monthly_weather["fid"].unique()).intersection(ANPP["fid"].unique())))
-print (len(monthly_weather[monthly_weather["fid"].isin(list(ANPP["fid"].unique()))]["fid"].unique()))
-
-# %%
-FIDs_weather_ANPP_common = list(set(monthly_weather["fid"].unique()).intersection(ANPP["fid"].unique()))
-
-# Lets pick the ones are on the west
-print (len(FIDs_weather_ANPP_common))
-FIDs_weather_ANPP_common = list(set(FIDs_weather_ANPP_common).intersection(SF_west["fid"].unique()))
-print (len(FIDs_weather_ANPP_common))
+FID_veg = pd.read_pickle(bio_reOrganized + "FID_veg.sav")
+FIDs_weather_ANPP_common = FID_veg["FIDs_weather_ANPP_common"]
+FIDs_weather_ANPP_common.head(2)
 
 # %% [markdown]
 # ### Subset to common FIDs:
 
 # %%
-ANPP    = ANPP[ANPP["fid"].isin(FIDs_weather_ANPP_common)]
-monthly_weather = monthly_weather[monthly_weather["fid"].isin(FIDs_weather_ANPP_common)]
-
-SF_west = SF_west[SF_west["fid"].isin(FIDs_weather_ANPP_common)]
+ANPP    = ANPP[ANPP["fid"].isin(list(FIDs_weather_ANPP_common["fid"]))]
+monthly_weather = monthly_weather[monthly_weather["fid"].isin(list(FIDs_weather_ANPP_common["fid"]))]
+SF_west = SF_west[SF_west["fid"].isin(list(FIDs_weather_ANPP_common["fid"]))]
 
 # %%
 monthly_weather.head(2)

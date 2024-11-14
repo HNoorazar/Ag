@@ -5,7 +5,7 @@
 #       extension: .py
 #       format_name: percent
 #       format_version: '1.3'
-#       jupytext_version: 1.16.1
+#       jupytext_version: 1.15.2
 #   kernelspec:
 #     display_name: Python 3 (ipykernel)
 #     language: python
@@ -32,7 +32,8 @@ from scipy import stats
 import seaborn as sns
 import matplotlib
 import matplotlib.pyplot as plt
-plt.rc("font", family="Palatino")
+# plt.rc("font", family="Palatino")
+plt.rc("font", family="Times")
 
 # font = {"size": 10}
 # matplotlib.rc("font", **font)
@@ -46,6 +47,17 @@ from matplotlib import cm
 from sklearn.model_selection import train_test_split
 sys.path.append("/Users/hn/Documents/00_GitHub/Ag/rangeland/Python_Codes/")
 import rangeland_core as rc
+
+# %%
+import scipy
+import pymannkendall
+import xgboost
+import shap
+# !python --version
+print ("pymannkendall version is {}".format(pymannkendall.__version__ ))
+print ("      xgboost version is {}".format(xgboost.__version__ ))
+print ("        SciPy version is {}".format(scipy.__version__ ))
+print ("         shap version is {}".format(shap.__version__ ))
 
 # %%
 rangeland_bio_base = "/Users/hn/Documents/01_research_data/RangeLand_bio/"
@@ -165,25 +177,17 @@ print (f'{len(monthly_weather["fid"].unique())=}')
 print (f'{len(ANPP["fid"].unique())=}')
 
 # %%
-print (len(set(monthly_weather["fid"].unique()).intersection(ANPP["fid"].unique())))
-print (len(monthly_weather[monthly_weather["fid"].isin(list(ANPP["fid"].unique()))]["fid"].unique()))
-
-# %%
-FIDs_weather_ANPP_common = list(set(monthly_weather["fid"].unique()).intersection(ANPP["fid"].unique()))
-
-# Lets pick the ones are on the west
-print (len(FIDs_weather_ANPP_common))
-FIDs_weather_ANPP_common = list(set(FIDs_weather_ANPP_common).intersection(SF_west["fid"].unique()))
-print (len(FIDs_weather_ANPP_common))
+FID_veg = pd.read_pickle(bio_reOrganized + "FID_veg.sav")
+FIDs_weather_ANPP_common = FID_veg["FIDs_weather_ANPP_common"]
+FIDs_weather_ANPP_common.head(2)
 
 # %% [markdown]
 # ### Subset to common FIDs:
 
 # %%
-ANPP    = ANPP[ANPP["fid"].isin(FIDs_weather_ANPP_common)]
-monthly_weather = monthly_weather[monthly_weather["fid"].isin(FIDs_weather_ANPP_common)]
-
-SF_west = SF_west[SF_west["fid"].isin(FIDs_weather_ANPP_common)]
+ANPP    = ANPP[ANPP["fid"].isin(list(FIDs_weather_ANPP_common["fid"]))]
+SF_west = SF_west[SF_west["fid"].isin(list(FIDs_weather_ANPP_common["fid"]))]
+monthly_weather = monthly_weather[monthly_weather["fid"].isin(list(FIDs_weather_ANPP_common["fid"]))]
 
 # %%
 monthly_weather.head(2)
@@ -371,42 +375,75 @@ print (annual_WA_ANPP[annual_WA_ANPP["fid"].isin([1])]["groupveg"].unique())
 annual_WA_ANPP.describe()
 
 # %%
-tick_legend_FontSize = 6
-params = {"legend.fontsize": tick_legend_FontSize,
+tick_legend_FontSize = 8
+params = {"legend.fontsize": tick_legend_FontSize*.6,
           "axes.labelsize": tick_legend_FontSize * .71,
           "axes.titlesize": tick_legend_FontSize * 1,
           "xtick.labelsize": tick_legend_FontSize * .7,
           "ytick.labelsize": tick_legend_FontSize * .7,
-          "axes.titlepad": 5,
-          'legend.handlelength': 2}
+          "axes.titlepad": 5, 'legend.handlelength': 2}
 
 plt.rcParams["xtick.bottom"] = False
 plt.rcParams["ytick.left"] = False
 plt.rcParams["xtick.labelbottom"] = False
 plt.rcParams["ytick.labelleft"] = False
 plt.rcParams.update(params)
-
-# %%
+##########################################
 fig, ax = plt.subplots(1, 1, figsize=(3, 3), sharex=True, sharey=True, dpi=dpi_)
 ax.set_xticks([]); ax.set_yticks([])
-plt.title('rangeland polygons in Albers shapefile')
+plt.title('rangeland regions on western meridian'.capitalize())
 
 plot_SF(SF=visframe_mainLand_west, ax_=ax, col="EW_meridian", cmap_ = "Pastel1")
 SF_west["geometry"].centroid.plot(ax=ax, c=SF_west['color'], markersize=0.2)
 
 plt.rcParams['axes.linewidth'] = .051
 plt.tight_layout()
-# plt.legend(fontsize=3) # ax.axis('off')
-# plt.show();
+# plt.legend(fontsize=3) # ax.axis('off') # plt.show();
 from matplotlib.lines import Line2D
 
 labels = list(veg_colors.keys())
 colors = list(veg_colors.values())
 lines = [Line2D([0], [0], color=c, linewidth=3, linestyle='--') for c in colors]
-plt.legend(lines, labels, fontsize=4, frameon=False)
+plt.legend(lines, labels, frameon=False)
 
-file_name = bio_plots + "Albers_SF_locs_vegType.png"
-plt.savefig(file_name)
+file_name = bio_plots + "Albers_West_locs_vegType.png"
+plt.savefig(file_name, dpi=400)
+
+# %%
+
+# %%
+tick_legend_FontSize = 12
+params = {"legend.fontsize": tick_legend_FontSize*.6,
+          "axes.labelsize": tick_legend_FontSize * .71,
+          "axes.titlesize": tick_legend_FontSize * 1,
+          "xtick.labelsize": tick_legend_FontSize * .7,
+          "ytick.labelsize": tick_legend_FontSize * .7,
+          "axes.titlepad": 5}
+
+plt.rcParams.update(params)
+##########################################################################################
+
+fig, ax = plt.subplots(1, 1, figsize=(8, 5), dpi=dpi_)
+ax.set_xticks([]); ax.set_yticks([])
+plt.title('rangeland regions on western meridian'.capitalize())
+
+plot_SF(SF=visframe_mainLand, ax_=ax, col="EW_meridian", cmap_ = "Pastel2")
+SF_west["geometry"].centroid.plot(ax=ax, c=SF_west['color'], markersize=0.2)
+
+plt.rcParams['axes.linewidth'] = .051
+plt.tight_layout()
+# plt.legend(fontsize=3) # ax.axis('off')
+# plt.show();
+
+labels = list(veg_colors.keys())
+colors = list(veg_colors.values())
+lines = [Line2D([0], [0], color=c, linewidth=3, linestyle='--') for c in colors]
+plt.legend(lines, labels, frameon=False, loc="lower left")
+
+file_name = bio_plots + "Albers_locs_vegType.png"
+plt.savefig(file_name, dpi=400)
+
+# %%
 
 # %% [markdown]
 # ## Compute Spearman for ANPP and precip

@@ -12,7 +12,7 @@
 #     name: python3
 # ---
 
-# %%
+# %% [markdown]
 # # !pip3 install pymannkendall
 
 # %%
@@ -26,7 +26,6 @@ warnings.filterwarnings("ignore")
 
 import pandas as pd
 import numpy as np
-from datetime import datetime
 import os, os.path, pickle, sys
 import pymannkendall as mk
 
@@ -150,18 +149,6 @@ pickle.dump(export_, open(filename, 'wb'))
 del(bps_weather)
 
 # %%
-FID_veg = Albers_SF[['fid', 'groupveg']].copy()
-filename = bio_reOrganized + "FID_veg.sav"
-FID_veg.reset_index(drop=True, inplace=True)
-export_ = {"FID_veg": FID_veg, 
-           "source_code" : "clean_dump",
-           "Author": "HN",
-           "Date" : datetime.now().strftime('%Y-%m-%d %H:%M:%S')}
-
-pickle.dump(export_, open(filename, 'wb'))
-del(FID_veg)
-
-# %%
 bpszone_ANPP = pd.read_csv(min_bio_dir + "bpszone_annual_productivity_rpms_MEAN.csv")
 
 bpszone_ANPP.rename(columns=lambda x: x.lower().replace(' ', '_'), inplace=True)
@@ -185,8 +172,6 @@ export_ = {"bpszone_ANPP": bpszone_ANPP,
            "Date" : datetime.now().strftime('%Y-%m-%d %H:%M:%S')}
 
 pickle.dump(export_, open(filename, 'wb'))
-
-# %%
 
 # %%
 print (len(Albers_SF["fid"].unique()))
@@ -278,6 +263,38 @@ Albers_SF.head(2)
 # %%
 Albers_SF_west = Albers_SF[Albers_SF["EW_meridian"] == "W"].copy()
 Albers_SF_west.shape
+
+# %%
+
+# %%
+bps_weather = pd.read_pickle(bio_reOrganized + "bps_weather.sav")
+bps_weather = bps_weather["bps_weather"]
+
+FIDs_weather_ANPP_common = set(bps_weather["fid"].unique()).intersection(set(bpszone_ANPP["fid"].unique()))
+FIDs_weather_ANPP_common = list(set(FIDs_weather_ANPP_common).intersection(Albers_SF_west["fid"].unique()))
+FIDs_weather_ANPP_common = pd.DataFrame(columns = ["fid"], data=FIDs_weather_ANPP_common)
+
+FIDs_weather_ANPP_common = pd.merge(FIDs_weather_ANPP_common, 
+                                    Albers_SF_west[["fid", "state_majority_area", "groupveg"]],
+                                    on="fid", how="left")
+
+
+FID_veg = Albers_SF[['fid', 'groupveg']].copy()
+filename = bio_reOrganized + "FID_veg.sav"
+FID_veg.reset_index(drop=True, inplace=True)
+export_ = {"FID_veg": FID_veg, 
+           "FIDs_weather_ANPP_common" : FIDs_weather_ANPP_common,
+           "source_code" : "clean_dump",
+           "Author": "HN",
+           "Date" : datetime.now().strftime('%Y-%m-%d %H:%M:%S')}
+
+pickle.dump(export_, open(filename, 'wb'))
+del(FID_veg, bps_weather)
+
+# %%
+FIDs_weather_ANPP_common.head(2)
+
+# %%
 
 # %%
 bpszone_ANPP.head(2)
@@ -380,7 +397,7 @@ plt.tight_layout()
 # plt.legend(fontsize=10) # ax.axis('off')
 # plt.show();
 file_name = bio_plots + "Albers_SF_locations.png"
-plt.savefig(file_name)
+# plt.savefig(file_name)
 
 # %%
 bpszone_ANPP_west.head(2)
@@ -548,9 +565,6 @@ Albers_SF_west.head(2)
 # %%
 
 # %%
-import pickle
-from datetime import datetime
-
 filename = bio_reOrganized + "ANPP_MK_Spearman.sav"
 
 export_ = {"ANPP_MK_df": ANPP_MK_df, 
@@ -566,6 +580,12 @@ Albers_SF_west_noCentroid.drop(columns=["centroid"], inplace=True)
 f_name = bio_reOrganized + 'Albers_SF_west_ANPP_MK_Spearman.shp.zip'
 Albers_SF_west_noCentroid.to_file(filename=f_name, driver='ESRI Shapefile')
 
+
+# %%
+
+# %%
+
+# %%
 
 # %% [markdown]
 # ### Plot a couple of examples
