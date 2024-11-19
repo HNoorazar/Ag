@@ -160,7 +160,7 @@ bpszone_ANPP.head(2)
 # # Remove 2012 data
 
 # %%
-bpszone_ANPP = bpszone_ANPP[bpszone_ANPP.year != 2012]
+bpszone_ANPP [bpszone_ANPP.year != 2012]
 
 # %%
 # bpszone_ANPP = pd.merge(bpszone_ANPP, Albers_SF[["fid", "groupveg"]], how="left", on="fid")
