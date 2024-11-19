@@ -46,6 +46,11 @@ import rangeland_core as rc
 
 
 # %%
+# ?mk
+
+# %%
+
+# %%
 def plot_SF(SF, ax_, cmap_ = "Pastel1", col="EW_meridian"):
     SF.plot(column=col, ax=ax_, alpha=1, cmap=cmap_, edgecolor='k', legend=False, linewidth=0.1)
 

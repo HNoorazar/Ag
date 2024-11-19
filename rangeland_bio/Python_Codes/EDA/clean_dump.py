@@ -13,7 +13,7 @@
 # ---
 
 # %% [markdown]
-# # !pip3 install pymannkendall
+# !pip3 install pymannkendall
 
 # %%
 def plot_SF(SF, ax_, cmap_ = "Pastel1", col="EW_meridian"):
@@ -159,6 +159,12 @@ bpszone_ANPP.rename(columns={"area": "area_sqMeter",
 bpszone_ANPP.sort_values(by= ['fid', 'year'], inplace=True)
 bpszone_ANPP.reset_index(drop=True, inplace=True)
 bpszone_ANPP.head(2)
+
+# %% [markdown]
+# # Remove 2012 data
+
+# %%
+bpszone_ANPP = bpszone_ANPP[bpszone_ANPP.year != 2012]
 
 # %%
 # bpszone_ANPP = pd.merge(bpszone_ANPP, Albers_SF[["fid", "groupveg"]], how="left", on="fid")
@@ -324,11 +330,6 @@ for a_fid in bpszone_ANPP_west.fid.unique():
 unique_number_of_years
 
 # %%
-# {'39_years': 22430,
-#  '40_years': 4332,
-#  '38_years': 447,
-#  '37_years': 4,
-#  '35_years': 16}
 
 # %%
 bpszone_ANPP_west.head(2)
@@ -487,6 +488,57 @@ bpszone_ANPP_west.head(2)
 # %% [markdown]
 # # MK test for ANPP and Spearman's rank
 
+# %% [markdown]
+# # Auto correlation test
+
+# %%
+a_FID = bpszone_ANPP_west["fid"].unique()[0]
+ANPP_TS = bpszone_ANPP_west.loc[bpszone_ANPP_west.fid==a_FID, "mean_lb_per_acr"].values
+year_TS = bpszone_ANPP_west.loc[bpszone_ANPP_west.fid==a_FID, "year"].values
+
+print (len(mk.original_test(ANPP_TS)))
+print (len(mk.yue_wang_modification_test(ANPP_TS)))
+print (len(mk.hamed_rao_modification_test(ANPP_TS)))
+mk.hamed_rao_modification_test(ANPP_TS)
+
+# %%
+mk.yue_wang_modification_test(ANPP_TS)
+
+# %%
+mk.original_test(ANPP_TS)
+
+# %% [markdown]
+# ### Test to see if Slope, intercept, Tau are identical
+
+# %%
+# %%time
+diff_fid = {}
+# populate the dataframe with MK test result now
+for a_FID in bpszone_ANPP_west["fid"].unique():
+    ANPP_TS = bpszone_ANPP_west.loc[bpszone_ANPP_west.fid==a_FID, "mean_lb_per_acr"].values    
+    # MK test original
+    _, _, _, _, Tau, s, _, slope, intercept = mk.original_test(ANPP_TS)
+    
+    # MK test rao
+    _, _, _, _, Tau_rao, s_rao, _, slope_rao, intercept_rao = mk.hamed_rao_modification_test(ANPP_TS)
+    
+    # MK test yue
+    _, _, _, _, Tau_yue, s_yue, _, slope_yue, intercept_yue = mk.yue_wang_modification_test(ANPP_TS)
+    
+    if (Tau != Tau_rao) or (Tau != Tau_yue) or (Tau_rao != Tau_yue):
+        diff_fid[a_FID + "Tau"] = [Tau, Tau_yue, Tau_rao]
+        
+    if (s != s_rao) or (s != s_yue) or (s_rao != s_yue):
+        diff_fid[a_FID + "s"] = [s, s_yue, s_rao]
+        
+    if (slope != slope_rao) or (slope != slope_yue) or (slope_rao != slope_yue):
+        diff_fid[a_FID + "slope"] = [slope, slope_yue, slope_rao]
+
+    if (intercept != intercept_rao) or (intercept != intercept_yue) or (intercept_rao != intercept_yue):
+        diff_fid[a_FID + "intercept"] = [intercept, intercept_yue, intercept_rao]
+
+len(diff_fid)
+
 # %%
 need_cols = ["fid", "state_majority_area", "EW_meridian"]
 ANPP_MK_df = bpszone_ANPP_west[need_cols].copy()
@@ -498,11 +550,15 @@ ANPP_MK_df.reset_index(drop=True, inplace=True)
 print (ANPP_MK_df.shape)
 ANPP_MK_df.head(3)
 
-# %%
+
 ##### z: normalized test statistics
 ##### Tau: Kendall Tau
-MK_test_cols = ["trend", "p", "z", "Tau", "Mann_Kendal_score", "var_s", "sens_slope", "intercept",
-                "Spearman", "p_valueSpearman"]
+MK_test_cols = ["trend", "trend_yue", "trend_rao",
+                "p", "p_yue", "p_rao",
+                "z", "Tau", "MK_score", 
+                "var_s", "var_s_yue", "var_s_rao",
+                "sens_slope", "intercept",
+                "Spearman", "p_Spearman"]
 
 ANPP_MK_df = pd.concat([ANPP_MK_df, pd.DataFrame(columns = MK_test_cols)])
 ANPP_MK_df[MK_test_cols] = ["-666"] + [-666] * (len(MK_test_cols)-1)
@@ -519,13 +575,19 @@ for a_FID in ANPP_MK_df["fid"].unique():
     year_TS = bpszone_ANPP_west.loc[bpszone_ANPP_west.fid==a_FID, "year"].values
     
     # MK test
-    trend, _, p, z, Tau, s, var_s, slope, intercept = mk.original_test(ANPP_TS)
+    trend, _, p, z, Tau, MK_score, var_s, slope, intercept = mk.original_test(ANPP_TS)
+    trend_yue, _, p_yue, _, _, _, var_s_yue, _, _ = mk.yue_wang_modification_test(ANPP_TS)
+    trend_rao, _, p_rao, _, _, _, var_s_rao, _, _ = mk.hamed_rao_modification_test(ANPP_TS)    
 
     # Spearman's rank
-    Spearman, p_valueSpearman = stats.spearmanr(year_TS, ANPP_TS)
+    Spearman, p_Spearman = stats.spearmanr(year_TS, ANPP_TS)
 
     # Update dataframe by MK result
-    L_ = [trend, p, z, Tau, s, var_s, slope, intercept, Spearman, p_valueSpearman]
+    L_ = [trend, trend_yue, trend_rao,
+          p, p_yue, p_rao, 
+          z, Tau, MK_score, 
+          var_s, var_s_yue, var_s_rao,
+          slope, intercept, Spearman, p_Spearman]
     ANPP_MK_df.loc[ANPP_MK_df["fid"]==a_FID, MK_test_cols] = L_
 
 # Round the columns to 6-decimals
@@ -541,19 +603,77 @@ ANPP_MK_df = pd.merge(ANPP_MK_df, median_diff[some_col], on="fid", how="left")
 ANPP_MK_df.head(2)
 
 # %%
-ANPP_MK_df[["trend", "fid"]].groupby(["trend"]).count().reset_index()
+trend_col = "trend"
+trend_count_orig = ANPP_MK_df[[trend_col, "fid"]].groupby([trend_col]).count().reset_index()
+trend_count_orig.rename(columns={"fid": "fid_original"}, inplace=True)
+
+trend_count_orig
 
 # %%
-decreasing_df = ANPP_MK_df[ANPP_MK_df.trend == "decreasing"].copy()
-decreasing_df[["fid", "state_majority_area"]].groupby(["state_majority_area"]).count().reset_index()
+trend_col = "trend_yue"
+trend_count_yue = ANPP_MK_df[[trend_col, "fid"]].groupby([trend_col]).count().reset_index()
+trend_count_yue.rename(columns={"fid": "fid_yue",
+                                "trend_yue" : "trend"}, inplace=True)
+trend_count_yue
 
 # %%
+trend_col = "trend_rao"
+trend_count_rao = ANPP_MK_df[[trend_col, "fid"]].groupby([trend_col]).count().reset_index()
+trend_count_rao.rename(columns={"fid": "fid_rao", 
+                               "trend_rao" : "trend"}, inplace=True)
+trend_count_rao
+
+# %%
+trend_counts = pd.merge(trend_count_orig, trend_count_yue, on="trend", how="outer")
+trend_counts = pd.merge(trend_counts, trend_count_rao, on="trend", how="outer")
+trend_counts
+
+# %%
+spearman_increase_pval5 = ANPP_MK_df[ANPP_MK_df["p_Spearman"] < 0.05]
+spearman_increase_pval5 = spearman_increase_pval5[spearman_increase_pval5["Spearman"] > 0]
+spearman_increase_pval5.shape
+
+# %%
+spearman_decrease_pval5 = ANPP_MK_df[ANPP_MK_df["p_Spearman"] < 0.05]
+spearman_decrease_pval5 = spearman_decrease_pval5[spearman_decrease_pval5["Spearman"] < 0]
+spearman_decrease_pval5.shape
+
+# %%
+len(ANPP_MK_df) - (len(spearman_increase_pval5) + len(spearman_decrease_pval5))
+
+# %%
+trend_col = "trend"
+decreasing_df_orig = ANPP_MK_df[ANPP_MK_df[trend_col] == "decreasing"].copy()
+decreasing_df_orig = decreasing_df_orig[["fid", "state_majority_area"]].groupby(
+                            ["state_majority_area"]).count().reset_index()
+
+decreasing_df_orig
+
+# %%
+trend_col = "trend_yue"
+decreasing_df_yue = ANPP_MK_df[ANPP_MK_df[trend_col] == "decreasing"].copy()
+decreasing_df_yue = decreasing_df_yue[["fid", "state_majority_area"]].groupby(
+                                    ["state_majority_area"]).count().reset_index()
+
+decreasing_df_yue
+
+# %%
+trend_col = "trend_rao"
+decreasing_df_rao = ANPP_MK_df[ANPP_MK_df[trend_col] == "decreasing"].copy()
+decreasing_df_rao = decreasing_df_rao[["fid", "state_majority_area"]].groupby(\
+                                                    ["state_majority_area"]).count().reset_index()
+
+decreasing_df_rao
 
 # %%
 Albers_SF.head(2)
 
 # %%
-some_col = ["fid", "sens_slope", "trend", "Tau", "Spearman", "p_valueSpearman",
+print (MK_test_cols)
+
+# %%
+some_col = ["fid", "sens_slope", "trend", 'trend_yue', 'trend_rao', 
+            "Tau", "Spearman", "p_Spearman",
             "medians_diff_ANPP", "medians_diff_slope_ANPP", "median_ANPP_change_as_perc"]
 
 Albers_SF_west = pd.merge(Albers_SF_west, ANPP_MK_df[some_col], on="fid", how="left")
@@ -582,10 +702,16 @@ Albers_SF_west_noCentroid.to_file(filename=f_name, driver='ESRI Shapefile')
 
 
 # %%
+Albers_SF_west_noCentroid.columns
 
 # %%
+# %%time
+f_name = bio_reOrganized + 'Albers_SF_west_ANPP_MK_Spearman.shp.zip'
+A = geopandas.read_file(f_name)
+A.head(2)
 
 # %%
+A.columns
 
 # %% [markdown]
 # ### Plot a couple of examples
