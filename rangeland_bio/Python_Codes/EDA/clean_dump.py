@@ -5,7 +5,7 @@
 #       extension: .py
 #       format_name: percent
 #       format_version: '1.3'
-#       jupytext_version: 1.15.2
+#       jupytext_version: 1.16.1
 #   kernelspec:
 #     display_name: Python 3 (ipykernel)
 #     language: python
@@ -29,9 +29,6 @@ import numpy as np
 import os, os.path, pickle, sys
 import pymannkendall as mk
 
-import statistics
-import statsmodels.api as sm
-
 from scipy import stats
 
 import seaborn as sns
@@ -43,7 +40,6 @@ import matplotlib.colors as colors
 from matplotlib.colors import ListedColormap, Normalize
 from matplotlib import cm
 
-import pickle
 from datetime import datetime
 
 sys.path.append("/Users/hn/Documents/00_GitHub/Ag/rangeland/Python_Codes/")
