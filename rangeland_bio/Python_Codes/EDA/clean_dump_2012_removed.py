@@ -16,11 +16,6 @@
 # !pip3 install pymannkendall
 
 # %%
-def plot_SF(SF, ax_, cmap_ = "Pastel1", col="EW_meridian"):
-    SF.plot(column=col, ax=ax_, alpha=1, cmap=cmap_, edgecolor='k', legend=False, linewidth=0.1)
-
-
-# %%
 import warnings
 warnings.filterwarnings("ignore")
 
@@ -94,57 +89,6 @@ Albers_SF.head(2)
 # %%
 
 # %%
-bps_weather = pd.read_csv(min_bio_dir + "bps_gridmet_mean_indices.csv")
-bps_weather.rename(columns=lambda x: x.lower().replace(' ', '_'), inplace=True)
-bps_weather.head(2)
-
-bps_weather.rename(columns={"rmin_min" : "min_of_dailyMin_rel_hum", 
-                            "ravg_avg" : "avg_of_dailyAvg_rel_hum",
-                            "rmin_avg" : "avg_of_dailyMin_rel_hum",
-                            "rmax_max" : "max_of_dailyMax_rel_hum",
-                            "rmax_avg" : "max_of_dailyAvg_rel_hum",
-                            "tmin_min" : "min_of_dailyMinTemp_C",
-                            "tmin_avg" : "avg_of_dailyMinTemp_C",
-                            "tmax_max" : "max_of_dailyMaxTemp_C",
-                            "tmax_avg" : "avg_of_dailyMaxTemp_C",
-                            "tavg_avg" : "avg_of_dailyAvgTemp_C",
-                            "ppt" : "precip_mm_month",
-                            "bpshuc" : "fid" # I have no other choice at this time!
-                            }, 
-                    inplace=True)
-bps_weather.head(2)
-
-drop_cols = ['alert', 'danger', 'emergency', 'thi_90', 'thi_std', "normal",
-             
-             'min_of_dailyMin_rel_hum',
-             'avg_of_dailyMin_rel_hum',
-             'max_of_dailyMax_rel_hum',
-             'max_of_dailyAvg_rel_hum',
-             
-             'avg_of_dailyMaxTemp_C', 
-             'max_of_dailyMaxTemp_C', 
-             'avg_of_dailyMinTemp_C', 
-             'min_of_dailyMinTemp_C']
-
-bps_weather.drop(columns = drop_cols, axis="columns", inplace=True)
-bps_weather = bps_weather[[bps_weather.columns[-1]] + list(bps_weather.columns[:-1])]
-bps_weather.head(2)
-
-# %%
-filename = bio_reOrganized + "bps_weather.sav"
-
-bps_weather.reset_index(drop=True, inplace=True)
-
-export_ = {"bps_weather": bps_weather, 
-           "source_code" : "clean_dump",
-           "Author": "HN",
-           "Date" : datetime.now().strftime('%Y-%m-%d %H:%M:%S')}
-
-pickle.dump(export_, open(filename, 'wb'))
-
-del(bps_weather)
-
-# %%
 bpszone_ANPP = pd.read_csv(min_bio_dir + "bpszone_annual_productivity_rpms_MEAN.csv")
 
 bpszone_ANPP.rename(columns=lambda x: x.lower().replace(' ', '_'), inplace=True)
@@ -160,16 +104,16 @@ bpszone_ANPP.head(2)
 # # Remove 2012 data?
 
 # %%
-# bpszone_ANPP = bpszone_ANPP[bpszone_ANPP.year != 2012]
+bpszone_ANPP = bpszone_ANPP[bpszone_ANPP.year != 2012]
 
 # %%
 # bpszone_ANPP = pd.merge(bpszone_ANPP, Albers_SF[["fid", "groupveg"]], how="left", on="fid")
 # bpszone_ANPP.head(2)
 
 # %%
-filename = bio_reOrganized + "bpszone_ANPP.sav"
+filename = bio_reOrganized + "bpszone_ANPP_no2012.sav"
 export_ = {"bpszone_ANPP": bpszone_ANPP, 
-           "source_code" : "clean_dump",
+           "source_code" : "clean_dump_2012_removed",
            "Author": "HN",
            "Date" : datetime.now().strftime('%Y-%m-%d %H:%M:%S')}
 
@@ -267,38 +211,6 @@ Albers_SF_west = Albers_SF[Albers_SF["EW_meridian"] == "W"].copy()
 Albers_SF_west.shape
 
 # %%
-
-# %%
-bps_weather = pd.read_pickle(bio_reOrganized + "bps_weather.sav")
-bps_weather = bps_weather["bps_weather"]
-
-FIDs_weather_ANPP_common = set(bps_weather["fid"].unique()).intersection(set(bpszone_ANPP["fid"].unique()))
-FIDs_weather_ANPP_common = list(set(FIDs_weather_ANPP_common).intersection(Albers_SF_west["fid"].unique()))
-FIDs_weather_ANPP_common = pd.DataFrame(columns = ["fid"], data=FIDs_weather_ANPP_common)
-
-FIDs_weather_ANPP_common = pd.merge(FIDs_weather_ANPP_common, 
-                                    Albers_SF_west[["fid", "state_majority_area", "groupveg"]],
-                                    on="fid", how="left")
-
-
-FID_veg = Albers_SF[['fid', 'groupveg']].copy()
-filename = bio_reOrganized + "FID_veg.sav"
-FID_veg.reset_index(drop=True, inplace=True)
-export_ = {"FID_veg": FID_veg, 
-           "FIDs_weather_ANPP_common" : FIDs_weather_ANPP_common,
-           "source_code" : "clean_dump",
-           "Author": "HN",
-           "Date" : datetime.now().strftime('%Y-%m-%d %H:%M:%S')}
-
-pickle.dump(export_, open(filename, 'wb'))
-del(FID_veg, bps_weather)
-
-# %%
-FIDs_weather_ANPP_common.head(2)
-
-# %%
-
-# %%
 bpszone_ANPP.head(2)
 
 # %%
@@ -360,41 +272,6 @@ visframe_mainLand_west = visframe[visframe.EW_meridian.isin(["W"])].copy()
 visframe_mainLand_west = visframe_mainLand_west[~visframe_mainLand_west.state.isin(["AK", "HI"])].copy()
 
 # %%
-
-# %%
-from mpl_toolkits.axes_grid1 import make_axes_locatable
-tick_legend_FontSize = 10
-params = {"legend.fontsize": tick_legend_FontSize,
-          "axes.labelsize": tick_legend_FontSize * .71,
-          "axes.titlesize": tick_legend_FontSize * 1,
-          "xtick.labelsize": tick_legend_FontSize * .7,
-          "ytick.labelsize": tick_legend_FontSize * .7,
-          "axes.titlepad": 5,
-          'legend.handlelength': 2}
-
-plt.rc("font", family="Palatino")
-plt.rcParams["xtick.bottom"] = False
-plt.rcParams["ytick.left"] = False
-plt.rcParams["xtick.labelbottom"] = False
-plt.rcParams["ytick.labelleft"] = False
-plt.rcParams.update(params)
-
-# %%
-fig, ax = plt.subplots(1, 1, figsize=(8, 5), sharex=True, sharey=True, dpi=dpi_)
-ax.set_xticks([]); ax.set_yticks([])
-plt.title('rangeland polygons in Albers shapefile')
-# divider = make_axes_locatable(ax)
-# cax = divider.append_axes("right", size="1%", pad=0, alpha=1)
-plot_SF(SF=visframe_mainLand, ax_=ax, col="EW_meridian",
-       cmap_ = "Pastel1")
-Albers_SF["geometry"].centroid.plot(ax=ax, color='dodgerblue', markersize=0.4)
-
-plt.rcParams['axes.linewidth'] = .051
-plt.tight_layout()
-# plt.legend(fontsize=10) # ax.axis('off')
-# plt.show();
-file_name = bio_plots + "Albers_SF_locations.png"
-# plt.savefig(file_name)
 
 # %%
 bpszone_ANPP_west.head(2)
@@ -483,57 +360,6 @@ bpszone_ANPP_west.head(2)
 
 # %% [markdown]
 # # MK test for ANPP and Spearman's rank
-
-# %% [markdown]
-# # Auto correlation test
-
-# %%
-a_FID = bpszone_ANPP_west["fid"].unique()[0]
-ANPP_TS = bpszone_ANPP_west.loc[bpszone_ANPP_west.fid==a_FID, "mean_lb_per_acr"].values
-year_TS = bpszone_ANPP_west.loc[bpszone_ANPP_west.fid==a_FID, "year"].values
-
-print (len(mk.original_test(ANPP_TS)))
-print (len(mk.yue_wang_modification_test(ANPP_TS)))
-print (len(mk.hamed_rao_modification_test(ANPP_TS)))
-mk.hamed_rao_modification_test(ANPP_TS)
-
-# %%
-mk.yue_wang_modification_test(ANPP_TS)
-
-# %%
-mk.original_test(ANPP_TS)
-
-# %% [markdown]
-# ### Test to see if Slope, intercept, Tau are identical
-
-# %%
-# %%time
-diff_fid = {}
-# populate the dataframe with MK test result now
-for a_FID in bpszone_ANPP_west["fid"].unique():
-    ANPP_TS = bpszone_ANPP_west.loc[bpszone_ANPP_west.fid==a_FID, "mean_lb_per_acr"].values    
-    # MK test original
-    _, _, _, _, Tau, s, _, slope, intercept = mk.original_test(ANPP_TS)
-    
-    # MK test rao
-    _, _, _, _, Tau_rao, s_rao, _, slope_rao, intercept_rao = mk.hamed_rao_modification_test(ANPP_TS)
-    
-    # MK test yue
-    _, _, _, _, Tau_yue, s_yue, _, slope_yue, intercept_yue = mk.yue_wang_modification_test(ANPP_TS)
-    
-    if (Tau != Tau_rao) or (Tau != Tau_yue) or (Tau_rao != Tau_yue):
-        diff_fid[a_FID + "Tau"] = [Tau, Tau_yue, Tau_rao]
-        
-    if (s != s_rao) or (s != s_yue) or (s_rao != s_yue):
-        diff_fid[a_FID + "s"] = [s, s_yue, s_rao]
-        
-    if (slope != slope_rao) or (slope != slope_yue) or (slope_rao != slope_yue):
-        diff_fid[a_FID + "slope"] = [slope, slope_yue, slope_rao]
-
-    if (intercept != intercept_rao) or (intercept != intercept_yue) or (intercept_rao != intercept_yue):
-        diff_fid[a_FID + "intercept"] = [intercept, intercept_yue, intercept_rao]
-
-len(diff_fid)
 
 # %%
 need_cols = ["fid", "state_majority_area", "EW_meridian"]
@@ -681,10 +507,10 @@ Albers_SF_west.head(2)
 # %%
 
 # %%
-filename = bio_reOrganized + "ANPP_MK_Spearman.sav"
+filename = bio_reOrganized + "ANPP_MK_Spearman_no2012.sav"
 
 export_ = {"ANPP_MK_df": ANPP_MK_df, 
-           "source_code" : "clean_dump",
+           "source_code" : "clean_dump_2012_removed",
            "Author": "HN",
            "Date" : datetime.now().strftime('%Y-%m-%d %H:%M:%S')}
 
@@ -693,35 +519,9 @@ pickle.dump(export_, open(filename, 'wb'))
 # %%
 Albers_SF_west_noCentroid = Albers_SF_west.copy()
 Albers_SF_west_noCentroid.drop(columns=["centroid"], inplace=True)
-f_name = bio_reOrganized + 'Albers_SF_west_ANPP_MK_Spearman.shp.zip'
+f_name = bio_reOrganized + 'Albers_SF_west_ANPP_MK_Spearman_no2012.shp.zip'
 Albers_SF_west_noCentroid.to_file(filename=f_name, driver='ESRI Shapefile')
 
 
 # %%
 Albers_SF_west_noCentroid.columns
-
-# %%
-# %%time
-f_name = bio_reOrganized + 'Albers_SF_west_ANPP_MK_Spearman.shp.zip'
-A = geopandas.read_file(f_name)
-A.head(2)
-
-# %%
-A.columns
-
-# %% [markdown]
-# ### Plot a couple of examples
-
-# %%
-sorted(list(ANPP_MK_df.loc[ANPP_MK_df["trend"] == "increasing", "sens_slope"]))[:10]
-
-# %%
-sorted(list(ANPP_MK_df.loc[ANPP_MK_df["trend"] == "increasing", "sens_slope"]))[-10:]
-
-# %% [markdown]
-# # 400 difference in size between slope and Spearmans rank! 
-# We need to check if the smaller set is subset of the larger set
-
-# %%
-
-# %%

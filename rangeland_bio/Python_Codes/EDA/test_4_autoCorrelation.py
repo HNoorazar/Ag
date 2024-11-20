@@ -5,7 +5,7 @@
 #       extension: .py
 #       format_name: percent
 #       format_version: '1.3'
-#       jupytext_version: 1.16.1
+#       jupytext_version: 1.15.2
 #   kernelspec:
 #     display_name: Python 3 (ipykernel)
 #     language: python
@@ -61,13 +61,12 @@ os.makedirs(bio_plots, exist_ok=True)
 ####### Laptop
 # rangeland_bio_base = "/Users/hn/Documents/01_research_data/RangeLand_bio/"
 # min_bio_dir = rangeland_bio_base
-
 # rangeland_base = rangeland_bio_base
 # rangeland_reOrganized = rangeland_base
 
 # %%
 filename = bio_reOrganized + "ANPP_MK_Spearman.sav"
-ANPP_MK_Spearman = pd.read_pickle( filename )
+ANPP_MK_Spearman = pd.read_pickle(filename)
 ANPP_MK_Spearman = ANPP_MK_Spearman["ANPP_MK_df"]
 ANPP_MK_Spearman.head(2)
 
