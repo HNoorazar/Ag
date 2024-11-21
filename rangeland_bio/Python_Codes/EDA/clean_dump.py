@@ -156,6 +156,15 @@ bpszone_ANPP.sort_values(by= ['fid', 'year'], inplace=True)
 bpszone_ANPP.reset_index(drop=True, inplace=True)
 bpszone_ANPP.head(2)
 
+# %%
+bpszone_ANPP_2012 = bpszone_ANPP[bpszone_ANPP.year == 2012].copy()
+print (f"{len(bpszone_ANPP.fid.unique()) = }")
+print (f"{len(bpszone_ANPP_2012.fid.unique()) = }")
+
+# %%
+
+# %%
+
 # %% [markdown]
 # # Remove 2012 data?
 
@@ -310,6 +319,17 @@ print (bpszone_ANPP.shape)
 print (bpszone_ANPP_west.shape)
 
 print (len(bpszone_ANPP) - len(bpszone_ANPP_west))
+
+# %%
+dict_ = {}
+for a_year in sorted(bpszone_ANPP_west.year.unique()):
+    df = bpszone_ANPP_west[bpszone_ANPP_west["year"] == a_year]
+    dict_[a_year] = len(df["fid"].unique())
+dict_
+
+# %%
+
+# %%
 
 # %%
 # %%time
