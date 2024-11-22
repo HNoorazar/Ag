@@ -5,7 +5,7 @@
 #       extension: .py
 #       format_name: percent
 #       format_version: '1.3'
-#       jupytext_version: 1.15.2
+#       jupytext_version: 1.16.1
 #   kernelspec:
 #     display_name: Python 3 (ipykernel)
 #     language: python
@@ -18,8 +18,6 @@
 # https://en.wikipedia.org/wiki/Autoregressive_moving-average_model
 #
 # https://www.statsmodels.org/dev/generated/statsmodels.stats.diagnostic.acorr_ljungbox.html
-#
-#
 
 # %%
 import warnings
@@ -58,11 +56,6 @@ os.makedirs(bio_reOrganized, exist_ok=True)
 
 bio_plots = rangeland_bio_base + "plots/"
 os.makedirs(bio_plots, exist_ok=True)
-####### Laptop
-# rangeland_bio_base = "/Users/hn/Documents/01_research_data/RangeLand_bio/"
-# min_bio_dir = rangeland_bio_base
-# rangeland_base = rangeland_bio_base
-# rangeland_reOrganized = rangeland_base
 
 # %%
 filename = bio_reOrganized + "ANPP_MK_Spearman.sav"
@@ -74,27 +67,10 @@ ANPP_MK_Spearman.head(2)
 ANPP_MK_Spearman.columns
 
 # %%
-filename = bio_reOrganized + "bpszone_ANPP.sav"
+filename = bio_reOrganized + "bpszone_ANPP_no2012.sav"
 bpszone_ANPP = pd.read_pickle(filename)
 bpszone_ANPP = bpszone_ANPP["bpszone_ANPP"]
 bpszone_ANPP.head(2)
-
-# %%
-import statsmodels.api as sm
-
-data = {'fid': bpszone_ANPP["fid"].unique(), 
-        'dw_stat': [-666]*len(bpszone_ANPP["fid"].unique())}
-
-dw_statistics_df = pd.DataFrame(data)
-dw_statistics_df.head(2)
-
-# %%
-# Perform the Durbin-Watson test
-for a_fid in bpszone_ANPP["fid"].unique():
-    TS = bpszone_ANPP.loc[bpszone_ANPP["fid"] == a_fid, "mean_lb_per_acr"]
-    dw_statistics_df.loc[dw_statistics_df["fid"] == a_fid, "dw_stat"] = sm.stats.stattools.durbin_watson(TS)
-
-dw_statistics_df.head(2)
 
 # %%
 
@@ -106,6 +82,22 @@ dw_statistics_df.head(2)
 #    - Near 2: Low autocorrelation 
 #    - Near 0: Strong positive autocorrelation 
 #    - Near 4: Strong negative autocorrelation
+
+# %%
+import statsmodels.api as sm
+
+data = {'fid': bpszone_ANPP["fid"].unique(), 
+        'dw_stat': [-666]*len(bpszone_ANPP["fid"].unique())}
+
+dw_statistics_df = pd.DataFrame(data)
+
+
+# Perform the Durbin-Watson test
+for a_fid in bpszone_ANPP["fid"].unique():
+    TS = bpszone_ANPP.loc[bpszone_ANPP["fid"] == a_fid, "mean_lb_per_acr"]
+    dw_statistics_df.loc[dw_statistics_df["fid"] == a_fid, "dw_stat"] = sm.stats.stattools.durbin_watson(TS)
+
+dw_statistics_df.head(2)
 
 # %%
 print (len(dw_statistics_df["fid"]))
