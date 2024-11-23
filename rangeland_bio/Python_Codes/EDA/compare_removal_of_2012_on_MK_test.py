@@ -5,7 +5,7 @@
 #       extension: .py
 #       format_name: percent
 #       format_version: '1.3'
-#       jupytext_version: 1.16.1
+#       jupytext_version: 1.15.2
 #   kernelspec:
 #     display_name: Python 3 (ipykernel)
 #     language: python
@@ -235,6 +235,8 @@ dw_stats_df.head(6)
 
 # %%
 y_var = "mean_lb_per_acr"
+dpi_ = 200
+save_dpi=400
 
 # %%
 tick_legend_FontSize = 6
@@ -243,7 +245,8 @@ params = {"legend.fontsize": tick_legend_FontSize*.8,
           "axes.titlesize": tick_legend_FontSize * 1,
           "xtick.labelsize": tick_legend_FontSize * 0.8,
           "ytick.labelsize": tick_legend_FontSize * 0.8,
-          "axes.titlepad": 5,    'legend.handlelength': 2}
+          "axes.titlepad": 5, 
+          'legend.handlelength': 2}
 
 plt.rcParams["xtick.bottom"] = True
 plt.rcParams["ytick.left"] = True
@@ -252,8 +255,7 @@ plt.rcParams["ytick.labelleft"] = True
 plt.rcParams.update(params)
 
 # %%
-fig, axes = plt.subplots(1, 1, figsize=(6, 1), sharex=True, sharey=False, dpi=200,
-                        gridspec_kw={"hspace": 0.5, "wspace": 0.05})
+fig, axes = plt.subplots(1, 1, figsize=(4, 1.5), sharex=True, sharey=False, dpi=dpi_)
 
 axes.grid(axis="y", which="both");
 
@@ -274,8 +276,15 @@ axes.set_title(title_);
 axes.axvline(x=2012, color = 'k', label = '2012', linestyle="-")
 axes.legend(loc='best');
 
+axes.set_xlabel("year"); axes.set_ylabel("ANPP (mean lb/acr)");
+
+# plt.tight_layout()
+fig.subplots_adjust(top=0.85, bottom=0.21, left=0.11, right=0.981)
+file_name = bio_plots + "DW_test_2012_adverse.pdf"
+plt.savefig(file_name, dpi=save_dpi)
+
 # %%
-del(dw_stats_df)
+# del(dw_stats_df)
 
 # %% [markdown]
 # https://www.kaggle.com/code/iamleonie/time-series-interpreting-acf-and-pacf
@@ -292,5 +301,279 @@ print (len(dw_stats_df_no2012["fid"]))
 print (dw_stats_df_no2012[dw_stats_df_no2012["dw_stat_no2012"] < 0.3].shape)
 print (dw_stats_df_no2012[dw_stats_df_no2012["dw_stat_no2012"] < 0.4].shape)
 print (dw_stats_df_no2012[dw_stats_df_no2012["dw_stat_no2012"] < 0.5].shape)
+
+# %%
+tick_legend_FontSize = 8
+params = {"legend.fontsize": tick_legend_FontSize*.8,
+          "axes.labelsize": tick_legend_FontSize * .8,
+          "axes.titlesize": tick_legend_FontSize * 1,
+          "xtick.labelsize": tick_legend_FontSize * 0.8,
+          "ytick.labelsize": tick_legend_FontSize * 0.8,
+          "axes.titlepad": 5, 
+          'legend.handlelength': 2}
+
+plt.rcParams["xtick.bottom"] = True
+plt.rcParams["ytick.left"] = True
+plt.rcParams["xtick.labelbottom"] = True
+plt.rcParams["ytick.labelleft"] = True
+plt.rcParams.update(params)
+
+# %%
+fig, axes = plt.subplots(1, 1, figsize=(4, 1.5), sharey=False, sharex=False, dpi=dpi_)
+# sns.set_style({'axes.grid' : False})
+# axes.grid(axis="y", which="both");
+sns.histplot(data=dw_stats_df_no2012["dw_stat_no2012"], ax=axes, bins=100, kde=True); # height=5
+# axes.legend(["Durbin–Watson statistic"], loc='upper right');
+
+axes.set_xlabel("Durbin–Watson statistic");
+
+fig.subplots_adjust(top=0.85, bottom=0.23, left=0.12, right=0.981)
+file_name = bio_plots + "DW_test_distribution.pdf"
+plt.savefig(file_name, dpi=save_dpi)
+
+# %% [markdown]
+# ### Plot 3 ACFs
+
+# %%
+
+# %%
+min_DW_fid = dw_stats_df_no2012.loc[dw_stats_df_no2012["dw_stat_no2012"].idxmin(), "fid"]
+max_DW_fid = dw_stats_df_no2012.loc[dw_stats_df_no2012["dw_stat_no2012"].idxmax(), "fid"]
+
+# median
+median_DF = dw_stats_df_no2012["dw_stat_no2012"].median()
+median_DW_fid = dw_stats_df_no2012.loc[dw_stats_df_no2012["dw_stat_no2012"] == median_DF, "fid"].item()
+
+# %%
+fig, axes = plt.subplots(3, 1, figsize=(4, 4.5), sharey=True, sharex=True, dpi=dpi_)
+###################################
+ax_ = 0
+a_fid = max_DW_fid
+df = bpszone_ANPP_no2012[bpszone_ANPP_no2012.fid == a_fid]
+sm.graphics.tsa.plot_acf(df.mean_lb_per_acr.squeeze(), lags=5, ax=axes[ax_], label="max DW stat.")
+loc = plticker.MultipleLocator(base=.5)
+axes[ax_].yaxis.set_major_locator(loc)
+# axes[ax_].legend(loc='best');
+
+state_= ANPP_MK_Spearman_no2012.loc[ANPP_MK_Spearman_no2012["fid"] == max_DW_fid, "state_majority_area"].item()
+
+txt_ = "location with maximum DW stat.\n{} (FID:{})".format(state_, max_DW_fid)
+axes[ax_].text(3, .6, txt_, fontsize=6);
+###################################
+ax_ = 1
+a_fid = median_DW_fid
+df = bpszone_ANPP_no2012[bpszone_ANPP_no2012.fid == a_fid]
+sm.graphics.tsa.plot_acf(df.mean_lb_per_acr.squeeze(), lags=5, ax=axes[ax_])
+loc = plticker.MultipleLocator(base=.5)
+axes[ax_].yaxis.set_major_locator(loc)
+
+state_= ANPP_MK_Spearman_no2012.loc[ANPP_MK_Spearman_no2012["fid"] == median_DW_fid, "state_majority_area"].item()
+txt_ = "location with median DW stat.\n{} (FID:{})".format(state_, median_DW_fid)
+axes[ax_].text(3, .6, txt_, fontsize=6);
+###################################
+ax_ = 2
+a_fid = min_DW_fid
+df = bpszone_ANPP_no2012[bpszone_ANPP_no2012.fid == a_fid]
+sm.graphics.tsa.plot_acf(df.mean_lb_per_acr.squeeze(), lags=5, ax=axes[ax_])
+loc = plticker.MultipleLocator(base=.5)
+axes[ax_].yaxis.set_major_locator(loc)
+
+state_= ANPP_MK_Spearman_no2012.loc[ANPP_MK_Spearman_no2012["fid"] == min_DW_fid, "state_majority_area"].item()
+
+txt_ = "location with minimum DW stat.\n{} (FID:{})".format(state_, min_DW_fid)
+axes[ax_].text(3, .6, txt_, fontsize=6);
+
+###################################
+axes[0].set_title("ACF of ANPP");
+axes[1].set_title(None);
+axes[2].set_title(None);
+
+axes[2].set_xlabel("lag"); axes[1].set_ylabel("autocorrelation");
+
+
+fig.subplots_adjust(top=0.95, bottom=0.08, left=0.14, right=0.981)
+file_name = bio_plots + "ACF_for_3FIDs.pdf"
+plt.savefig(file_name, dpi=save_dpi)
+
+# %%
+
+# %%
+fig, axes = plt.subplots(3, 1, figsize=(4, 4.5), sharey=False, sharex=False, dpi=dpi_)
+###################################
+ax_ = 0
+a_fid = max_DW_fid
+
+df = bpszone_ANPP_no2012[bpszone_ANPP_no2012["fid"] == a_fid]
+axes[ax_].plot(df.year, df[y_var], linewidth=2, color="dodgerblue", zorder=1);
+axes[ax_].scatter(df.year, df[y_var], marker='o', facecolors='r', edgecolors='r', s=5, zorder=2);
+
+
+state_= ANPP_MK_Spearman.loc[ANPP_MK_Spearman["fid"] == max_DW_fid, "state_majority_area"].item()
+
+txt_ = "location with maximum DW stat.\n{} (FID:{})".format(state_, max_DW_fid)
+y_txt = int(df[y_var].max() /1.3)
+axes[ax_].text(2005, y_txt, txt_, fontsize=6);
+###################################
+ax_ = 1
+a_fid = median_DW_fid
+
+df = bpszone_ANPP_no2012[bpszone_ANPP_no2012["fid"] == a_fid]
+axes[ax_].plot(df.year, df[y_var], linewidth=2, color="dodgerblue", zorder=1);
+axes[ax_].scatter(df.year, df[y_var], marker='o', facecolors='r', edgecolors='r', s=5, zorder=2);
+
+
+state_= ANPP_MK_Spearman.loc[ANPP_MK_Spearman["fid"] == min_DW_fid, "state_majority_area"].item()
+
+txt_ = "location with median DW stat.\n{} (FID:{})".format(state_, min_DW_fid)
+y_txt = int(df[y_var].max() / 1.2)
+axes[ax_].text(1985, y_txt, txt_, fontsize=6);
+###################################
+ax_ = 2
+a_fid = min_DW_fid
+
+df = bpszone_ANPP_no2012[bpszone_ANPP_no2012["fid"] == a_fid]
+axes[ax_].plot(df.year, df[y_var], linewidth=2, color="dodgerblue", zorder=1);
+axes[ax_].scatter(df.year, df[y_var], marker='o', facecolors='r', edgecolors='r', s=5, zorder=2);
+
+
+state_= ANPP_MK_Spearman.loc[ANPP_MK_Spearman["fid"] == min_DW_fid, "state_majority_area"].item()
+
+txt_ = "location with minimum DW stat.\n{} (FID:{})".format(state_, min_DW_fid)
+y_txt = int(df[y_var].min())
+axes[ax_].text(2005, y_txt, txt_, fontsize=6);
+###################################
+
+axes[0].set_title("ANPP for the 3 DW locations");
+axes[1].set_title(None);
+axes[2].set_title(None);
+
+axes[2].set_xlabel("lag"); axes[1].set_ylabel("autocorrelation");
+
+
+fig.subplots_adjust(top=0.95, bottom=0.08, left=0.14, right=0.981)
+file_name = bio_plots + "NPP_for_3FIDs.pdf"
+# plt.savefig(file_name, dpi=save_dpi)
+
+# %%
+df[y_var].max() / 1.1
+
+# %% [markdown]
+# ### Label of Yue-Geerning in Original MK
+
+# %%
+a_fid = max_DW_fid
+TS = bpszone_ANPP.loc[bpszone_ANPP["fid"] == a_fid, "mean_lb_per_acr"]
+sm.stats.stattools.durbin_watson(TS).round(2)
+
+# %%
+a_fid = max_DW_fid
+TS = bpszone_ANPP.loc[bpszone_ANPP["fid"] == a_fid].copy()
+NPP_outlier_idx  = TS["mean_lb_per_acr"].idxmax()
+print (TS.shape)
+TS.drop(index=[NPP_outlier_idx], inplace=True)
+print (TS.shape)
+sm.stats.stattools.durbin_watson(TS["mean_lb_per_acr"]).round(2)
+
+# %%
+# [4774, 21470, 23272]
+
+FIDs = list(bpszone_ANPP_no2012["fid"].unique())
+random.sample(list(FIDs), 3)
+
+# %%
+# random.seed(1)
+random.seed(2)
+three_random_fids = random.sample(list(FIDs), 3)
+
+fig, axes = plt.subplots(3, 1, figsize=(4, 4.5), sharey=True, sharex=True, dpi=dpi_)
+###################################
+ax_ = 0
+a_fid = three_random_fids[0]
+df = bpszone_ANPP_no2012[bpszone_ANPP_no2012.fid == a_fid]
+sm.graphics.tsa.plot_acf(df.mean_lb_per_acr.squeeze(), lags=5, ax=axes[ax_], label="max DW stat.")
+loc = plticker.MultipleLocator(base=.5)
+axes[ax_].yaxis.set_major_locator(loc)
+###################################
+ax_ = 1
+a_fid = three_random_fids[1]
+df = bpszone_ANPP_no2012[bpszone_ANPP_no2012.fid == a_fid]
+sm.graphics.tsa.plot_acf(df.mean_lb_per_acr.squeeze(), lags=5, ax=axes[ax_])
+loc = plticker.MultipleLocator(base=.5)
+axes[ax_].yaxis.set_major_locator(loc)
+###################################
+ax_ = 2
+a_fid = three_random_fids[2]
+df = bpszone_ANPP_no2012[bpszone_ANPP_no2012.fid == a_fid]
+sm.graphics.tsa.plot_acf(df.mean_lb_per_acr.squeeze(), lags=5, ax=axes[ax_])
+loc = plticker.MultipleLocator(base=.5)
+axes[ax_].yaxis.set_major_locator(loc)
+###################################
+axes[0].set_title("ACF of ANPP for 3 random locations");
+axes[1].set_title(None);
+axes[2].set_title(None);
+
+axes[2].set_xlabel("lag"); axes[1].set_ylabel("autocorrelation");
+
+fig.subplots_adjust(top=0.95, bottom=0.08, left=0.14, right=0.981)
+file_name = bio_plots + "ACF_for_3random_FIDs.pdf"
+plt.savefig(file_name, dpi=save_dpi)
+
+# %%
+tick_legend_FontSize = 8
+params = {"legend.fontsize": tick_legend_FontSize*.8,
+          "axes.labelsize": tick_legend_FontSize * .8,
+          "axes.titlesize": tick_legend_FontSize * 1,
+          "xtick.labelsize": tick_legend_FontSize * 0.8,
+          "ytick.labelsize": tick_legend_FontSize * 0.8,
+          "axes.titlepad": 5, 
+          'legend.handlelength': 2}
+
+plt.rcParams["xtick.bottom"] = True
+plt.rcParams["ytick.left"] = True
+plt.rcParams["xtick.labelbottom"] = True
+plt.rcParams["ytick.labelleft"] = True
+plt.rcParams.update(params)
+
+# %%
+# random.seed(1)
+random.seed(2)
+three_random_fids = random.sample(list(FIDs), 3)
+
+fig, axes = plt.subplots(1, 3, figsize=(4.5, 2), sharey=True, sharex=True, dpi=dpi_,
+                         gridspec_kw={"hspace": 0.5, "wspace": 0.05})
+###################################
+ax_ = 0
+a_fid = three_random_fids[0]
+df = bpszone_ANPP_no2012[bpszone_ANPP_no2012.fid == a_fid]
+sm.graphics.tsa.plot_acf(df.mean_lb_per_acr.squeeze(), lags=5, ax=axes[ax_], label="max DW stat.")
+loc = plticker.MultipleLocator(base=.5)
+axes[ax_].yaxis.set_major_locator(loc)
+###################################
+ax_ = 1
+a_fid = three_random_fids[1]
+df = bpszone_ANPP_no2012[bpszone_ANPP_no2012.fid == a_fid]
+sm.graphics.tsa.plot_acf(df.mean_lb_per_acr.squeeze(), lags=5, ax=axes[ax_])
+loc = plticker.MultipleLocator(base=.5)
+axes[ax_].yaxis.set_major_locator(loc)
+###################################
+ax_ = 2
+a_fid = three_random_fids[2]
+df = bpszone_ANPP_no2012[bpszone_ANPP_no2012.fid == a_fid]
+sm.graphics.tsa.plot_acf(df.mean_lb_per_acr.squeeze(), lags=5, ax=axes[ax_])
+loc = plticker.MultipleLocator(base=.5)
+axes[ax_].yaxis.set_major_locator(loc)
+###################################
+axes[1].set_title("ACF of ANPP for 3 random locations");
+axes[0].set_title(None);
+axes[2].set_title(None);
+
+axes[1].tick_params(axis='y', left=False)
+axes[2].tick_params(axis='y', left=False)
+
+axes[1].set_xlabel("lag"); axes[0].set_ylabel("autocorrelation");
+plt.tight_layout()
+fig.subplots_adjust(top=0.91, bottom=0.2, left=0.12, right=0.981)
+file_name = bio_plots + "ACF_for_3random_FIDs_narow.pdf"
+plt.savefig(file_name, dpi=save_dpi)
 
 # %%
