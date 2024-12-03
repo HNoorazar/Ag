@@ -216,6 +216,14 @@ all_df.to_csv(reOrganized_dir + "NPP_NDVI_Invent_Mike_2May2024.csv", index=False
 all_df.head(2)
 
 # %%
+filename = reOrganized_dir + "NPP_NDVI_Invent_Mike_2May2024.sav"
+
+export_ = {"NPP_NDVI_Invent_Mike_2May2024": all_df, 
+           "source_code" : "subset_data_4_Mike",
+           "Author": "HN",
+           "Date" : datetime.now().strftime('%Y-%m-%d %H:%M:%S')}
+
+pickle.dump(export_, open(filename, 'wb'))
 
 # %%
 
