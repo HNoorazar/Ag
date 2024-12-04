@@ -170,8 +170,8 @@ sns.set_style({'axes.grid' : False})
 DF_plot = DF_inventory_diff_ratio.copy()
 DF_plot = DF_plot[DF_plot["state_fips"].isin(state_fips_west)]
 
-sns.histplot(data=DF_plot["diff_of_logs_of_inv_per_sqKilometer"], ax=axes, bins=30, kde=False);
-# axes[0].grid(axis='y', which='both', zorder=0)
+axes.grid(axis='y', which='both', zorder=0)
+sns.histplot(data=DF_plot["diff_of_logs_of_inv_per_sqKilometer"], ax=axes, bins=30, kde=False, zorder=3);
 
 axes.set_xlabel(r"log$_{t+1}$(inv/sqKilometer) - log$_{t}$(inv/sqKilometer)");
 
@@ -235,12 +235,13 @@ DF_inventory_diff_commonYears.head(2)
 fig, axes = plt.subplots(1, 1, figsize=(4, 2), sharey=False, sharex=False, dpi=dpi_,
                          gridspec_kw={'hspace': .5, 'wspace': .05})
 sns.set_style({'axes.grid' : False})
+axes.grid(axis='y', which='both', zorder=0)
 
 DF_plot = DF_inventory_diff_commonYears.copy()
 DF_plot = DF_plot[DF_plot["state_fips"].isin(state_fips_west)]
 # DF_plot = DF_plot[DF_plot.year.isin(common_years)]
 
-sns.histplot(data=DF_plot["diff_of_logs_of_inv_per_sqKilometer"], ax=axes, bins=30, kde=False);
+sns.histplot(data=DF_plot["diff_of_logs_of_inv_per_sqKilometer"], ax=axes, bins=30, kde=False, zorder=3);
 axes.set_xlabel(r"log$_{t+1}$(inv/sqKilometer) - log$_{t}$(inv/sqKilometer)");
 
 fig.subplots_adjust(top=0.85, bottom=0.15, left=0.052, right=0.981, wspace=-0.2, hspace=0)
@@ -288,74 +289,21 @@ for a_state in DF_NPP.state_fips.unique():
 DF_unitNPP_diff.head(2)
 
 # %%
-curr_DF.loc[curr_DF["year"] == a_year, column_2_diff]
-
-# %%
-cc = "diff_of_logs_of_totalMetricNPP"
-cols_ = ["year", "state_fips", cc]
-DF_totalNPP_diff = pd.DataFrame(columns=cols_)
-
-column_2_diff = "total_matt_npp_kg"
-print (column_2_diff)
-for a_state in DF_NPP.state_fips.unique():
-    curr_DF = DF_NPP[DF_NPP["state_fips"] == a_state].copy()
-    curr_DF.sort_values(by="year", inplace=True)
-    curr_DF.reset_index(drop=True, inplace=True)
-    
-    for a_year in curr_DF.year.unique()[1:]:
-        curr_diff = pd.DataFrame(index=range(1), columns=cols_)
-        curr_diff["state_fips"] = a_state
-        curr_diff["year"] = str(a_year) + "-" + str(a_year-1)
-        
-        curr_diff[cc] = np.log(curr_DF.loc[curr_DF["year"] == a_year, column_2_diff].item()) - \
-                        np.log(curr_DF.loc[curr_DF["year"] == a_year-1, column_2_diff].item())
-
-        DF_totalNPP_diff = pd.concat([DF_totalNPP_diff, curr_diff])
-        
-DF_totalNPP_diff.head(2)
-
-# %%
-curr_DF.loc[curr_DF["year"] == a_year, "unit_matt_npp_kg_per_sq_kilometer"].item() - \
-curr_DF.loc[curr_DF["year"] == a_year-1, "unit_matt_npp_kg_per_sq_kilometer"].item()
-
-# %%
-print (np.log(curr_DF.loc[curr_DF["year"] == a_year, "unit_matt_npp_kg_per_sq_kilometer"].item()))
-print (np.log(curr_DF.loc[curr_DF["year"] == a_year-1, "unit_matt_npp_kg_per_sq_kilometer"].item()))
-
-# %%
-np.log(curr_DF.loc[curr_DF["year"] == a_year, "unit_matt_npp_kg_per_sq_kilometer"].item()) - \
-np.log(curr_DF.loc[curr_DF["year"] == a_year-1, "unit_matt_npp_kg_per_sq_kilometer"].item())
-
-# %%
-curr_DF.loc[curr_DF["year"] == a_year, "total_matt_npp_kg"].item() - \
-curr_DF.loc[curr_DF["year"] == a_year-1, "total_matt_npp_kg"].item()
-
-# %%
-print (np.log(curr_DF.loc[curr_DF["year"] == a_year, "total_matt_npp_kg"].item()))
-print (np.log(curr_DF.loc[curr_DF["year"] == a_year-1, "total_matt_npp_kg"].item()))
-
-# %%
-np.log(curr_DF.loc[curr_DF["year"] == a_year, "total_matt_npp_kg"].item()) - \
-np.log(curr_DF.loc[curr_DF["year"] == a_year-1, "total_matt_npp_kg"].item())
-
-# %%
-DF_NPP_diff = pd.merge(DF_totalNPP_diff, DF_unitNPP_diff, how="left", on=["state_fips", "year"])
-DF_NPP_diff.head(2)
-
-# %%
 fig, axes = plt.subplots(1, 1, figsize=(4, 2), sharey=False, sharex=False, dpi=dpi_,
                          gridspec_kw={'hspace': .5, 'wspace': .05})
 sns.set_style({'axes.grid' : False})
+axes.grid(axis='y', which='both', zorder=0)
 
-
-DF_plot = DF_NPP_diff.copy()
+DF_plot = DF_unitNPP_diff.copy()
 DF_plot = DF_plot[DF_plot["state_fips"].isin(state_fips_west)]
 
-sns.histplot(data=DF_plot["diff_of_logs_of_totalMetricNPP"], ax=axes, bins=30, kde=False);
-axes.set_xlabel(r"diff_of_logs_of_totalMetricNPP");
+sns.histplot(data=DF_plot["diff_of_logs_of_unitMetricNPP"], ax=axes, bins=40, kde=False, zorder=3);
+axes.set_xlabel(r"diff_of_logs_of_unitMetricNPP");
 
 fig.subplots_adjust(top=0.85, bottom=0.15, left=0.052, right=0.981, wspace=-0.2, hspace=0)
 file_name = plot_dir + "log_yield_hist.pdf"
 # plt.savefig(file_name, dpi=400)
+
+# %%
 
 # %%

@@ -5,7 +5,7 @@
 #       extension: .py
 #       format_name: percent
 #       format_version: '1.3'
-#       jupytext_version: 1.16.1
+#       jupytext_version: 1.15.2
 #   kernelspec:
 #     display_name: Python 3 (ipykernel)
 #     language: python
@@ -357,7 +357,7 @@ axes[1][1].legend([veg_type], loc='upper right');
 axes[0][0].set_xlabel(""); axes[0][1].set_xlabel("");
 axes[1][0].set_xlabel("ANPP (mean lb/acr)"); axes[1][1].set_xlabel("ANPP (mean lb/acr)");
 
-fig.suptitle('ANPP distribution', y=0.95, fontsize=18)
+fig.suptitle('ANPP distribution', y=0.93, fontsize=18)
 fig.subplots_adjust(top=0.85, bottom=0.15, left=0.052, right=0.981, wspace=-0.2, hspace=0)
 file_name = bio_plots + "vegType_ANPPDist.pdf"
 plt.savefig(file_name)

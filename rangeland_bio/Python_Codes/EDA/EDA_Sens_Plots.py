@@ -51,8 +51,7 @@ def plot_SF(SF, ax_, cmap_ = "Pastel1", col="EW_meridian"):
 
 
 # %%
-dpi_ = 300
-map_dpi_ = 350
+dpi_, map_dpi_=300, 900
 custom_cmap_coral = ListedColormap(['lightcoral', 'black'])
 custom_cmap_BW = ListedColormap(['white', 'black'])
 cmap_G = cm.get_cmap('Greens') # 'PRGn', 'YlGn'
@@ -152,22 +151,6 @@ visframe_mainLand_west = visframe_mainLand_west[~visframe_mainLand_west.state.is
 
 # %%
 # from mpl_toolkits.axes_grid1 import make_axes_locatable
-# tick_legend_FontSize = 4
-# params = {"legend.fontsize": tick_legend_FontSize,
-#           "axes.labelsize": tick_legend_FontSize * .71,
-#           "axes.titlesize": tick_legend_FontSize * 1,
-#           "xtick.labelsize": tick_legend_FontSize * .7,
-#           "ytick.labelsize": tick_legend_FontSize * .7,
-#           "axes.titlepad": 5,
-#           'legend.handlelength': 2}
-
-# plt.rc("font", family="Palatino")
-# plt.rcParams["xtick.bottom"] = False
-# plt.rcParams["ytick.left"] = False
-# plt.rcParams["xtick.labelbottom"] = False
-# plt.rcParams["ytick.labelleft"] = False
-# plt.rcParams.update(params)
-
 # fig, ax = plt.subplots(1, 1, figsize=(2, 3), sharex=True, sharey=True, dpi=dpi_)
 # plt.title('rangeland polygons on western meridian')
 # # divider = make_axes_locatable(ax)
@@ -194,19 +177,28 @@ bpszone_ANPP_west.head(2)
 font = {"size": 14}
 matplotlib.rc("font", **font)
 tick_legend_FontSize = 15
-params = {"legend.fontsize": tick_legend_FontSize * 1,
+params = {"font.family": "Palatino",
+          "legend.fontsize": tick_legend_FontSize * 1,
           "axes.labelsize": tick_legend_FontSize * 1.2,
           "axes.titlesize": tick_legend_FontSize * 1.2,
           "xtick.labelsize": tick_legend_FontSize * 1.1,
           "ytick.labelsize": tick_legend_FontSize * 1.1,
-          "axes.titlepad": 10}
+          "axes.titlepad": 10,
+          "xtick.bottom": True,
+          "ytick.left": True,
+          "xtick.labelbottom": True,
+          "ytick.labelleft": True}
 
-plt.rc("font", family="Palatino")
-plt.rcParams["xtick.bottom"] = True
-plt.rcParams["ytick.left"] = True
-plt.rcParams["xtick.labelbottom"] = True
-plt.rcParams["ytick.labelleft"] = True
 plt.rcParams.update(params)
+
+# %%
+# drop trend so there is no bug later
+print (ANPP_MK_df.shape)
+ANPP_MK_df.drop(columns=["trend"], inplace=True)
+print (ANPP_MK_df.shape)
+
+# %%
+ANPP_MK_df.columns
 
 # %%
 fig, axes = plt.subplots(3, 1, figsize=(10, 6), sharex=True, 
@@ -222,7 +214,7 @@ target_idx = ANPP_MK_df["sens_slope"].max()
 a_fid = ANPP_MK_df.loc[ANPP_MK_df["sens_slope"] == target_idx, "fid"].values[0]
 
 df = bpszone_ANPP_west[bpszone_ANPP_west.fid == a_fid]
-trend_ = ANPP_MK_df.loc[ANPP_MK_df.fid == a_fid, "trend"].values[0]
+trend_ = ANPP_MK_df.loc[ANPP_MK_df.fid == a_fid, "trend_yue"].values[0]
 slope_ = int(ANPP_MK_df.loc[ANPP_MK_df.fid == a_fid, "sens_slope"].values[0])
 state_ = list(df['state_majority_area'].unique())[0]
 ax1.plot(df.year, df[y_var], linewidth=3);
@@ -251,7 +243,7 @@ target_idx = ANPP_MK_df["sens_slope"].min()
 a_fid = ANPP_MK_df.loc[ANPP_MK_df["sens_slope"] == target_idx, "fid"].values[0]
 
 df = bpszone_ANPP_west[bpszone_ANPP_west.fid == a_fid]
-trend_ = ANPP_MK_df.loc[ANPP_MK_df.fid == a_fid, "trend"].values[0]
+trend_ = ANPP_MK_df.loc[ANPP_MK_df.fid == a_fid, "trend_yue"].values[0]
 slope_ = int(ANPP_MK_df.loc[ANPP_MK_df.fid == a_fid, "sens_slope"].values[0])
 state_ = list(df['state_majority_area'].unique())[0]
 ax2.plot(df.year, df[y_var], linewidth=3);
@@ -275,9 +267,9 @@ ax2.text(2012, y_txt, text_, fontsize = 12);
 ######
 ###### subplot 3
 ###### a location with no trend
-a_fid = ANPP_MK_df.loc[ANPP_MK_df["trend"] == "no trend", "fid"].values[0]
+a_fid = ANPP_MK_df.loc[ANPP_MK_df["trend_yue"] == "no trend", "fid"].values[0]
 df = bpszone_ANPP_west[bpszone_ANPP_west.fid == a_fid]
-trend_ = ANPP_MK_df.loc[ANPP_MK_df.fid == a_fid, "trend"].values[0]
+trend_ = ANPP_MK_df.loc[ANPP_MK_df.fid == a_fid, "trend_yue"].values[0]
 slope_ = int(ANPP_MK_df.loc[ANPP_MK_df.fid == a_fid, "sens_slope"].values[0])
 state_ = list(df['state_majority_area'].unique())[0]
 ax3.plot(df.year, df[y_var], linewidth=3);
@@ -295,7 +287,7 @@ reg_slope = int(ks_result.params["year"].round())
 ax3.plot(X["year"], y_pred, color="red", linewidth=3);
 
 text_ = "trend: {}\nSen's slope {}, reg. slope {}\n{} (fid:{})".format(trend_, slope_, reg_slope, state_, a_fid)
-y_txt = int(df[y_var].max()) - (int(df[y_var].max())/3)
+y_txt = int(df[y_var].max()/1.3)
 ax3.text(2012, y_txt, text_, fontsize = 12);
 # ax3.set_ylim(3000, 4500);
 # plt.subplots_adjust(left=0.9, right=0.92, top=0.92, bottom=0.9)
@@ -321,7 +313,7 @@ fig, axes = plt.subplots(2, 1, figsize=(10, 4), sharex=True,
 # ax1.grid(axis='y', which='both')
 a_fid = 100
 df = bpszone_ANPP_west[bpszone_ANPP_west.fid == a_fid]
-trend_ = ANPP_MK_df.loc[ANPP_MK_df.fid == a_fid, "trend"].values[0]
+trend_ = ANPP_MK_df.loc[ANPP_MK_df.fid == a_fid, "trend_yue"].values[0]
 slope_ = int(ANPP_MK_df.loc[ANPP_MK_df.fid == a_fid, "sens_slope"].values[0])
 state_ = list(df['state_majority_area'].unique())[0]
 ax1.plot(df.year, df[y_var], linewidth=3);
@@ -379,10 +371,10 @@ file_name = bio_plots + "robustSensSlope.pdf"
 plt.savefig(file_name)
 
 # %%
-np.sort(ANPP_MK_df.loc[ANPP_MK_df["trend"] == "increasing", "sens_slope"])[:10]
+np.sort(ANPP_MK_df.loc[ANPP_MK_df["trend_yue"] == "increasing", "sens_slope"])[:10]
 
 # %%
-np.sort(ANPP_MK_df.loc[ANPP_MK_df["trend"] == "increasing", "sens_slope"])[-10:]
+np.sort(ANPP_MK_df.loc[ANPP_MK_df["trend_yue"] == "increasing", "sens_slope"])[-10:]
 
 # %% [markdown]
 # ### Plot everything and color based on slope
@@ -390,37 +382,40 @@ np.sort(ANPP_MK_df.loc[ANPP_MK_df["trend"] == "increasing", "sens_slope"])[-10:]
 # %%
 
 # %%
-tick_legend_FontSize = 6
-params = {"legend.fontsize": tick_legend_FontSize,
+tick_legend_FontSize = 5
+params = {"font.family": "Palatino",
+          "legend.fontsize": tick_legend_FontSize,
           "axes.labelsize": tick_legend_FontSize * .71,
           "axes.titlesize": tick_legend_FontSize * 1,
           "xtick.labelsize": tick_legend_FontSize * .7,
           "ytick.labelsize": tick_legend_FontSize * .7,
           "axes.titlepad": 5,
-          'legend.handlelength': 2}
+          "legend.handlelength": 2,
+          "xtick.bottom": False,
+          "ytick.left": False,
+          "xtick.labelbottom": False,
+          "ytick.labelleft": False}
 
-plt.rc("font", family="Palatino")
-plt.rcParams["xtick.bottom"] = False
-plt.rcParams["ytick.left"] = False
-plt.rcParams["xtick.labelbottom"] = False
-plt.rcParams["ytick.labelleft"] = False
 plt.rcParams.update(params)
 
 # %%
-fig, ax = plt.subplots(1,1, figsize=(3, 3), sharex=True, sharey=True, dpi=map_dpi_)
-ax.set_xticks([]); ax.set_yticks([])
+Albers_SF_west.head(2)
 
-plot_SF(SF=visframe_mainLand_west, ax_=ax, col="EW_meridian", cmap_=ListedColormap(['dodgerblue', 'white']))
-cent_plt = Albers_SF_west.plot(column='sens_slope', legend=False, ax=ax, cmap = cm.get_cmap('RdYlGn'))
-cbar1 = fig.colorbar(cent_plt.collections[1], ax=ax, orientation='vertical', shrink=0.3, 
-                     cmap = cm.get_cmap('RdYlGn'))
-cbar1.set_label(r"Sen's slope")
-plt.title(r"rangeland trends (Sen's slope)")
+# %%
+# fig, ax = plt.subplots(1,1, figsize=(3, 3), sharex=True, sharey=True, dpi=map_dpi_)
+# ax.set_xticks([]); ax.set_yticks([])
 
-# plt.tight_layout()
-fig.subplots_adjust(top=0.91, bottom=0.01, left=0.01, right=0.981)
-file_name = bio_plots + "sensSlopes.png"
-plt.savefig(file_name)
+# plot_SF(SF=visframe_mainLand_west, ax_=ax, col="EW_meridian", cmap_=ListedColormap(['dodgerblue', 'white']))
+# cent_plt = Albers_SF_west.plot(column='sens_slope', legend=False, ax=ax, cmap = cm.get_cmap('RdYlGn'))
+# cbar1 = fig.colorbar(cent_plt.collections[1], ax=ax, orientation='vertical', shrink=0.3, 
+#                      cmap = cm.get_cmap('RdYlGn'))
+# cbar1.set_label(r"Sen's slope")
+# plt.title(r"rangeland trends (Sen's slope)")
+
+# # plt.tight_layout()
+# fig.subplots_adjust(top=0.91, bottom=0.01, left=0.01, right=0.981)
+# file_name = bio_plots + "sensSlopes.png"
+# plt.savefig(file_name)
 
 # %% [markdown]
 # In order to have the center at ```yellow``` we manipulated ```vmin``` and ```vmax```.
@@ -430,7 +425,31 @@ plt.savefig(file_name)
 # ```norm = colors.MidpointNormalize(midpoint=midpoint, vmin=data.min(), vmax=data.max())```?
 
 # %%
-fig, ax = plt.subplots(1, 1, figsize=(3, 3), sharex=True, sharey=True, dpi=map_dpi_)
+map_dpi_
+
+# %%
+# fig, ax = plt.subplots(1, 1, figsize=(2, 2), sharex=True, sharey=True, dpi=map_dpi_)
+# ax.set_xticks([]); ax.set_yticks([])
+
+# min_max = max(np.abs(Albers_SF_west['sens_slope'].min()), np.abs(Albers_SF_west['sens_slope'].max()))
+# norm1 = Normalize(vmin = -min_max, vmax = min_max, clip=True)
+
+# plot_SF(SF=visframe_mainLand_west, ax_=ax, col="EW_meridian", cmap_=ListedColormap(['dodgerblue', 'white']))
+
+# cent_plt = Albers_SF_west.plot(column='sens_slope', ax=ax, legend=False,
+#                                cmap = cm.get_cmap('RdYlGn'), norm=norm1)
+# cbar1 = fig.colorbar(cent_plt.collections[1], ax=ax, orientation='vertical', shrink=0.3, 
+#                      cmap = cm.get_cmap('RdYlGn'), norm=norm1)
+# cbar1.set_label(r"Sen's slope")
+# plt.title("rangeland trends (Sen's slope) - all locations")
+
+# # plt.tight_layout()
+# fig.subplots_adjust(top=0.91, bottom=0.01, left=0.01, right=0.981)
+# file_name = bio_plots + "sensSlopes_centerColorBar.png"
+# plt.savefig(file_name, dpi=450)
+
+# %%
+fig, ax = plt.subplots(1, 1, figsize=(2, 2), sharex=True, sharey=True, dpi=map_dpi_)
 ax.set_xticks([]); ax.set_yticks([])
 
 min_max = max(np.abs(Albers_SF_west['sens_slope'].min()), np.abs(Albers_SF_west['sens_slope'].max()))
@@ -440,15 +459,22 @@ plot_SF(SF=visframe_mainLand_west, ax_=ax, col="EW_meridian", cmap_=ListedColorm
 
 cent_plt = Albers_SF_west.plot(column='sens_slope', ax=ax, legend=False,
                                cmap = cm.get_cmap('RdYlGn'), norm=norm1)
-cbar1 = fig.colorbar(cent_plt.collections[1], ax=ax, orientation='vertical', shrink=0.3, 
-                     cmap = cm.get_cmap('RdYlGn'), norm=norm1)
-cbar1.set_label(r"Sen's slope")
-plt.title("rangeland trends (Sen's slope)")
+
+# first two arguments are x and y of the legend 
+# on the left side of it. The last two are length and width 
+# of the bar
+cax = ax.inset_axes([0.08, 0.18, 0.45, 0.03])
+cbar1 = fig.colorbar(cent_plt.collections[1], ax=ax, orientation='horizontal', shrink=0.3, 
+                     cmap=cm.get_cmap('RdYlGn'), norm=norm1, cax=cax)
+cbar1.set_label(r"Sen's slope", labelpad=1)
+plt.title("Sen's slope - all locations")
 
 # plt.tight_layout()
-fig.subplots_adjust(top=0.91, bottom=0.01, left=0.01, right=0.981)
+# fig.subplots_adjust(top=0.91, bottom=0.01, left=-0.1, right=1)
 file_name = bio_plots + "sensSlopes_centerColorBar.png"
-plt.savefig(file_name)
+plt.savefig(file_name, bbox_inches='tight', dpi=map_dpi_)
+
+del(cent_plt, cax, cbar1, norm1, min_max)
 
 # %%
 
@@ -458,61 +484,56 @@ plt.savefig(file_name)
 # The labels seem tobe based on p-values. increasing means **```p-value < 0.05```**.
 
 # %%
-print (ANPP_MK_df[ANPP_MK_df["trend"] == "increasing"]["p"].max())
-print (ANPP_MK_df[ANPP_MK_df["trend"] == "increasing"]["p"].min())
+print (ANPP_MK_df[ANPP_MK_df["trend_yue"] == "increasing"]["p"].max())
+print (ANPP_MK_df[ANPP_MK_df["trend_yue"] == "increasing"]["p"].min())
 
 # %%
-Albers_SF_west_increase = Albers_SF_west[Albers_SF_west["trend"] == "increasing"]
+Albers_SF_west.columns
 
 # %%
-tick_legend_FontSize = 6
-params = {"legend.fontsize": tick_legend_FontSize,
-          "axes.labelsize": tick_legend_FontSize * .71,
-          "axes.titlesize": tick_legend_FontSize * 1,
-          "xtick.labelsize": tick_legend_FontSize * .7,
-          "ytick.labelsize": tick_legend_FontSize * .7,
-          "axes.titlepad": 5,
-          'legend.handlelength': 2}
-
-plt.rc("font", family="Palatino")
-plt.rcParams["xtick.bottom"] = False
-plt.rcParams["ytick.left"] = False
-plt.rcParams["xtick.labelbottom"] = False
-plt.rcParams["ytick.labelleft"] = False
-plt.rcParams.update(params)
+# Update Dec. 3, 2024. Add Yue's new locations to this plot
+Albers_SF_west_increase = Albers_SF_west[Albers_SF_west["trend_yue"] == "increasing"]
+Albers_SF_west_increase.shape
 
 # %%
 
 # %%
-fig, ax = plt.subplots(1, 1, figsize=(3, 3), sharex=True, sharey=True, dpi=map_dpi_)
+fig, ax = plt.subplots(1, 1, figsize=(2, 2), sharex=True, sharey=True, dpi=map_dpi_)
 ax.set_xticks([]); ax.set_yticks([])
 
 plot_SF(SF=visframe_mainLand_west, ax_=ax, col="EW_meridian", cmap_="Pastel1")
 cent_plt = Albers_SF_west_increase.plot(column='sens_slope', ax=ax)
 
-cbar1 = fig.colorbar(cent_plt.collections[1], ax=ax, orientation='vertical', shrink=0.5)
-cbar1.set_label(r"Sen's slope")
-plt.title(r"rangelands with greening trends")
-# plt.tight_layout()
-# plt.show();
-fig.subplots_adjust(top=0.91, bottom=0.01, left=0.01, right=0.981)
+cax = ax.inset_axes([0.03, 0.18, 0.5, 0.03])
+# cbar1 = fig.colorbar(cent_plt.collections[1], ax=ax, orientation='vertical', shrink=0.5)
+cbar1 = fig.colorbar(cent_plt.collections[1], ax=ax, orientation='horizontal', shrink=0.3, cax=cax)
+cbar1.set_label(r"Sen's slope", labelpad=1)
+plt.title("Sen's slope - greening locations")
+
+# fig.subplots_adjust(top=0.91, bottom=0.01, left=0.01, right=0.981)
 file_name = bio_plots + "greening_sensSlope.png"
-plt.savefig(file_name)
+plt.savefig(file_name, bbox_inches='tight', dpi=map_dpi_)
+
+del(cent_plt, cax, cbar1)
 
 # %%
 
 # %%
-fig, ax = plt.subplots(1,1, figsize=(3, 3), sharex=True, sharey=True, dpi=map_dpi_)
+fig, ax = plt.subplots(1,1, figsize=(2, 2), sharex=True, sharey=True, dpi=map_dpi_)
 ax.set_xticks([]); ax.set_yticks([])
 
 plot_SF(SF=visframe_mainLand_west, ax_=ax, col="EW_meridian", cmap_=ListedColormap(['white', 'black']))
 cent_plt = Albers_SF_west_increase.plot(column='Tau', ax=ax, cmap=cm.get_cmap('RdYlGn'))
-cbar1 = fig.colorbar(cent_plt.collections[1], ax=ax, orientation='vertical', shrink=0.5)
-cbar1.set_label(r"Kendall's $\tau$")
-plt.title(r"rangelands with greening trends (Kendall's $\tau$)")
+
+cax = ax.inset_axes([0.03, 0.18, 0.5, 0.03])
+# cbar1 = fig.colorbar(cent_plt.collections[1], ax=ax, orientation='vertical', shrink=0.5)
+cbar1 = fig.colorbar(cent_plt.collections[1], ax=ax, orientation='horizontal', shrink=0.3, cax=cax)
+cbar1.set_label(r"Kendall's $\tau$", labelpad=1)
+plt.title(r"Kendall's $\tau$ - greening locations")
 
 plt.tight_layout()
 plt.show();
+del(cent_plt, cax, cbar1)
 
 # %%
 
@@ -525,30 +546,40 @@ Albers_SF_west.head(2)
 
 # %%
 Albers_SF_west_spearmanP5 = Albers_SF_west[(Albers_SF_west["Spearman"] > 0) & 
-                                            (Albers_SF_west["p_valueSpearman"] < 0.05)]
+                                           (Albers_SF_west["p_Spearman"] < 0.05)]
 
 
 # %%
-fig, axes = plt.subplots(1, 1, figsize=(3, 3), sharex=True, sharey=True, dpi=map_dpi_)
+fig, axes = plt.subplots(1, 1, figsize=(2, 2), sharex=True, sharey=True, dpi=map_dpi_)
 axes.set_xticks([]); axes.set_yticks([])
 
 plot_SF(SF=visframe_mainLand_west, ax_=axes, cmap_ = "Pastel1", col="EW_meridian")
 spearman_plot_s = Albers_SF_west_spearmanP5.plot(column='Spearman', ax=axes)
 
 # Add colorbar for Spearman's plot
-cbar1 = fig.colorbar(spearman_plot_s.collections[1], ax=axes, orientation='vertical', shrink=0.6)
-cbar1.set_label('Spearman\'s rank')
+# cbar1 = fig.colorbar(spearman_plot_s.collections[1], ax=axes, orientation='vertical', shrink=0.6)
+cax = axes.inset_axes([0.03, 0.18, 0.5, 0.03])
+cbar1 = fig.colorbar(spearman_plot_s.collections[1], ax=axes, orientation='horizontal', shrink=0.3, cax=cax)
+cbar1.set_label('Spearman\'s rank', labelpad=1)
 
-axes.set_title("rangelands with greening trends (Spearman's rank)")
+axes.set_title("Spearman's rank - greening locations")
 plt.tight_layout()
 plt.show();
+
+del(spearman_plot_s, cax, cbar1)
+
+# %%
+
+# %%
 
 # %%
 Albers_SF_west.head(2)
 
 # %%
+
+# %%
 # Creating the figure and axes
-fig, axes = plt.subplots(1, 1, figsize=(3, 3), sharex=True, sharey=True, dpi=map_dpi_)
+fig, axes = plt.subplots(1, 1, figsize=(2, 2), sharex=True, sharey=True, dpi=map_dpi_)
 axes.set_xticks([]); axes.set_yticks([])
 
 plot_SF(SF=visframe_mainLand_west, ax_=axes, cmap_ = "Pastel1", col="EW_meridian")
@@ -557,34 +588,42 @@ Albers_SF_west_median_diff_increase = Albers_SF_west[Albers_SF_west["median_ANPP
 plot_s = Albers_SF_west_median_diff_increase.plot(column='median_ANPP_change_as_perc', ax=axes)
 
 # Add colorbar for Spearman's plot
-cbar1 = fig.colorbar(plot_s.collections[1], ax=axes, orientation='vertical', shrink=0.6)
-cbar1.set_label('median ANPP change %')
+# cbar1 = fig.colorbar(plot_s.collections[1], ax=axes, orientation='vertical', shrink=0.6)
+cax = axes.inset_axes([0.03, 0.18, 0.5, 0.03])
+cbar1 = fig.colorbar(plot_s.collections[1], ax=axes, orientation='horizontal', shrink=0.3, cax=cax)
+cbar1.set_label('median ANPP change %', labelpad=1)
 
-axes.set_title(r"greening trends. median ANPP change %")
+axes.set_title(r"greening trends (median_ANPP_change_as_perc > 0)")
 
 fig.subplots_adjust(top=0.91, bottom=0.01, left=0.01, right=0.981, hspace=0.05, wspace=0.05)
 file_name = bio_plots + "medianNPP_percChange.png"
-plt.savefig(file_name)
+plt.savefig(file_name, bbox_inches='tight', dpi=map_dpi_)
+
+del(plot_s, cax, cbar1)
 
 # %%
-
-# %%
-fig, axes = plt.subplots(1, 1, figsize=(3, 3), sharex=True, sharey=True, dpi=map_dpi_)
+fig, axes = plt.subplots(1, 1, figsize=(2, 2), sharex=True, sharey=True, dpi=map_dpi_)
 axes.set_xticks([]); axes.set_yticks([])
 
 plot_SF(SF=visframe_mainLand_west, ax_=axes, cmap_ = "Pastel1", col="EW_meridian")
 
 Albers_SF_west_median_diff_increase = Albers_SF_west[Albers_SF_west["median_ANPP_change_as_perc"] > 0].copy()
-plot_s = Albers_SF_west_median_diff_increase.plot(column='median_ANPP_change_as_perc', ax=axes,
-                                                  cmap=cmap_G)
+plot_s = Albers_SF_west_median_diff_increase.plot(column='median_ANPP_change_as_perc', ax=axes, cmap=cmap_G)
+
 # Add colorbar for Spearman's plot
-cbar1 = fig.colorbar(plot_s.collections[1], ax=axes, orientation='vertical', shrink=0.6)
-cbar1.set_label('median ANPP change %')
-axes.set_title(r"greening trends. median ANPP change %")
+# cbar1 = fig.colorbar(plot_s.collections[1], ax=axes, orientation='vertical', shrink=0.6)
+# cbar1.set_label('median ANPP change %')
+####
+cax = axes.inset_axes([0.03, 0.18, 0.5, 0.03])
+cbar1 = fig.colorbar(plot_s.collections[1], ax=axes, orientation='horizontal', shrink=0.3, cax=cax)
+cbar1.set_label('median ANPP change %', labelpad=1)
+#####
+axes.set_title(r"greening trends (median_ANPP_change_as_perc > 0)")
 
 fig.subplots_adjust(top=0.91, bottom=0.01, left=0.01, right=0.981, hspace=0.05, wspace=0.05)
 file_name = bio_plots + "medianNPP_percChange_GreenCmap.png"
-plt.savefig(file_name)
+plt.savefig(file_name, bbox_inches='tight', dpi=map_dpi_)
+del(plot_s, cax, cbar1)
 
 # %%
 
@@ -599,8 +638,11 @@ params = {"legend.fontsize": tick_legend_FontSize,
           "axes.titlesize": tick_legend_FontSize * 1,
           "xtick.labelsize": tick_legend_FontSize * 0.7,
           "ytick.labelsize": tick_legend_FontSize * 0.7,
-          "axes.titlepad": 5,    'legend.handlelength': 2}
+          "axes.titlepad": 5, 
+          "legend.handlelength": 2}
 plt.rcParams.update(params)
+
+# %%
 
 # %%
 fig, axes = plt.subplots(1, 2, figsize=(8, 4), sharex=True, sharey=True, dpi=map_dpi_)
@@ -611,32 +653,38 @@ ax2.set_xticks([]); ax2.set_yticks([])
 plot_SF(SF=visframe_mainLand_west, ax_=ax1, col="EW_meridian", cmap_=ListedColormap(['dodgerblue', 'white']))
 plot_SF(SF=visframe_mainLand_west, ax_=ax2, col="EW_meridian", cmap_=ListedColormap(['dodgerblue', 'white']))
 ###############################################################
-cent_plt = Albers_SF_west.plot(column='sens_slope', legend=False, ax=ax1, cmap = cm.get_cmap('RdYlGn'))
-cbar1 = fig.colorbar(cent_plt.collections[1], ax=ax1, orientation='vertical', shrink=0.3, 
-                     cmap = cm.get_cmap('RdYlGn'))
-cbar1.set_label(r"Sen's slope")
+p1 = Albers_SF_west.plot(column='sens_slope', legend=False, ax=ax1, cmap = cm.get_cmap('RdYlGn'))
+
+cax1 = ax1.inset_axes([0.03, 0.18, 0.5, 0.03])
+cbar1 = fig.colorbar(p1.collections[1], ax=ax1, orientation='horizontal', shrink=0.3, 
+                     cmap=cm.get_cmap('RdYlGn'), cax=cax1)
+cbar1.set_label(r"Sen's slope", labelpad=1)
 ###############################################################
 
 min_max = max(np.abs(Albers_SF_west['sens_slope'].min()), np.abs(Albers_SF_west['sens_slope'].max()))
 norm1 = Normalize(vmin = -min_max, vmax = min_max, clip=True)
-cent_plt = Albers_SF_west.plot(column='sens_slope', ax=ax2, legend=False,
+p2 = Albers_SF_west.plot(column='sens_slope', ax=ax2, legend=False,
                                cmap = cm.get_cmap('RdYlGn'), norm=norm1)
 
-cbar2 = fig.colorbar(cent_plt.collections[1], ax=ax2, orientation='vertical', shrink=0.3, 
-                     cmap = cm.get_cmap('RdYlGn'), norm=norm1)
-cbar2.set_label(r"Sen's slope")
+cax2 = ax2.inset_axes([0.03, 0.18, 0.5, 0.03])
+cbar2 = fig.colorbar(p2.collections[1], ax=ax2, orientation='horizontal', shrink=0.3, 
+                     cmap = cm.get_cmap('RdYlGn'), norm=norm1, cax=cax2)
+cbar2.set_label(r"Sen's slope", labelpad=1)
 
 # plt.tight_layout();
 # plt.show();
-fig.subplots_adjust(top=0.91, bottom=0.01, left=0.01, right=0.981, hspace=0.05, wspace=0.05)
+fig.subplots_adjust(top=0.91, bottom=0.01, left=0.01, right=0.981, hspace=0.01, wspace=-0.2)
 file_name = bio_plots + "sensSlopes_2colorbars.png"
-plt.savefig(file_name)
+# plt.savefig(file_name, bbox_inches='tight', dpi=map_dpi_)
+
+del(p1, p2, cax2, cax1, cbar1, cbar2, norm1, min_max)
 
 # %%
 
 # %%
 # Creating the figure and axes
-fig, axes = plt.subplots(1, 2, figsize=(8, 4), sharex=True, sharey=True, dpi=map_dpi_)
+fig, axes = plt.subplots(1, 2, figsize=(8, 4), sharex=True, sharey=True, dpi=map_dpi_,
+                         gridspec_kw={"hspace": 0.15, "wspace": 0.01})
 (ax1, ax2) = axes
 ax1.set_xticks([]); ax1.set_yticks([])
 ax2.set_xticks([]); ax2.set_yticks([])
@@ -666,7 +714,9 @@ fig.colorbar(p1.get_children()[1], cax=cax, orientation='vertical')
 # plt.show();
 
 file_name = bio_plots + "Spearman_tau.png"
-plt.savefig(file_name);
+plt.savefig(file_name, bbox_inches='tight', dpi=map_dpi_);
+
+del(p1, p2, cax, norm_col, min_col_, max_col_)
 
 # %%
 
@@ -699,6 +749,7 @@ plt.savefig(file_name);
 # # plt.tight_layout()
 # fig.subplots_adjust(top=0.91, bottom=0.01, left=0.01, right=0.981, hspace=0.01, wspace=0.01)
 # # plt.show();
+# del(norm_col)
 # # file_name = bio_plots + "Sens_MedianDiffSlope.pdf"
 # # plt.savefig(file_name);
 
@@ -713,7 +764,8 @@ max_col_ = max(Albers_SF_west_increase['sens_slope'].max(),
                Albers_SF_west_median_diff_increase['medians_diff_slope_ANPP'].max())
 norm_col = Normalize(vmin= min_col_, vmax = max_col_);
 
-fig, axes = plt.subplots(1, 2, figsize=(8, 4), sharex=True, sharey=True, dpi=map_dpi_)
+fig, axes = plt.subplots(1, 2, figsize=(8, 4), sharex=True, sharey=True, dpi=map_dpi_,
+                         gridspec_kw={"hspace": 0.15, "wspace": 0.01})
 (ax1, ax2) = axes
 ax1.set_xticks([]); ax1.set_yticks([])
 ax2.set_xticks([]); ax2.set_yticks([])
@@ -735,7 +787,9 @@ fig.colorbar(p1.get_children()[1], cax=cax, orientation='vertical')
 # plt.tight_layout()
 # plt.show();
 file_name = bio_plots + "Sens_MedianDiffSlope.png"
-plt.savefig(file_name);
+plt.savefig(file_name, bbox_inches='tight', dpi=map_dpi_);
+
+del(p1, p2, cax, norm_col, min_col_, max_col_)
 
 # %% [markdown]
 # # Investigate large change in median diff
@@ -756,18 +810,17 @@ matplotlib.rc_file_defaults()
 font = {"size": 14}
 matplotlib.rc("font", **font)
 tick_legend_FontSize = 10
-params = {"legend.fontsize": tick_legend_FontSize * 1.2,
+params = {"font.family": "Palatino",
+          "legend.fontsize": tick_legend_FontSize * 1.2,
           "axes.labelsize": tick_legend_FontSize * 1.2,
           "axes.titlesize": tick_legend_FontSize * 1.2,
           "xtick.labelsize": tick_legend_FontSize * 1.1,
           "ytick.labelsize": tick_legend_FontSize * 1.1,
-          "axes.titlepad": 10}
-
-plt.rc("font", family="Palatino")
-plt.rcParams["xtick.bottom"] = True
-plt.rcParams["ytick.left"] = True
-plt.rcParams["xtick.labelbottom"] = True
-plt.rcParams["ytick.labelleft"] = True
+          "axes.titlepad": 10,
+          "xtick.bottom": True,
+          "ytick.left": True,
+          "xtick.labelbottom": True,
+          "ytick.labelleft": True}
 plt.rcParams.update(params)
 
 # %%
@@ -777,7 +830,7 @@ fig, axes = plt.subplots(1, 1, figsize=(10, 3), sharex=True,
 axes.grid(axis='y', which='both')
 
 df = bpszone_ANPP_west[bpszone_ANPP_west.fid == a_fid]
-trend_ = ANPP_MK_df.loc[ANPP_MK_df.fid == a_fid, "trend"].values[0]
+trend_ = ANPP_MK_df.loc[ANPP_MK_df.fid == a_fid, "trend_yue"].values[0]
 slope_ = int(ANPP_MK_df.loc[ANPP_MK_df.fid == a_fid, "sens_slope"].values[0])
 state_ = list(df['state_majority_area'].unique())[0]
 axes.plot(df.year, df[y_var], linewidth=3);
@@ -805,26 +858,24 @@ axes.set_title("Maximum change (%) in ANPP median")
 # plt.tight_layout()
 # plt.show();
 file_name = bio_plots + "maxPercChangeANPPmediands.pdf"
-plt.savefig(file_name)
+plt.savefig(file_name, bbox_inches='tight', dpi=map_dpi_);
 
 
 # %%
 
 # %%
 tick_legend_FontSize = 10
-params = {"legend.fontsize": tick_legend_FontSize * 1.2,
+params = {"font.family": "Palatino",
+          "legend.fontsize": tick_legend_FontSize * 1.2,
           "axes.labelsize": tick_legend_FontSize * 1.2,
           "axes.titlesize": tick_legend_FontSize * 1.2,
           "xtick.labelsize": tick_legend_FontSize * 1.1,
           "ytick.labelsize": tick_legend_FontSize * 1.1,
-          "axes.titlepad": 10}
-
-plt.rc("font", family="Palatino")
-plt.rcParams["ytick.left"] = True
-plt.rcParams["ytick.labelleft"] = True
-plt.rcParams["xtick.bottom"] = False
-plt.rcParams["xtick.labelbottom"] = True
-
+          "axes.titlepad": 10,
+          "ytick.left":True,
+          "ytick.labelleft":True,
+          "xtick.bottom":False,
+          "xtick.labelbottom":True}
 plt.rcParams.update(params)
 
 # %%
@@ -855,14 +906,16 @@ axes[2].set_xlabel(""); axes[3].set_xlabel(""); axes[4].set_xlabel("");
 # plt.tight_layout()
 # plt.show();
 file_name = bio_plots + "trend_distributions.pdf"
-plt.savefig(file_name)
+plt.savefig(file_name, bbox_inches='tight', dpi=map_dpi_);
 
 # %% [markdown]
 # # Same plot as above. Just pick the ones with low p-value
 
 # %%
-significant_sens = Albers_SF_west[Albers_SF_west["trend"].isin(["increasing", "decreasing"])].copy()
-significant_spearman = Albers_SF_west[Albers_SF_west["p_valueSpearman"] < 0.05].copy()
+
+# %%
+significant_sens = Albers_SF_west[Albers_SF_west["trend_yue"].isin(["increasing", "decreasing"])].copy()
+significant_spearman = Albers_SF_west[Albers_SF_west["p_Spearman"] < 0.05].copy()
 
 # %%
 fig, axes = plt.subplots(3, 1, figsize=(10, 8), sharey=False, sharex=False, dpi=dpi_)
@@ -891,7 +944,7 @@ axes[0].set_xlabel(""); axes[1].set_xlabel(""); axes[2].set_xlabel("");
 # plt.tight_layout()
 # plt.show();
 file_name = bio_plots + "trend_distributions_significant.pdf"
-plt.savefig(file_name)
+plt.savefig(file_name, bbox_inches='tight', dpi=map_dpi_);
 
 # %% [markdown]
 # # Outliers of Spearman's?
@@ -910,17 +963,17 @@ significant_spearman.loc[max_spearman_fid]
 # after seaborn, things get messed up. Fix them:
 matplotlib.rc_file_defaults()
 tick_legend_FontSize = 10
-params = {"legend.fontsize": tick_legend_FontSize * 1.2,
+params = {"font.family": "Palatino",
+          "legend.fontsize": tick_legend_FontSize * 1.2,
           "axes.labelsize": tick_legend_FontSize * 1.2,
           "axes.titlesize": tick_legend_FontSize * 1.2,
           "xtick.labelsize": tick_legend_FontSize * 1.1,
           "ytick.labelsize": tick_legend_FontSize * 1.1,
-          "axes.titlepad": 10}
-plt.rc("font", family="Palatino")
-plt.rcParams["xtick.bottom"] = True
-plt.rcParams["ytick.left"] = True
-plt.rcParams["xtick.labelbottom"] = True
-plt.rcParams["ytick.labelleft"] = True
+          "axes.titlepad": 10,
+          "xtick.bottom": True
+          "ytick.left": True
+          "xtick.labelbottom": True
+          "ytick.labelleft": True}
 plt.rcParams.update(params)
 
 # %%
@@ -930,7 +983,7 @@ fig, axes = plt.subplots(1, 1, figsize=(10, 3), sharex=True,
 axes.grid(axis='y', which='both')
 
 df = bpszone_ANPP_west[bpszone_ANPP_west.fid == a_fid]
-trend_ = ANPP_MK_df.loc[ANPP_MK_df.fid == a_fid, "trend"].values[0]
+trend_ = ANPP_MK_df.loc[ANPP_MK_df.fid == a_fid, "trend_yue"].values[0]
 slope_ = int(ANPP_MK_df.loc[ANPP_MK_df.fid == a_fid, "sens_slope"].values[0])
 state_ = list(df['state_majority_area'].unique())[0]
 axes.plot(df.year, df[y_var], linewidth=3);
@@ -994,16 +1047,17 @@ params = {"legend.fontsize": tick_legend_FontSize,
           "axes.titlesize": tick_legend_FontSize * 1,
           "xtick.labelsize": tick_legend_FontSize * 0.7,
           "ytick.labelsize": tick_legend_FontSize * 0.7,
-          "axes.titlepad": 5,    'legend.handlelength': 2}
+          "axes.titlepad": 5,
+          "legend.handlelength": 2}
 plt.rcParams.update(params)
 
 # %%
-print (Albers_SF_west["trend"].unique())
+print (Albers_SF_west["trend_yue"].unique())
 Albers_SF_west.head(2)
 
 # %%
-no_trend_df = Albers_SF_west[Albers_SF_west["trend"] == "no trend"].copy()
-green_df_MK_based = Albers_SF_west[Albers_SF_west["trend"] == "increasing"].copy()
+no_trend_df = Albers_SF_west[Albers_SF_west["trend_yue"] == "no trend"].copy()
+green_df_MK_based = Albers_SF_west[Albers_SF_west["trend_yue"] == "increasing"].copy()
 
 # %%
 
@@ -1018,8 +1072,8 @@ fig, axes = plt.subplots(1, 2, figsize=(8, 4), sharex=True, sharey=True, dpi=map
 ax1.set_xticks([]); ax1.set_yticks([])
 ax2.set_xticks([]); ax2.set_yticks([])
 ####### Spearman's rank plot
-plot_SF(SF = visframe_mainLand_west, cmap_="Pastel1", ax_ = ax1, col="EW_meridian")
-plot_SF(SF = visframe_mainLand_west, cmap_="Pastel1", ax_ = ax2, col="EW_meridian")
+plot_SF(SF = visframe_mainLand_west, cmap_="Pastel1", ax_=ax1, col="EW_meridian")
+plot_SF(SF = visframe_mainLand_west, cmap_="Pastel1", ax_=ax2, col="EW_meridian")
 
 p1 = no_trend_df.plot(column='Spearman', ax=ax1, cmap=cmap_G, norm=norm1)
 ax1.set_title("no trend locations (Spearman's rank - MK based)")
@@ -1035,6 +1089,7 @@ fig.subplots_adjust(top=0.91, bottom=0.08, left=0.082, right=0.981, wspace=-0.1,
 # plt.tight_layout();
 
 plt.show();
+del(p1, p2, cax, norm1, min_color, max_color)
 
 # %%
 
@@ -1066,6 +1121,8 @@ fig.colorbar(p1.get_children()[1], cax=cax, orientation='vertical')
 
 plt.show();
 
+del(p1, p2, cax, norm_colorB, min_color, max_color)
+
 # %%
 
 # %%
@@ -1093,7 +1150,9 @@ cax = ax2.inset_axes([1.05, 0.3, 0.04, 0.4])
 fig.colorbar(p1.get_children()[1], cax=cax, orientation='vertical')
 # fig.colorbar(p1.get_children()[1], ax=axes,  fraction=0.02, orientation='horizontal', location="bottom")
 # plt.tight_layout()
+del(norm_colorB)
 plt.show();
+del(p1, p2, cax)
 
 # %%
 
@@ -1123,42 +1182,53 @@ cax = ax2.inset_axes([1.05, 0.3, 0.04, 0.4])
 fig.colorbar(p1.get_children()[1], cax=cax, orientation='vertical')
 # fig.colorbar(p1.get_children()[1], ax=axes,  fraction=0.02, orientation='horizontal', location="bottom")
 # plt.tight_layout()
+del(norm_colorB)
 plt.show();
 
+del(p1, p2, cax)
+
 # %%
-tick_legend_FontSize = 6
-params = {"legend.fontsize": tick_legend_FontSize,
+tick_legend_FontSize = 5
+params = {"font.family": "Palatino",
+          "legend.fontsize": tick_legend_FontSize,
           "axes.labelsize": tick_legend_FontSize * .71,
           "axes.titlesize": tick_legend_FontSize * 1,
           "xtick.labelsize": tick_legend_FontSize * .7,
           "ytick.labelsize": tick_legend_FontSize * .7,
           "axes.titlepad": 5,
-          'legend.handlelength': 2}
-
-plt.rc("font", family="Palatino")
-plt.rcParams["xtick.bottom"] = False
-plt.rcParams["ytick.left"] = False
-plt.rcParams["xtick.labelbottom"] = False
-plt.rcParams["ytick.labelleft"] = False
+          "legend.handlelength": 2,
+          "xtick.bottom" : False,
+          "ytick.left" : False,
+          "xtick.labelbottom": False,
+          "ytick.labelleft": False}
 plt.rcParams.update(params)
 
 # %%
-fig, axes = plt.subplots(1, 1, figsize=(3, 3), sharex=True, sharey=True, dpi=dpi_)
+fig, axes = plt.subplots(1, 1, figsize=(2, 2), sharex=True, sharey=True, dpi=map_dpi_)
 axes.set_xticks([]); axes.set_yticks([])
 ####### States
 plot_SF(SF = visframe_mainLand_west, cmap_="Pastel1", ax_=axes, col="EW_meridian")
 ####################################################################################
 p1 = no_trend_df.plot(column='Tau', ax=axes, cmap=cmap_R, legend=False)
 p2 = green_df_MK_based.plot(column='Tau', ax = axes, cmap=cmap_G, legend=False)
+
+cax1 = axes.inset_axes([1, 0.00, 0.03, 0.45])
+cax2 = axes.inset_axes([1, 0.55, 0.03, 0.45])
+
+cbar1 = fig.colorbar(p1.collections[1], ax=axes, orientation='vertical', shrink=0.3, cmap=cmap_R, cax=cax1)
+cbar2 = fig.colorbar(p2.collections[2], ax=axes, orientation='vertical', shrink=0.3, cmap=cmap_G, cax=cax2)
+
+cbar1.set_label(r"$Kendal's~\tau$: (no trend locations)", labelpad=1)
+cbar2.set_label(r"$Kendal's~\tau$: (greening locations)", labelpad=1)
+
 ####################################################################################
-# cbar = fig.colorbar(p1.get_children()[1], ax=axes, fraction=0.02, orientation='horizontal', location="bottom")
-axes.set_title(r"no trends in red, greening in green")
+axes.set_title(r"Kendal's $\tau$: no trends in red, greening in green")
 plt.tight_layout()
 # plt.show();
 file_name = bio_plots + "noTrend_green_locs.png"
-plt.savefig(file_name)
+plt.savefig(file_name, bbox_inches='tight', dpi=map_dpi_)
 
-# %%
+del(p1, p2, cax1, cax2, cbar1, cbar2)
 
 # %%
 
@@ -1169,3 +1239,5 @@ plt.savefig(file_name)
 # %%
 print (Albers_SF_west_spearmanP5.shape)
 Albers_SF_west_increase.shape
+
+# %%
