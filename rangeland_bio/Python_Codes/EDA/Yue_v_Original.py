@@ -133,7 +133,25 @@ intersection_yue_orig_FIDs = list(set(greening_yue_FIDs).intersection(set(greeni
 len(intersection_yue_orig_FIDs)
 
 # %%
-len(greening_original_FIDs)
+# s.difference(t)
+green_Yue_notoriginal_FIDs = set(greening_yue_FIDs) - set(greening_original_FIDs)
+green_original_notYue_FIDs = set(greening_original_FIDs) - set(greening_yue_FIDs)
+
+# %%
+print (f"{len(green_original_notYue_FIDs) = }")
+print (f"{len(green_Yue_notoriginal_FIDs) = }")
+
+# %%
+YueGreen_notOrig_df = ANPP_MK_df[ANPP_MK_df["fid"].isin(list(green_Yue_notoriginal_FIDs))].copy()
+OrigGreen_notYue_df = ANPP_MK_df[ANPP_MK_df["fid"].isin(list(green_original_notYue_FIDs))].copy()
+Yue_orig_inter_green_df = ANPP_MK_df[ANPP_MK_df["fid"].isin(list(intersection_yue_orig_FIDs))].copy()
+
+# %%
+
+# %%
+## Check if our set operations are correct!
+union_set = green_original_notYue_FIDs.union(green_Yue_notoriginal_FIDs).union(intersection_yue_orig_FIDs)
+len(union_set) == len(YueGreen_notOrig_df) + len(OrigGreen_notYue_df) + len(Yue_orig_inter_green_df)
 
 # %%
 
