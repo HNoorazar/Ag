@@ -77,16 +77,19 @@ os.makedirs(bio_reOrganized, exist_ok=True)
 bio_plots = rangeland_bio_base + "plots/"
 os.makedirs(bio_plots, exist_ok=True)
 
+yue_plots = bio_plots + "yue/"
+os.makedirs(yue_plots, exist_ok=True)
+
 # %%
-bpszone_ANPP = pd.read_csv(min_bio_dir + "bpszone_annual_productivity_rpms_MEAN.csv")
+ANPP = pd.read_csv(min_bio_dir + "bpszone_annual_productivity_rpms_MEAN.csv")
 
-bpszone_ANPP.rename(columns=lambda x: x.lower().replace(' ', '_'), inplace=True)
-bpszone_ANPP.rename(columns={"area": "area_sqMeter", 
-                             "count": "pixel_count",
-                             "mean" : "mean_lb_per_acr"}, inplace=True)
+ANPP.rename(columns=lambda x: x.lower().replace(' ', '_'), inplace=True)
+ANPP.rename(columns={"area": "area_sqMeter", 
+                     "count": "pixel_count",
+                     "mean" : "mean_lb_per_acr"}, inplace=True)
 
-bpszone_ANPP.sort_values(by=['fid', 'year'], inplace=True)
-bpszone_ANPP.head(2)
+ANPP.sort_values(by=['fid', 'year'], inplace=True)
+ANPP.head(2)
 
 # %%
 filename = bio_reOrganized + "ANPP_MK_Spearman.sav"
@@ -97,25 +100,42 @@ print (len(ANPP_MK_df["fid"].unique()))
 ANPP_MK_df.head(2)
 
 # %%
-f_name = bio_reOrganized + 'Albers_SF_west_ANPP_MK_Spearman.shp.zip'
-Albers_SF_west = geopandas.read_file(f_name)
-Albers_SF_west["centroid"] = Albers_SF_west["geometry"].centroid
-Albers_SF_west.head(2)
+# %%time
+Albers_SF_name = min_bio_dir + "Albers_BioRangeland_Min_Ehsan"
+Albers_SF = geopandas.read_file(Albers_SF_name)
+Albers_SF.rename(columns=lambda x: x.lower().replace(' ', '_'), inplace=True)
+Albers_SF.rename(columns={"minstatsid": "fid", 
+                          "satae_max": "state_majority_area"}, inplace=True)
+
+Albers_SF["centroid"] = Albers_SF["geometry"].centroid
+Albers_SF.head(2)
 
 # %%
-Albers_SF_west.rename(columns={"EW_meridia": "EW_meridian",
-                               "p_valueSpe" : "p_valueSpearman",
-                               "medians_di": "medians_diff_ANPP",
-                               "medians__1" : "medians_diff_slope_ANPP",
-                               "median_ANP" : "median_ANPP_change_as_perc",
-                               "state_majo" : "state_majority_area"}, 
+
+# %%
+# %%time
+f_name = bio_reOrganized + 'Albers_SF_west_ANPP_MK_Spearman.shp.zip'
+SF_west = geopandas.read_file(f_name)
+SF_west["centroid"] = SF_west["geometry"].centroid
+SF_west.head(2)
+
+# %%
+sorted(SF_west['state_1'].unique())
+
+# %%
+SF_west.rename(columns={"EW_meridia": "EW_meridian",
+                        "p_valueSpe" : "p_valueSpearman",
+                        "medians_di": "medians_diff_ANPP",
+                        "medians__1" : "medians_diff_slope_ANPP",
+                        "median_ANP" : "median_ANPP_change_as_perc",
+                        "state_majo" : "state_majority_area"}, 
                       inplace=True)
 
 # %% [markdown]
 # ## Greening Yue but not Original
 
 # %%
-Albers_SF_west.columns
+SF_west.columns
 
 # %%
 greening_yue_df = ANPP_MK_df[ANPP_MK_df["trend_yue"] == "increasing"].copy()
@@ -161,7 +181,6 @@ len(union_set) == len(YueGreen_notOrig_df) + len(OrigGreen_notYue_df) + len(Yue_
 # # Make some plots
 
 # %%
-# Albers_SF_west.plot(column='EW_meridian', categorical=True, legend=True);
 
 # %%
 county_fips_dict = pd.read_pickle(rangeland_reOrganized + "county_fips.sav")
@@ -193,32 +212,476 @@ visframe_mainLand = visframe[~visframe.state.isin(["AK", "HI"])].copy()
 visframe_mainLand_west = visframe[visframe.EW_meridian.isin(["W"])].copy()
 visframe_mainLand_west = visframe_mainLand_west[~visframe_mainLand_west.state.isin(["AK", "HI"])].copy()
 
+# %%
+ANPP.head(2)
+
+# %%
+groupveg = sorted(SF_west["groupveg"].unique())
+groupveg
+
+# %%
+veg_colors = {"Barren-Rock/Sand/Clay" : "blue",
+              "Conifer" : "green",
+              "Grassland" : "red",
+              "Hardwood" : "cyan",
+              "Riparian" : "magenta",
+              "Shrubland" : "yellow",
+              "Sparse" : "black"}
+
+# %%
+for a_veg in  groupveg:
+    SF_west.loc[SF_west['groupveg'] == a_veg, 'color'] = veg_colors[a_veg]
+
+SF_west.head(2)
+
+# %%
+for a_veg in  groupveg:
+    Albers_SF.loc[Albers_SF['groupveg'] == a_veg, 'color'] = veg_colors[a_veg]
+
+Albers_SF.head(2)
+
 # %% [markdown]
 # ### Plot a couple of examples
 
 # %%
-bpszone_ANPP_west = bpszone_ANPP.copy()
+ANPP_west = ANPP.copy()
+ANPP_west.head(2)
+
+# %%
 
 # %%
 cols_ = ["fid", "state_majority_area", "state_1", "state_2", "EW_meridian"]
-bpszone_ANPP_west = pd.merge(bpszone_ANPP_west, Albers_SF_west[cols_], how="left", on = "fid")
-bpszone_ANPP_west.head(2)
+ANPP_west = pd.merge(ANPP_west, SF_west[cols_], how="left", on = "fid")
+ANPP_west.head(2)
 
 # %%
-tick_legend_FontSize = 15
+ANPP_west["EW_meridian"].unique()
+
+# %%
+mystery_FID_wNoState_in_SF = ANPP_west[ANPP_west["EW_meridian"] != "W"]["fid"].unique()
+mystery_FID_wNoState_in_SF
+
+# %%
+ANPP_west.head(2)
+
+# %%
+
+# %%
+SF_west_Yue_notOrig = SF_west[SF_west["fid"].isin(green_Yue_notoriginal_FIDs)].copy()
+SF_west_Orig_notYue = SF_west[SF_west["fid"].isin(green_original_notYue_FIDs)].copy()
+
+# %%
+from matplotlib.lines import Line2D
+
+# %%
+tick_legend_FontSize = 2
 params = {"font.family": "Palatino",
           "legend.fontsize": tick_legend_FontSize * 1,
           "axes.labelsize": tick_legend_FontSize * 1.2,
-          "axes.titlesize": tick_legend_FontSize * 1.2,
+          "axes.titlesize": tick_legend_FontSize * 2,
           "xtick.labelsize": tick_legend_FontSize * 1.1,
           "ytick.labelsize": tick_legend_FontSize * 1.1,
           "axes.titlepad": 10,
           "xtick.bottom": True,
           "ytick.left": True,
           "xtick.labelbottom": True,
-          "ytick.labelleft": True}
+          "ytick.labelleft": True,
+         'axes.linewidth' : .05}
 
 plt.rcParams.update(params)
+
+# %%
+Albers_SF.head(2)
+
+# %%
+
+# %%
+
+# %%
+fig, ax = plt.subplots(1, 1, figsize=(2, 2), dpi=map_dpi_)
+ax.set_xticks([]); ax.set_yticks([])
+plt.title('Where are FIDs {}?'.format(list(mystery_FID_wNoState_in_SF)), y=.92)
+
+plot_SF(SF=visframe_mainLand, ax_=ax, col="EW_meridian", cmap_ = "Pastel2")
+
+
+mystery_SF = Albers_SF[Albers_SF["fid"].isin(list(mystery_FID_wNoState_in_SF))]
+mystery_SF["geometry"].centroid.plot(ax=ax, markersize=.5)
+
+# plt.rcParams['axes.linewidth'] = .05
+plt.tight_layout()
+# plt.legend(fontsize=3) # ax.axis('off')
+# plt.show();
+
+labels = list(veg_colors.keys())
+colors = list(veg_colors.values())
+lines = [Line2D([0], [0], color=c, linewidth=1, linestyle='-') for c in colors]
+plt.legend(lines, labels, frameon=False, loc="lower left", bbox_to_anchor=(0.01, 0.01))
+
+file_name = yue_plots + "Albers_locs_vegType.png"
+# plt.savefig(file_name, bbox_inches='tight', dpi=map_dpi_)
+
+# %%
+count_per_veg_df = SF_west_Yue_notOrig[["groupveg", "fid"]].groupby("groupveg").count().reset_index()
+count_per_veg_df
+
+# %%
+veg_colors_for_label = veg_colors.copy()
+for a_key in veg_colors.keys():
+    count_ = str(count_per_veg_df.loc[count_per_veg_df["groupveg"] == a_key]["fid"].item())
+    new_key = a_key + " (" + count_ + ")"
+    veg_colors_for_label[new_key] = veg_colors_for_label[a_key]
+    del (veg_colors_for_label[a_key])
+    
+veg_colors_for_label
+
+# %%
+tick_legend_FontSize = 4
+params = {"font.family": "Palatino",
+          "legend.fontsize": tick_legend_FontSize * 1.5,
+          "axes.labelsize": tick_legend_FontSize * 1.2,
+          "axes.titlesize": tick_legend_FontSize * 2,
+          "xtick.labelsize": tick_legend_FontSize * 1.1,
+          "ytick.labelsize": tick_legend_FontSize * 1.1,
+          "axes.titlepad": 10,
+          "xtick.bottom": True,
+          "ytick.left": True,
+          "xtick.labelbottom": True,
+          "ytick.labelleft": True,
+#          'axes.linewidth' : .05
+         }
+
+plt.rcParams.update(params)
+
+# %%
+SF_west_Yue_notOrig["trend_yue"].unique()
+
+# %%
+# SF_west.plot(column='EW_meridian', categorical=True, legend=True);
+##########################################################################################
+
+fig, ax = plt.subplots(1, 1, dpi=map_dpi_) # figsize=(2, 2)
+ax.set_xticks([]); ax.set_yticks([])
+plt.title('greening locations by Yue, missed by original MK', y=0.98)
+
+plot_SF(SF=visframe_mainLand_west, ax_=ax, col="EW_meridian", cmap_ = "Pastel2")
+dots_DF = SF_west_Yue_notOrig.copy()
+dots_DF["geometry"].centroid.plot(ax=ax, c=dots_DF['color'], markersize=.1)
+
+# plt.rcParams['axes.linewidth'] = .05
+plt.tight_layout()
+# plt.legend(fontsize=3) # ax.axis('off')
+# plt.show();
+
+labels = list(veg_colors_for_label.keys())
+colors = list(veg_colors_for_label.values())
+lines = [Line2D([0], [0], color=c, linewidth=2, linestyle='-') for c in colors]
+plt.legend(lines, labels, frameon=False, loc="lower left", bbox_to_anchor=(0.02, 0.02))
+
+file_name = yue_plots + "greenYue_missedOriginal.png"
+plt.savefig(file_name, bbox_inches='tight', dpi=map_dpi_)
+del(dots_DF)
+
+# %%
+SF_west_Yue_notOrig.head(2)
+
+# %%
+SF_west_Yue_notOrig.describe()
+
+# %%
+min_idx = SF_west_Yue_notOrig["sens_slope"].idxmin()
+cc = ["sens_slope", "Tau", "Spearman", "medians_diff_ANPP", "median_ANPP_change_as_perc"]
+SF_west_Yue_notOrig.loc[min_idx, cc]
+
+# %%
+min_idx = SF_west_Yue_notOrig["Tau"].idxmin()
+cc = ["sens_slope", "Tau", "Spearman", "medians_diff_ANPP", "median_ANPP_change_as_perc"]
+SF_west_Yue_notOrig.loc[min_idx, cc]
+
+# %% [markdown]
+#
+
+# %%
+SF_west.head(2)
+
+# %%
+ANPP_MK_df.head(2)
+
+# %%
+ANPP_west.head(2)
+
+# %% [markdown]
+# ## Set up ticks for grid lines
+
+# %% [raw]
+# # https://stackoverflow.com/questions/24943991/change-grid-interval-and-specify-tick-labels
+#
+# import numpy as np
+# import matplotlib.pyplot as plt
+#
+# fig = plt.figure()
+# ax = fig.add_subplot(1, 1, 1)
+#
+# # Major ticks every 20, minor ticks every 5
+# major_ticks = np.arange(0, 101, 20)
+# minor_ticks = np.arange(0, 101, 5)
+#
+# ax.set_xticks(major_ticks)
+# ax.set_xticks(minor_ticks, minor=True)
+# ax.set_yticks(major_ticks)
+# ax.set_yticks(minor_ticks, minor=True)
+#
+# # And a corresponding grid
+# ax.grid(which='both')
+#
+# # Or if you want different settings for the grids:
+# ax.grid(which='minor', alpha=0.2)
+# ax.grid(which='major', alpha=0.5)
+#
+# plt.show()
+#
+#
+# [ax2.spines[side].set_visible(False) for side in ax2.spines] # removes frame around the plot
+
+# %%
+tick_legend_FontSize = 12
+params = {"font.family": "Palatino",
+          "legend.fontsize": tick_legend_FontSize * 1.5,
+          "axes.labelsize": tick_legend_FontSize * 1.2,
+          "axes.titlesize": tick_legend_FontSize * 1.5,
+          "xtick.labelsize": tick_legend_FontSize * 1.1,
+          "ytick.labelsize": tick_legend_FontSize * 1.1,
+          "axes.titlepad": 10,
+          "xtick.bottom": True,
+          "ytick.left": True,
+          "xtick.labelbottom": True,
+          "ytick.labelleft": True,
+#          'axes.linewidth' : .05
+         }
+
+plt.rcParams.update(params)
+
+# %%
+# Major ticks every 5, minor ticks every 1
+major_ticks = np.arange(1984, 2024, 5)
+minor_ticks = np.arange(1984, 2024, 1)
+y_var = "mean_lb_per_acr"
+
+# %%
+
+# %% [markdown]
+# ### Plot the FID with minimum and maximum of median_ANPP_change_as_perc
+
+# %%
+a_metric = "median_ANPP_change_as_perc"
+min_idx = SF_west_Yue_notOrig[a_metric].idxmin()
+max_idx = SF_west_Yue_notOrig[a_metric].idxmax()
+fid_min = SF_west_Yue_notOrig.loc[min_idx, "fid"]
+fid_max = SF_west_Yue_notOrig.loc[max_idx, "fid"]
+########################################################################################
+fig, axes = plt.subplots(2, 1, figsize=(10, 4), sharex=True, 
+                         gridspec_kw={"hspace": 0.15, "wspace": 0.05}, dpi=dpi_)
+(ax1, ax2) = axes
+
+ax1.set_xticks(major_ticks)
+ax1.set_xticks(minor_ticks, minor=True)
+ax1.grid(which='minor', alpha=0.2, axis="x")
+ax1.grid(which='major', alpha=0.5, axis="x")
+
+ax2.set_xticks(major_ticks)
+ax2.set_xticks(minor_ticks, minor=True)
+ax2.grid(which='minor', alpha=0.2, axis="x")
+ax2.grid(which='major', alpha=0.5, axis="x")
+######
+###### subplot 1
+######
+a_fid = fid_min
+df = ANPP_west[ANPP_west["fid"] == a_fid]
+trend_ = SF_west.loc[SF_west.fid == a_fid, "trend_yue"].values[0]
+a_metric_val = round(ANPP_MK_df.loc[ANPP_MK_df.fid == a_fid, a_metric].values[0], 2)
+state_ = list(df['state_majority_area'].unique())[0]
+ax1.plot(df.year, df[y_var], linewidth=3);
+ax1.scatter(df.year, df[y_var]);
+# ax1.legend(loc='best')
+
+text_ = ("Yue trend:   {}\n" + a_metric + ": {}\n{} (FID: {})").format(trend_, a_metric_val, state_, a_fid)
+y_txt = int(df[y_var].max()/1.8)
+ax1.text(1984, y_txt, text_, fontsize = 12);
+# ax1.set_ylim(3000, 4500);
+######
+###### subplot 2
+######
+a_fid = fid_max
+df = ANPP_west[ANPP_west["fid"] == a_fid]
+trend_ = SF_west.loc[SF_west.fid == a_fid, "trend_yue"].values[0]
+a_metric_val = round(ANPP_MK_df.loc[ANPP_MK_df.fid == a_fid, a_metric].values[0], 2)
+state_ = list(df['state_majority_area'].unique())[0]
+ax2.plot(df.year, df[y_var], linewidth=3);
+ax2.scatter(df.year, df[y_var]);
+# ax2.legend(loc='best')
+
+text_ = ("Yue trend:   {}\n" + a_metric + ": {}\n{} (FID: {})").format(trend_, a_metric_val, state_, a_fid)
+y_txt = int(df[y_var].max()/1.8)
+ax2.text(1984, y_txt, text_, fontsize = 12);
+
+
+ax1.set_ylabel(r'$\mu_{NPP}$ (lb/acr)')
+ax2.set_ylabel(r'$\mu_{NPP}$ (lb/acr)')
+ax2.set_xlabel('year') #, fontsize=14
+
+# plt.subplots_adjust(left=0.9, right=0.92, top=0.92, bottom=0.9)
+ax1.set_title("Yue Greening, dismissed by Original", y=1.18)
+plt.suptitle("(extremes of " + a_metric + ")", fontsize=15, y=.95);
+# plt.tight_layout();
+# fig.subplots_adjust(top=0.8, bottom=0.08, left=0.082, right=0.981)
+file_name = yue_plots + "greenYue_extreme" + a_metric +".pdf"
+plt.savefig(file_name, bbox_inches='tight', dpi=map_dpi_)
+
+# %%
+
+# %% [markdown]
+# ### Plot the FID with minimum Sen's slope
+
+# %%
+a_metric = "sens_slope"
+min_idx = SF_west_Yue_notOrig[a_metric].idxmin()
+max_idx = SF_west_Yue_notOrig[a_metric].idxmax()
+fid_min = SF_west_Yue_notOrig.loc[min_idx, "fid"]
+fid_max = SF_west_Yue_notOrig.loc[max_idx, "fid"]
+########################################################################################
+fig, axes = plt.subplots(2, 1, figsize=(10, 4), sharex=True, 
+                         gridspec_kw={"hspace": 0.15, "wspace": 0.05}, dpi=dpi_)
+(ax1, ax2) = axes
+
+ax1.set_xticks(major_ticks)
+ax1.set_xticks(minor_ticks, minor=True)
+ax1.grid(which='minor', alpha=0.2, axis="x")
+ax1.grid(which='major', alpha=0.5, axis="x")
+
+ax2.set_xticks(major_ticks)
+ax2.set_xticks(minor_ticks, minor=True)
+ax2.grid(which='minor', alpha=0.2, axis="x")
+ax2.grid(which='major', alpha=0.5, axis="x")
+######
+###### subplot 1
+######
+a_fid = fid_min
+df = ANPP_west[ANPP_west["fid"] == a_fid]
+trend_ = SF_west.loc[SF_west.fid == a_fid, "trend_yue"].values[0]
+a_metric_val = round(ANPP_MK_df.loc[ANPP_MK_df.fid == a_fid, a_metric].values[0], 2)
+state_ = list(df['state_majority_area'].unique())[0]
+ax1.plot(df.year, df[y_var], linewidth=3);
+ax1.scatter(df.year, df[y_var]);
+# ax1.legend(loc='best')
+
+text_ = ("Yue trend:   {}\n" + a_metric + ": {}\n{} (FID: {})").format(trend_, a_metric_val, state_, a_fid)
+y_txt = int(df[y_var].max()/1.8)
+ax1.text(1984, y_txt, text_, fontsize = 12);
+# ax1.set_ylim(3000, 4500);
+######
+###### subplot 2
+######
+a_fid = fid_max
+df = ANPP_west[ANPP_west["fid"] == a_fid]
+trend_ = SF_west.loc[SF_west.fid == a_fid, "trend_yue"].values[0]
+a_metric_val = round(ANPP_MK_df.loc[ANPP_MK_df.fid == a_fid, a_metric].values[0], 2)
+state_ = list(df['state_majority_area'].unique())[0]
+ax2.plot(df.year, df[y_var], linewidth=3);
+ax2.scatter(df.year, df[y_var]);
+# ax2.legend(loc='best')
+
+text_ = ("Yue trend:   {}\n" + a_metric + ": {}\n{} (FID: {})").format(trend_, a_metric_val, state_, a_fid)
+y_txt = int(df[y_var].max()/1.8)
+ax2.text(1984, y_txt, text_, fontsize = 12);
+
+
+ax1.set_ylabel(r'$\mu_{NPP}$ (lb/acr)')
+ax2.set_ylabel(r'$\mu_{NPP}$ (lb/acr)')
+ax2.set_xlabel('year') #, fontsize=14
+
+# plt.subplots_adjust(left=0.9, right=0.92, top=0.92, bottom=0.9)
+ax1.set_title("Yue Greening, dismissed by Original", y=1.18)
+plt.suptitle("(extremes of " + a_metric + ")", fontsize=15, y=.95);
+# plt.tight_layout();
+# fig.subplots_adjust(top=0.8, bottom=0.08, left=0.082, right=0.981)
+file_name = yue_plots + "greenYue_extreme" + a_metric +".pdf"
+plt.savefig(file_name, bbox_inches='tight', dpi=map_dpi_)
+
+# %%
+SF_west_Yue_notOrig.columns
+
+# %%
+a_metric = "Tau"
+min_idx = SF_west_Yue_notOrig[a_metric].idxmin()
+max_idx = SF_west_Yue_notOrig[a_metric].idxmax()
+fid_min = SF_west_Yue_notOrig.loc[min_idx, "fid"]
+fid_max = SF_west_Yue_notOrig.loc[max_idx, "fid"]
+########################################################################################
+fig, axes = plt.subplots(2, 1, figsize=(10, 4), sharex=True, 
+                         gridspec_kw={"hspace": 0.15, "wspace": 0.05}, dpi=dpi_)
+(ax1, ax2) = axes
+
+ax1.set_xticks(major_ticks)
+ax1.set_xticks(minor_ticks, minor=True)
+ax1.grid(which='minor', alpha=0.2, axis="x")
+ax1.grid(which='major', alpha=0.5, axis="x")
+
+ax2.set_xticks(major_ticks)
+ax2.set_xticks(minor_ticks, minor=True)
+ax2.grid(which='minor', alpha=0.2, axis="x")
+ax2.grid(which='major', alpha=0.5, axis="x")
+######
+###### subplot 1
+######
+a_fid = fid_min
+df = ANPP_west[ANPP_west["fid"] == a_fid]
+trend_ = SF_west.loc[SF_west.fid == a_fid, "trend_yue"].values[0]
+a_metric_val = round(ANPP_MK_df.loc[ANPP_MK_df.fid == a_fid, a_metric].values[0], 2)
+state_ = list(df['state_majority_area'].unique())[0]
+ax1.plot(df.year, df[y_var], linewidth=3);
+ax1.scatter(df.year, df[y_var]);
+# ax1.legend(loc='best')
+
+text_ = ("Yue trend:    {}\n" + a_metric + ": {}\n{} (FID:{})").format(trend_, a_metric_val, state_, a_fid)
+y_txt = int(df[y_var].max()/1.8)
+ax1.text(1984, y_txt, text_, fontsize = 12);
+# ax1.set_ylim(3000, 4500);
+######
+###### subplot 2
+######
+a_fid = fid_max
+df = ANPP_west[ANPP_west["fid"] == a_fid]
+trend_ = SF_west.loc[SF_west.fid == a_fid, "trend_yue"].values[0]
+a_metric_val = round(ANPP_MK_df.loc[ANPP_MK_df.fid == a_fid, a_metric].values[0], 2)
+state_ = list(df['state_majority_area'].unique())[0]
+ax2.plot(df.year, df[y_var], linewidth=3);
+ax2.scatter(df.year, df[y_var]);
+# ax2.legend(loc='best')
+
+text_ = ("Yue trend:    {}\n" + a_metric + ": {}\n{} (FID:{})").format(trend_, a_metric_val, state_, a_fid)
+y_txt = int(df[y_var].max()/1.8)
+ax2.text(1984, y_txt, text_, fontsize = 12);
+
+
+ax1.set_ylabel(r'$\mu_{NPP}$ (lb/acr)')
+ax2.set_ylabel(r'$\mu_{NPP}$ (lb/acr)')
+ax2.set_xlabel('year') #, fontsize=14
+
+# plt.subplots_adjust(left=0.9, right=0.92, top=0.92, bottom=0.9)
+ax1.set_title("Yue Greening, dismissed by Original", y=1.18)
+plt.suptitle("(extremes of " + a_metric + ")", fontsize=15, y=.95);
+# plt.tight_layout();
+# fig.subplots_adjust(top=0.8, bottom=0.08, left=0.082, right=0.981)
+file_name = yue_plots + "greenYue_extreme" + a_metric +".pdf"
+plt.savefig(file_name, bbox_inches='tight', dpi=map_dpi_)
+
+# %%
+
+text_
+
+# %%
+
+# %%
 
 # %%
 # drop trend so there is no bug later
@@ -265,7 +728,7 @@ params = {"font.family": "Palatino",
 plt.rcParams.update(params)
 
 # %%
-Albers_SF_west.head(2)
+SF_west.head(2)
 
 # %% [markdown]
 # In order to have the center at ```yellow``` we manipulated ```vmin``` and ```vmax```.
@@ -284,12 +747,12 @@ print (ANPP_MK_df[ANPP_MK_df["trend_yue"] == "increasing"]["p"].max())
 print (ANPP_MK_df[ANPP_MK_df["trend_yue"] == "increasing"]["p"].min())
 
 # %%
-Albers_SF_west.columns
+SF_west.columns
 
 # %%
 # Update Dec. 3, 2024. Add Yue's new locations to this plot
-Albers_SF_west_increase = Albers_SF_west[Albers_SF_west["trend_yue"] == "increasing"]
-Albers_SF_west_increase.shape
+SF_west_increase = SF_west[SF_west["trend_yue"] == "increasing"]
+SF_west_increase.shape
 
 # %%
 
@@ -297,12 +760,11 @@ Albers_SF_west_increase.shape
 # ### Plot positive Spearman's with p-value smaller than 0.05
 
 # %%
-print (Albers_SF_west["Spearman"].min())
-Albers_SF_west.head(2)
+print (SF_west["Spearman"].min())
+SF_west.head(2)
 
 # %%
-Albers_SF_west_spearmanP5 = Albers_SF_west[(Albers_SF_west["Spearman"] > 0) & 
-                                           (Albers_SF_west["p_Spearman"] < 0.05)]
+SF_west_spearmanP5 = SF_west[(SF_west["Spearman"] > 0) & (SF_west["p_Spearman"] < 0.05)]
 
 
 # %%
@@ -332,14 +794,14 @@ plt.rcParams.update(params)
 # # Investigate large change in median diff
 
 # %%
-Albers_SF_west_median_diff_increase.head(2)
+SF_west_median_diff_increase.head(2)
 
 # %%
-max_loc = Albers_SF_west_median_diff_increase["median_ANPP_change_as_perc"].idxmax()
-Albers_SF_west_median_diff_increase.loc[max_loc]
+max_loc = SF_west_median_diff_increase["median_ANPP_change_as_perc"].idxmax()
+SF_west_median_diff_increase.loc[max_loc]
 
 # %%
-max_percChange_median_fid = Albers_SF_west_median_diff_increase.loc[max_loc]["fid"]
+max_percChange_median_fid = SF_west_median_diff_increase.loc[max_loc]["fid"]
 
 # %%
 tick_legend_FontSize = 15

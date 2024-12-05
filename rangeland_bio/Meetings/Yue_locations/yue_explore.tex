@@ -1,6 +1,6 @@
 \documentclass[serif, xcolor={dvipsnames}]{beamer} % serif, mathserif
 
-\graphicspath{ {/Users/hn/Documents/01_research_data/RangeLand_bio/plots/} }
+\graphicspath{ {/Users/hn/Documents/01_research_data/RangeLand_bio/plots/yue} }
 \usepackage[scaled=.9]{helvet} % platino activation
 \usepackage{tabularx,multirow}
 \usepackage{colortbl}
@@ -180,7 +180,7 @@ in this table based on whether $p$-value$<$0.05 or not and whether $\rho$'s are 
 %%%%%%%%%%%%%%%%%%%%%
 \begin{frame}
 \begin{center}
-\includegraphics[height=1\textheight]{noTrend_green_locs}
+% \includegraphics[height=1\textheight]{noTrend_green_locs}
 \end{center}
 \end{frame}
 %%%%%%%%%%%%%%%%%%%%%
@@ -189,7 +189,7 @@ in this table based on whether $p$-value$<$0.05 or not and whether $\rho$'s are 
 \begin{frame}
  \frametitle{Three examples (two extremes)}
 \begin{center}
-\includegraphics[height=0.8\textheight]{three_trends}
+% \includegraphics[height=0.8\textheight]{three_trends}
 \end{center}
 \end{frame}
 
@@ -199,7 +199,7 @@ in this table based on whether $p$-value$<$0.05 or not and whether $\rho$'s are 
 \begin{frame}
  \frametitle{Sen's Slope and Outliers}
 \begin{center}
-\includegraphics[height=0.6\textheight]{robustSensSlope}
+%\includegraphics[height=0.6\textheight]{robustSensSlope}
 \end{center}
 \end{frame}
 %%%%%%%%%%%%%%%%%%%%%
@@ -208,7 +208,7 @@ in this table based on whether $p$-value$<$0.05 or not and whether $\rho$'s are 
 \begin{frame}
 \frametitle{Trends by Sen's Slope}
 \begin{center}
-\includegraphics[height=1\textheight]{sensSlopes_centerColorBar}
+% \includegraphics[height=1\textheight]{sensSlopes_centerColorBar}
 \end{center}
 \end{frame}
 %%%%%%%%%%%%%%%%%%%%
@@ -217,25 +217,52 @@ in this table based on whether $p$-value$<$0.05 or not and whether $\rho$'s are 
 \begin{frame}
 \frametitle{Greening FIDs by Yue, missed by original MK-test}
 \begin{center}
-\includegraphics[height=.9\textheight]{yue/greenYue_missedOriginal}
+%\includegraphics[height=.9\textheight]{greenYue_missedOriginal}
 \end{center}
 \end{frame}
 %%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%
+\begin{frame}
+\frametitle{Some statistics}
+Statistics about the locations labeled as greening by Yue but dismissed by original MK-test.
+\begin{table}[!ht]
+\centering
+\captionsetup{singlelinecheck=false, format=hang}
+\label{tab:Trendcounts}
+% \vspace{-.15in}
+\begin{tabular}{lllll}
+\bottomrule
+\rowcolor{shadecolor} 
+&  min & max & SE \\ 
+\rowcolor{aliceblue} 
+\textbf{Sen's slope} & 0.4 & 38 & 5.3 \\
+\textbf{Kendal's $\tau$}  & 0.06 & 0.2 &  0.03 \\
+\rowcolor{aliceblue} 
+\textbf{Spearman}  & 0.06  & 0.4 & 0.05  \\
+\textbf{\scriptsize $\Delta \text{ANPP}_{\text{medians}}$} & -49 & 1,736 & 257 \\
+\rowcolor{aliceblue}\textbf{\scriptsize $\Delta \text{ANPP}_{\text{medians}}$ (\%)}  & -18.3 & 280 & 19.5 \\
+\toprule
+\end{tabular}
+\end{table}
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%
+
 
 \begin{frame}
 \frametitle{Spearman and Kendall's}
 Trends based on Spearman's rank and Kendall's $\tau$
 \centering
-\includegraphics[height=0.75\textheight]{Spearman_tau}
+%\includegraphics[height=0.75\textheight]{Spearman_tau}
 \end{frame}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \begin{frame}
 \frametitle{Sen's Slope and Median Differences Slope}
 Sen's Slope and Median Differences Slope.
 \begin{center}
-\includegraphics[height=0.75\textheight]{Sens_MedianDiffSlope}
+%\includegraphics[height=0.75\textheight]{Sens_MedianDiffSlope}
 \end{center}
 \end{frame}
 %%%%%%%%%%%%%%%%%%%%
@@ -245,7 +272,7 @@ Sen's Slope and Median Differences Slope.
 \frametitle{Median ANPP Percentage Change}
 Median ANPP percentage change
 \begin{center}
-\includegraphics[height=0.9\textheight]{medianNPP_percChange}
+%\includegraphics[height=0.9\textheight]{medianNPP_percChange}
 \end{center}
 \end{frame}
 %%%%%%%%%%%%%%%%%%%%
@@ -254,104 +281,14 @@ Median ANPP percentage change
 \begin{frame}
 \frametitle{Trends Distribution}
 \begin{center}
-\includegraphics[height=1\textheight]{trend_distributions}
+%\includegraphics[height=1\textheight]{trend_distributions}
 \end{center}
 \end{frame}
 %%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%
-\begin{frame}
-\frametitle{Regression - preamble}
-\begin{itemize}[<+->]
-\item We do regression on Greening locations
 
-\item Temporal coverage
-\begin{table}[!ht]
-\centering
-\captionsetup{singlelinecheck=false, format=hang}
-\label{tab:NPPWeatherYears}
-% \caption{The years for which we have data.}
-\begin{tabular}{lll}
-\bottomrule
-\rowcolor{shadecolor} \textbf{ANPP years} &  1984 - 2023   \\ 
-\textbf{Weather years}  & 1979 - 2022 \\
-\toprule
-\end{tabular}
-\end{table}
-\end{itemize}
-
-\end{frame}
-
-\begin{frame}
-\frametitle{Feature Importance - Monthly variables}
-\begin{itemize}
-\item Metrics
-\begin{table}[!ht]
-\hspace{-.5in}
-\captionsetup{singlelinecheck=false, format=hang}
-\label{tab:Metrics}
-% \caption{NPP = $f(T, P)$}
-\begin{tabular}{lll}
-\bottomrule
-\cellcolor{palecornflowerblue}{\small f(T, P)} & \small{ $\mathbf{R^2}$}  & \small{ $\mathbf{RMSE}$} \\ 
-\rowcolor{shadecolor} 
-{\bf train} & 0.6746  &  543\\ 
-{\bf test}  & 0.6744  & 543\\
-\toprule
-\end{tabular}\quad
 %%%%%%%%%%%%%%%%%%%%%
-\begin{tabular}{lll}
-\bottomrule
-\cellcolor{palecornflowerblue}{\small f(T, P, RH)} & $\mathbf{R^2}$  & \small{$\mathbf{RMSE}$} \\ 
-\rowcolor{shadecolor} 
-{\bf train} &  0.707  &  515\\ 
-{\bf test}  & 0.706  & 516\\
-\toprule
-\end{tabular}
-\end{table}
 
-\item Coefficients of variables for Grasslands 
-\begin{table}[!ht]
-\captionsetup{singlelinecheck=false, format=hang}
-\label{tab:regressionCoeffs}
-\hspace{-.53in}
-\begin{tabular}{lllllllllllll}
-\bottomrule
-\rowcolor{shadecolor} &  1 & 2 & 3 & 4 & 5 & 6 & 7 & 8 & 9 & 10 & 11 & 12  \\ 
-{\bf T} & \tiny{-174} &  \tiny{-157} &  \tiny{-213} &  \tiny{-136} &  \tiny{83} &  \tiny{201} &  \tiny{-103} &  \tiny{55} &  \tiny{104} &  \tiny{54} &  \tiny{119} & \tiny{-73} \\
-{\bf P} &   \tiny{125} &  \tiny{98} &  \tiny{105} &  \tiny{144} &  \tiny{204} &  \tiny{181} &  \tiny{110} &  \tiny{131} &  \tiny{86} &  \tiny{40} & \tiny{ 69} &  \tiny{141} \\
-\toprule
-\end{tabular}\\
-%%%%%%%%%%%%%%%%%%%%%
-\hspace*{-.5in}
-\begin{tabular}{lllllllllllll}
-\bottomrule
-\rowcolor{shadecolor} &  1 & 2 & 3 & 4 & 5 & 6 & 7 & 8 & 9 & 10 & 11 & 12  \\ 
-{\bf T}    & \tiny{-61} & \tiny{-142} & \tiny{-137} & \tiny{-214} & \tiny{-67} & \tiny{324} & \tiny{6} & \tiny{-30} & \tiny{62} & \tiny{60} & \tiny{156} & \tiny{-11}\\
-{\bf P}    & \tiny{74} & \tiny{72} & \tiny{87} & \tiny{116} & \tiny{162} & \tiny{121} & \tiny{82} & \tiny{134} & \tiny{72} & \tiny{53} & \tiny{18} & \tiny{90} \\ 
-{\bf RH} &  \tiny{5} & \tiny{3} & \tiny{72} & \tiny{-8} & \tiny{-50} & \tiny{169} & \tiny{148} & \tiny{0} & \tiny{44} & \tiny{-90} & \tiny{106}  & \tiny{138} \\ 
-\toprule
-\end{tabular}
-\end{table}
-\end{itemize}
-\end{frame}
-
-\begin{frame}
-\frametitle{Feature Importance - XGBoost and SHAP}
-\hspace{.2in}
-\includegraphics[height=.75\textheight]{XGBoost_feature_importance}
-\includegraphics[height=.75\textheight]{SHAP_XGBoost_train}
-\begin{table}[!ht]
-\label{tab:XGBErrMetrics}
-\begin{tabular}{lll}
-\bottomrule
-\cellcolor{palecornflowerblue}{\tiny f(T, P)} &  \tiny{$\mathbf{R^2}$} & \tiny{$\mathbf{RMSE}$}  \\ 
-\rowcolor{shadecolor} 
-\tiny{\bf train}   &  \tiny{0.94}  &  \tiny{239}\\ 
- \tiny{\bf test}  & \tiny{0.91}  & \tiny{284}\\
-\toprule
-\end{tabular}\qquad
-\end{table}
-\end{frame}
 
 \end{document}

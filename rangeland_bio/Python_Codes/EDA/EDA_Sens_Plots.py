@@ -30,6 +30,8 @@ import pymannkendall as mk
 import statistics
 import statsmodels.api as sm
 
+
+
 from scipy import stats
 
 import seaborn as sns
@@ -195,6 +197,7 @@ plt.rcParams.update(params)
 # drop trend so there is no bug later
 print (ANPP_MK_df.shape)
 ANPP_MK_df.drop(columns=["trend"], inplace=True)
+Albers_SF_west.drop(columns=["trend"], inplace=True)
 print (ANPP_MK_df.shape)
 
 # %%
@@ -425,9 +428,6 @@ Albers_SF_west.head(2)
 # ```norm = colors.MidpointNormalize(midpoint=midpoint, vmin=data.min(), vmax=data.max())```?
 
 # %%
-map_dpi_
-
-# %%
 # fig, ax = plt.subplots(1, 1, figsize=(2, 2), sharex=True, sharey=True, dpi=map_dpi_)
 # ax.set_xticks([]); ax.set_yticks([])
 
@@ -447,6 +447,9 @@ map_dpi_
 # fig.subplots_adjust(top=0.91, bottom=0.01, left=0.01, right=0.981)
 # file_name = bio_plots + "sensSlopes_centerColorBar.png"
 # plt.savefig(file_name, dpi=450)
+
+# %%
+Albers_SF_west["trend_yue"].unique()
 
 # %%
 fig, ax = plt.subplots(1, 1, figsize=(2, 2), sharex=True, sharey=True, dpi=map_dpi_)

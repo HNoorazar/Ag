@@ -389,7 +389,9 @@ ax.set_xticks([]); ax.set_yticks([])
 plt.title('rangeland regions on western meridian'.capitalize())
 
 plot_SF(SF=visframe_mainLand_west, ax_=ax, col="EW_meridian", cmap_ = "Pastel1")
-SF_west["geometry"].centroid.plot(ax=ax, c=SF_west['color'], markersize=0.2)
+
+dots_DF = SF_west.copy()
+dots_DF["geometry"].centroid.plot(ax=ax, c=dots_DF['color'], markersize=0.2)
 
 plt.rcParams['axes.linewidth'] = .051
 plt.tight_layout()
@@ -398,11 +400,12 @@ from matplotlib.lines import Line2D
 
 labels = list(veg_colors.keys())
 colors = list(veg_colors.values())
-lines = [Line2D([0], [0], color=c, linewidth=3, linestyle='--') for c in colors]
+lines = [Line2D([0], [0], color=c, linewidth=3, linestyle='-') for c in colors]
 plt.legend(lines, labels, frameon=False)
 
 file_name = bio_plots + "Albers_West_locs_vegType.png"
 plt.savefig(file_name, dpi=400)
+del(dots_DF)
 
 # %%
 
@@ -423,7 +426,8 @@ ax.set_xticks([]); ax.set_yticks([])
 plt.title('rangeland regions on western meridian'.capitalize())
 
 plot_SF(SF=visframe_mainLand, ax_=ax, col="EW_meridian", cmap_ = "Pastel2")
-SF_west["geometry"].centroid.plot(ax=ax, c=SF_west['color'], markersize=0.2)
+dots_DF = SF_west.copy()
+dots_DF["geometry"].centroid.plot(ax=ax, c=dots_DF['color'], markersize=0.2)
 
 plt.rcParams['axes.linewidth'] = .051
 plt.tight_layout()
@@ -432,11 +436,12 @@ plt.tight_layout()
 
 labels = list(veg_colors.keys())
 colors = list(veg_colors.values())
-lines = [Line2D([0], [0], color=c, linewidth=3, linestyle='--') for c in colors]
+lines = [Line2D([0], [0], color=c, linewidth=3, linestyle='-') for c in colors]
 plt.legend(lines, labels, frameon=False, loc="lower left")
 
 file_name = bio_plots + "Albers_locs_vegType.png"
 plt.savefig(file_name, dpi=400)
+del(dots_DF)
 
 # %%
 
