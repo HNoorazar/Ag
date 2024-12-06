@@ -530,12 +530,13 @@ ax2.set_ylabel(r'$\mu_{NPP}$ (lb/acr)')
 ax2.set_xlabel('year') #, fontsize=14
 
 # plt.subplots_adjust(left=0.9, right=0.92, top=0.92, bottom=0.9)
-ax1.set_title("Yue Greening, dismissed by Original", y=1.18)
-plt.suptitle("(extremes of " + a_metric + ")", fontsize=15, y=.95);
+ax1.set_title("Yue Greening, dismissed by Original", y=1.15, fontsize=14)
+plt.suptitle("(extremes of " + a_metric + ")", fontsize=14, y=.95, color="red");
 # plt.tight_layout();
 # fig.subplots_adjust(top=0.8, bottom=0.08, left=0.082, right=0.981)
 file_name = yue_plots + "greenYue_extreme" + a_metric +".pdf"
 plt.savefig(file_name, bbox_inches='tight', dpi=map_dpi_)
+del(a_metric, min_idx, max_idx, fid_min, fid_max)
 
 # %%
 
@@ -575,7 +576,7 @@ ax1.scatter(df.year, df[y_var]);
 # ax1.legend(loc='best')
 
 text_ = ("Yue trend:   {}\n" + a_metric + ": {}\n{} (FID: {})").format(trend_, a_metric_val, state_, a_fid)
-y_txt = int(df[y_var].max()/1.8)
+y_txt = int(df[y_var].max()/1.5)
 ax1.text(1984, y_txt, text_, fontsize = 12);
 # ax1.set_ylim(3000, 4500);
 ######
@@ -591,7 +592,7 @@ ax2.scatter(df.year, df[y_var]);
 # ax2.legend(loc='best')
 
 text_ = ("Yue trend:   {}\n" + a_metric + ": {}\n{} (FID: {})").format(trend_, a_metric_val, state_, a_fid)
-y_txt = int(df[y_var].max()/1.8)
+y_txt = int(df[y_var].max()/1.5)
 ax2.text(1984, y_txt, text_, fontsize = 12);
 
 
@@ -600,12 +601,13 @@ ax2.set_ylabel(r'$\mu_{NPP}$ (lb/acr)')
 ax2.set_xlabel('year') #, fontsize=14
 
 # plt.subplots_adjust(left=0.9, right=0.92, top=0.92, bottom=0.9)
-ax1.set_title("Yue Greening, dismissed by Original", y=1.18)
-plt.suptitle("(extremes of " + a_metric + ")", fontsize=15, y=.95);
+ax1.set_title("Yue Greening, dismissed by Original", y=1.18, fontsize="14")
+plt.suptitle("(extremes of " + a_metric + ")", fontsize=15, y=.95, color="red");
 # plt.tight_layout();
 # fig.subplots_adjust(top=0.8, bottom=0.08, left=0.082, right=0.981)
 file_name = yue_plots + "greenYue_extreme" + a_metric +".pdf"
 plt.savefig(file_name, bbox_inches='tight', dpi=map_dpi_)
+del(a_metric, min_idx, max_idx, fid_min, fid_max)
 
 # %%
 SF_west_Yue_notOrig.columns
@@ -643,7 +645,7 @@ ax1.scatter(df.year, df[y_var]);
 # ax1.legend(loc='best')
 
 text_ = ("Yue trend:    {}\n" + a_metric + ": {}\n{} (FID:{})").format(trend_, a_metric_val, state_, a_fid)
-y_txt = int(df[y_var].max()/1.8)
+y_txt = int(df[y_var].max()/1.5)
 ax1.text(1984, y_txt, text_, fontsize = 12);
 # ax1.set_ylim(3000, 4500);
 ######
@@ -659,27 +661,93 @@ ax2.scatter(df.year, df[y_var]);
 # ax2.legend(loc='best')
 
 text_ = ("Yue trend:    {}\n" + a_metric + ": {}\n{} (FID:{})").format(trend_, a_metric_val, state_, a_fid)
-y_txt = int(df[y_var].max()/1.8)
+y_txt = int(df[y_var].max()/1.5)
 ax2.text(1984, y_txt, text_, fontsize = 12);
-
 
 ax1.set_ylabel(r'$\mu_{NPP}$ (lb/acr)')
 ax2.set_ylabel(r'$\mu_{NPP}$ (lb/acr)')
 ax2.set_xlabel('year') #, fontsize=14
 
 # plt.subplots_adjust(left=0.9, right=0.92, top=0.92, bottom=0.9)
-ax1.set_title("Yue Greening, dismissed by Original", y=1.18)
-plt.suptitle("(extremes of " + a_metric + ")", fontsize=15, y=.95);
+ax1.set_title("Yue Greening, dismissed by Original", fontsize=13, y=1.18)
+plt.suptitle("(extremes of " + a_metric + ")", fontsize=15, y=.95, color='red');
 # plt.tight_layout();
 # fig.subplots_adjust(top=0.8, bottom=0.08, left=0.082, right=0.981)
 file_name = yue_plots + "greenYue_extreme" + a_metric +".pdf"
 plt.savefig(file_name, bbox_inches='tight', dpi=map_dpi_)
+del(a_metric, min_idx, max_idx, fid_min, fid_max)
 
 # %%
 
-text_
+# %%
 
 # %%
+import random
+random.seed(3)
+random_idx = random.sample(list(SF_west_Yue_notOrig.index), 2)
+min_idx = random_idx[0]
+max_idx = random_idx[1]
+fid_min = SF_west_Yue_notOrig.loc[min_idx, "fid"]
+fid_max = SF_west_Yue_notOrig.loc[max_idx, "fid"]
+
+########################################################################################
+fig, axes = plt.subplots(2, 1, figsize=(10, 4), sharex=True, 
+                         gridspec_kw={"hspace": 0.02, "wspace": 0.05}, dpi=dpi_)
+(ax1, ax2) = axes
+
+ax1.set_xticks(major_ticks)
+ax1.set_xticks(minor_ticks, minor=True)
+ax1.grid(which='minor', alpha=0.2, axis="x")
+ax1.grid(which='major', alpha=0.5, axis="x")
+
+ax2.set_xticks(major_ticks)
+ax2.set_xticks(minor_ticks, minor=True)
+ax2.grid(which='minor', alpha=0.2, axis="x")
+ax2.grid(which='major', alpha=0.5, axis="x")
+######
+###### subplot 1
+######
+a_fid = fid_min
+df = ANPP_west[ANPP_west["fid"] == a_fid]
+trend_ = SF_west.loc[SF_west.fid == a_fid, "trend_yue"].values[0]
+
+state_ = list(df['state_majority_area'].unique())[0]
+ax1.plot(df.year, df[y_var], linewidth=3);
+ax1.scatter(df.year, df[y_var]);
+# ax1.legend(loc='best')
+
+text_ = ("Yue trend: {}" + "\n{} (FID:{})").format(trend_, state_, a_fid)
+y_txt = int(df[y_var].max()/1.2)
+ax1.text(1984, y_txt, text_, fontsize = 12);
+# ax1.set_ylim(3000, 4500);
+ax1.xaxis.set_ticks_position('none')
+######
+###### subplot 2
+######
+a_fid = fid_max
+df = ANPP_west[ANPP_west["fid"] == a_fid]
+trend_ = SF_west.loc[SF_west.fid == a_fid, "trend_yue"].values[0]
+state_ = list(df['state_majority_area'].unique())[0]
+ax2.plot(df.year, df[y_var], linewidth=3);
+ax2.scatter(df.year, df[y_var]);
+# ax2.legend(loc='best')
+
+text_ = ("Yue trend: {}\n" + "{} (FID:{})").format(trend_, state_, a_fid)
+y_txt = int(df[y_var].max()/1.2)
+ax2.text(1984, y_txt, text_, fontsize = 12);
+
+ax1.set_ylabel(r'$\mu_{NPP}$ (lb/acr)')
+ax2.set_ylabel(r'$\mu_{NPP}$ (lb/acr)')
+ax2.set_xlabel('year') #, fontsize=14
+
+
+# plt.subplots_adjust(left=0.9, right=0.92, top=0.92, bottom=0.9)
+#ax1.set_title("Yue Greening, dismissed by Original", fontsize=13, y=1.18)
+plt.suptitle("random FIDs. Green by Yue. Dismissed by original", fontsize=13, y=.95);
+# plt.tight_layout();
+# fig.subplots_adjust(top=0.8, bottom=0.08, left=0.082, right=0.981)
+file_name = yue_plots + "greenYue_ random.pdf"
+plt.savefig(file_name, bbox_inches='tight', dpi=map_dpi_)
 
 # %%
 
