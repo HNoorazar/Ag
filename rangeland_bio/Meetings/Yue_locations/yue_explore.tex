@@ -1,4 +1,31 @@
 \documentclass[serif, xcolor={dvipsnames}]{beamer} % serif, mathserif
+\usepackage[natbib=true,style=authoryear,backend=bibtex,useprefix=true,giveninits=true]{biblatex}
+\DeclareNameAlias{author}{last-first}
+\addbibresource{./beamer_Refs.bib}
+\usepackage[capitalise]{cleveref}
+
+\def\code#1{{\scriptsize\texttt{#1}}}
+% hypersetup only changes the year in citation.
+\hypersetup{
+    colorlinks=true,
+    linkcolor=white, % color1 : will be black
+    filecolor=red,
+    urlcolor=ForestGreen,
+    citecolor=cyan,
+    bookmarksopen=false,
+    pdftitle={Title},
+    pdfauthor={Author},
+}
+
+\DeclareCiteCommand{\cite}
+  {\color{cyan}\usebibmacro{prenote}}%
+  {\usebibmacro{citeindex}%
+   \usebibmacro{cite}}
+  {\multicitedelim}
+  {\usebibmacro{postnote}
+  }
+
+
 
 \graphicspath{ {/Users/hn/Documents/01_research_data/RangeLand_bio/plots/yue} }
 \usepackage[scaled=.9]{helvet} % platino activation
@@ -80,7 +107,7 @@ bg= blue!5}
 
 
 \title{Rangeland Biology}
-\author{Hossein Noorazar}
+% \author{Hossein Noorazar}
 \institute[WSU]{Washington State University}
 \date{\today}
 
@@ -93,6 +120,7 @@ bg= blue!5}
 %%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%
+
 \iffalse
 \begin{frame}
 \frametitle{Curious}
@@ -125,6 +153,7 @@ bg= blue!5}
 %%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%
+
 \begin{frame}
  \frametitle{Curious}
 \includegraphics[width=1\linewidth]{area_TS_allVegs}~%
@@ -132,6 +161,7 @@ bg= blue!5}
 %%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%
+
 \begin{frame}
  \frametitle{Curious}
 {\hspace*{-5mm}}
@@ -144,10 +174,30 @@ bg= blue!5}
 \end{minipage}
 \end{frame}
 \fi
+
 %%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%
+
 \begin{frame}
+\frametitle{Tests and Their Powers}
+
+\begin{itemize}% [<+->]
+\item {\bf Null Hypothesis}
+$H_0$: There is no trend
+
+\item MK {\color{red}\emph{Original}} test: Accepts $H_0$ falsely due to auto-correlation
+
+\item MK {\color{red}\emph{Adjusted Yue}}: Considers auto-correlation and rejects (too many) of the $H_0$. 
+As a result statistical test power decreases
+\end{itemize}
+\end{frame}
+
+%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%
+
+\begin{frame}[t]
 \frametitle{Trend Statistics}
 
 % \begin{itemize}[<+->]
@@ -163,21 +213,25 @@ bg= blue!5}
 \bottomrule
 \rowcolor{shadecolor} \textbf{Trend} & 
  greening & browning & no trend \\ 
-\textbf{original MK}  & 21,014 & 24 & 6,188 \\
-\rowcolor{shadecolor} \textbf{MK Rao}  & 20,231 & 24 & 6,971 \\
-\textbf{MK Yue}  &  25,115 & 91 & 2,020 \\
+\textbf{original MK}  &                                21,366 (17,017) & 24 (9) & 5,836 \\
+\rowcolor{shadecolor} \textbf{MK Rao}  & 20,516 & 24 & 6,686 \\
+\textbf{MK Yue}  &  25,187 (24,350) & 90 (56) & 1,949 \\
 \rowcolor{aliceblue}\textbf{Spearman}  & 21,703 & 27 & 5,496\\
 \toprule
 \end{tabular}
 \end{table}
 \begin{tcolorbox}
 {\scriptsize{\bf Note.} Spearman does not provide a label for trend. The numbers
-in this table based on whether $p$-value$<$0.05 or not and whether $\rho$'s are positive or negative.}
+in this table based on whether $p$-value$<$0.05 or not and whether $\rho$'s are positive or negative.
+Numbers in parentheses for Yue are for 99\% confidence level.
+}
 \end{tcolorbox}
 \end{frame}
+
 %%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%
+
 \begin{frame}
 \frametitle{Some statistics}
 Statistics about the locations labeled as greening by Yue but dismissed by original MK-test.
@@ -201,14 +255,19 @@ Statistics about the locations labeled as greening by Yue but dismissed by origi
 \end{tabular}
 \end{table}
 \end{frame}
+
 %%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%
+
 \begin{frame}
 \frametitle{Other Metrics Extremes}
 \begin{center}
 \includegraphics[height=.7\textheight]{greenYue_extrememedian_ANPP_change_as_perc}
 \end{center}
+\vspace{-.2in}
+{\scriptsize Maybe the difference between medians of NPP in the first and last decades is not the way to go about it?
+But, it seems we need to toss some of the Yue's greening locations for sure.}
 \end{frame}
 %%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%
@@ -241,14 +300,142 @@ Statistics about the locations labeled as greening by Yue but dismissed by origi
 %%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%
+\begin{frame}[t]
+\frametitle{Yue 99\% Confidence Level - Extreme Sen's slopes}
+\begin{center}
+\includegraphics[height=.8\textheight]{Yue99PercCL_SensExtremes}
+\end{center}
+\end{frame}
 %%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%
+\begin{frame}[t]
+\frametitle{Yue 99\% Confidence Level - Extreme Tau}
+\begin{center}
+\includegraphics[height=.8\textheight]{Yue99PercCL_TauExtremes}
+\end{center}
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%
+
+\begin{frame}[t]
+\frametitle{Trade Off Ideas}
+\vspace{-.15in}
+What to do about the trade off? 
+\begin{enumerate}
+\item Increase confidence level from 95\% to higher values.
+
+\item Use a 2nd method from literature to reject some of the fields labeled green by Yue. 
+(It's normal to use 2 methods. I have seen a couple of examples)
+or find the adjusted Spearman's. Normal spearman and original MK don't differ much \dots) 
+
+\item Motivated by 2 examples above: slope$ > 3$? and $\tau> 0.15$? 
+
+\item Use another modified MK-test to drop some of the Yue's greenings as suggested by~\cite{blain2013modified}.
+
+\item Count \# of positive annual changes in NPP,
+If more than $k$ positives, then declare greening? (not a good idea: )
+
+\item Smooth the time-series and see how MK test/slope/$\tau$ is affected.
+(Not good.)
+
+\item We need a generic universal simple solution.
+\end{enumerate}
+\end{frame}
 
 %%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%
+\begin{frame}[t]
+\vspace{-0.2in}
+\frametitle{Yue Good Enough?}
+{\small Maybe original MK is not too bad after all.
+Examples with Sen's slope 30, 
+rejected by original MK but Yue confidently (99\%) labels them as greening.{\footnote{\tiny I think~\cite{blain2013modified} mentioned autocorrelation is known in hydrology. Or was it Yue? Look at Blain and see how the variance adjustment is done. Learn about time series and autocorrelation and perhaps change their adjustment for more than 1 lag autocorrelation?
+}}}
+\begin{figure}[H] %htp
+\centering
+\captionsetup{singlelinecheck=false}
+\subfloat{\includegraphics[width=.45\textwidth]{./Yue_99CL_TS_dismissedByOrig/slope_ge30/FID_25422_Yue99PercCL_dismissedOrig}
+}\\
+\subfloat{\includegraphics[width=.45\textwidth]{./Yue_99CL_TS_dismissedByOrig/slope_ge30/FID_25465_Yue99PercCL_dismissedOrig}
+}\\
+\subfloat{\includegraphics[width=.45\columnwidth]{./Yue_99CL_TS_dismissedByOrig/slope_ge30/FID_25467_Yue99PercCL_dismissedOrig}
+}
+\end{figure}
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[t]
+\frametitle{Trend Definition}
+\begin{enumerate}
+\item What is the point of killing autocorrelation?\\
 
+\item Our visual inspection of plots do not detect trend, but MK test
+sees a trend. Do our definitions agree? 
+
+From Yue: Let 
+\[X_t = {\color{red}\beta (t-1)} + {\color{mgreen} A_t},\]
+
+where the red part is the linear trend part and the green part is the auto-correlation part; ${\color{mgreen}A_t = \mu_A+\rho (A_{t-1} - \mu_A) + \varepsilon_t},$ where $\varepsilon_t $ is noise, $\rho$ is correlation parameter, and
+$\mu_A$ is the mean of autoregressive (AR) process!
+\end{enumerate}
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}
+\frametitle{No lag to more than 1-lag}
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=.8\textwidth]{../ACF_for_3random_FIDs_narow}
+\captionsetup{singlelinecheck=false} 
+\caption*{Three random examples of: they show autocorrelation can go beyond 1 year. 
+Yue is based on 1-lag (at least the experiments). What if our case has more than 1 lag.
+On a slightly, different tangent, there are other examples that showed 
+no autocorrelation with this test 
+while DW (another autocorrelation test) said there are strong autocorrelation.
+Perhaps we need to test for autocorrelation in a given location,
+and apply original MK if there is no autocorrelation? Or, just go with Sen's slope?}
+\label{fig:ACF_for_3random_FIDs_narow}
+\end{figure}
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[t]
+\frametitle{Google Drive}
+Google drive: \url{https://tinyurl.com/5n76ppzs}.
+
+\begin{enumerate}
+\item Yue's Greening locations with 99\% confidence level that are dismissed by original MK
+are in subfolder \code{yue/Yue\_99CL\_TS\_dismissedByOrig} 
+
+\item Original MKs are in
+subfolder \code{original\_MK/Original\_99CL\_TS}.
+
+\item It seems originals with 99\% confidence level with Sen's slope greater than
+30 have substantial trends in them. There are 2,260 fields in this set.
+
+\item The number of fields whose Sen's slope is greater than 30 is 2,331.\\
+
+\item There are 12 fields whose slopes are greater than 30 with no-trend label by MK test. (\code{original\_MK/steepSlope\_noTrend})
+
+
+\end{enumerate}
+
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%
 
 \begin{frame}
 \frametitle{Spearman and Kendall's}
@@ -256,6 +443,8 @@ Trends based on Spearman's rank and Kendall's $\tau$
 \centering
 %\includegraphics[height=0.75\textheight]{Spearman_tau}
 \end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \begin{frame}
 \frametitle{Sen's Slope and Median Differences Slope}
@@ -267,6 +456,7 @@ Sen's Slope and Median Differences Slope.
 %%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%
+
 \begin{frame}
 \frametitle{Median ANPP Percentage Change}
 Median ANPP percentage change
@@ -274,20 +464,30 @@ Median ANPP percentage change
 %\includegraphics[height=0.9\textheight]{medianNPP_percChange}
 \end{center}
 \end{frame}
+
 %%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%
+
 \begin{frame}
 \frametitle{Trends Distribution}
 \begin{center}
 %\includegraphics[height=1\textheight]{trend_distributions}
 \end{center}
 \end{frame}
-%%%%%%%%%%%%%%%%%%%%
-%%%%%%%%%%%%%%%%%%%%
-%%%%%%%%%%%%%%%%%%%%
 
+%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%
+% \begin{frame}[allowframebreaks]
+%        \frametitle{References}
+%        \bibliographystyle{amsalpha}
+%         \bibliography{./beamer_Refs.bib}
+% \end{frame}
 %%%%%%%%%%%%%%%%%%%%%
-
+\begin{frame}[allowframebreaks, noframenumbering,t]
+\frametitle{Bibliography}
+\printbibliography
+\end{frame}
 
 \end{document}

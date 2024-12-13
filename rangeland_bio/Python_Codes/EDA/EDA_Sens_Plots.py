@@ -5,7 +5,7 @@
 #       extension: .py
 #       format_name: percent
 #       format_version: '1.3'
-#       jupytext_version: 1.15.2
+#       jupytext_version: 1.16.1
 #   kernelspec:
 #     display_name: Python 3 (ipykernel)
 #     language: python
@@ -18,20 +18,15 @@
 # %%
 import warnings
 warnings.filterwarnings("ignore")
-import pickle
 from datetime import datetime
 
 import pandas as pd
 import numpy as np
-from datetime import datetime
 import os, os.path, pickle, sys
 import pymannkendall as mk
 
 import statistics
 import statsmodels.api as sm
-
-
-
 from scipy import stats
 
 import seaborn as sns
@@ -91,7 +86,7 @@ bpszone_ANPP.sort_values(by=['fid', 'year'], inplace=True)
 bpszone_ANPP.head(2)
 
 # %%
-filename = bio_reOrganized + "ANPP_MK_Spearman.sav"
+filename = bio_reOrganized + "ANPP_MK_Spearman_no2012.sav"
 ANPP_MK_df = pd.read_pickle(filename)
 ANPP_MK_df = ANPP_MK_df["ANPP_MK_df"]
 
@@ -99,7 +94,7 @@ print (len(ANPP_MK_df["fid"].unique()))
 ANPP_MK_df.head(2)
 
 # %%
-f_name = bio_reOrganized + 'Albers_SF_west_ANPP_MK_Spearman.shp.zip'
+f_name = bio_reOrganized + 'Albers_SF_west_ANPP_MK_Spearman_no2012.shp.zip'
 Albers_SF_west = geopandas.read_file(f_name)
 Albers_SF_west["centroid"] = Albers_SF_west["geometry"].centroid
 Albers_SF_west.head(2)
@@ -135,8 +130,8 @@ state_fips.head(2)
 
 # %%
 from shapely.geometry import Polygon
-gdf = geopandas.read_file(rangeland_base +'cb_2018_us_state_500k.zip')
-# gdf = geopandas.read_file(rangeland_bio_base +'cb_2018_us_state_500k')
+# gdf = geopandas.read_file(rangeland_base +'cb_2018_us_state_500k.zip')
+gdf = geopandas.read_file(rangeland_bio_data +'cb_2018_us_state_500k')
 
 gdf.rename(columns={"STUSPS": "state"}, inplace=True)
 gdf = gdf[~gdf.state.isin(["PR", "VI", "AS", "GU", "MP"])]
@@ -189,7 +184,8 @@ params = {"font.family": "Palatino",
           "xtick.bottom": True,
           "ytick.left": True,
           "xtick.labelbottom": True,
-          "ytick.labelleft": True}
+          "ytick.labelleft": True,
+         'axes.linewidth' : .05}
 
 plt.rcParams.update(params)
 
@@ -397,7 +393,8 @@ params = {"font.family": "Palatino",
           "xtick.bottom": False,
           "ytick.left": False,
           "xtick.labelbottom": False,
-          "ytick.labelleft": False}
+          "ytick.labelleft": False,
+          'axes.linewidth' : .05}
 
 plt.rcParams.update(params)
 
@@ -475,6 +472,41 @@ plt.title("Sen's slope - all locations")
 # plt.tight_layout()
 # fig.subplots_adjust(top=0.91, bottom=0.01, left=-0.1, right=1)
 file_name = bio_plots + "sensSlopes_centerColorBar.png"
+plt.savefig(file_name, bbox_inches='tight', dpi=map_dpi_)
+
+del(cent_plt, cax, cbar1, norm1, min_max)
+
+# %%
+
+# %%
+# Dec 22, 2024. Had a conversation with Matt.
+Matt_df = Albers_SF_west.copy()
+sens_thresh = 40
+Matt_df = Matt_df[Matt_df["sens_slope"] > sens_thresh]
+
+fig, ax = plt.subplots(1, 1, figsize=(2, 2), sharex=True, sharey=True, dpi=map_dpi_)
+ax.set_xticks([]); ax.set_yticks([])
+
+min_max = max(np.abs(Matt_df['sens_slope'].min()), np.abs(Matt_df['sens_slope'].max()))
+norm1 = Normalize(vmin = -min_max, vmax = min_max, clip=True)
+
+plot_SF(SF=visframe_mainLand_west, ax_=ax, col="EW_meridian", cmap_=ListedColormap(['dodgerblue', 'white']))
+
+cent_plt = Matt_df.plot(column='sens_slope', ax=ax, legend=False,
+                               cmap = cm.get_cmap('RdYlGn'), norm=norm1)
+
+# first two arguments are x and y of the legend 
+# on the left side of it. The last two are length and width 
+# of the bar
+cax = ax.inset_axes([0.08, 0.18, 0.45, 0.03])
+cbar1 = fig.colorbar(cent_plt.collections[1], ax=ax, orientation='horizontal', shrink=0.3, 
+                     cmap=cm.get_cmap('RdYlGn'), norm=norm1, cax=cax)
+cbar1.set_label(r"Sen's slope", labelpad=1)
+plt.title("Sen's slope > " + str(sens_thresh), y=.97)
+
+# plt.tight_layout()
+# fig.subplots_adjust(top=0.91, bottom=0.01, left=-0.1, right=1)
+file_name = bio_plots + "sensSlopes_GE" + str(sens_thresh) + "_centerColorBar.png"
 plt.savefig(file_name, bbox_inches='tight', dpi=map_dpi_)
 
 del(cent_plt, cax, cbar1, norm1, min_max)
@@ -565,15 +597,11 @@ cax = axes.inset_axes([0.03, 0.18, 0.5, 0.03])
 cbar1 = fig.colorbar(spearman_plot_s.collections[1], ax=axes, orientation='horizontal', shrink=0.3, cax=cax)
 cbar1.set_label('Spearman\'s rank', labelpad=1)
 
-axes.set_title("Spearman's rank - greening locations")
+axes.set_title("Spearman's rank - greening locations", y=0.97)
 plt.tight_layout()
 plt.show();
 
 del(spearman_plot_s, cax, cbar1)
-
-# %%
-
-# %%
 
 # %%
 Albers_SF_west.head(2)
@@ -596,13 +624,15 @@ cax = axes.inset_axes([0.03, 0.18, 0.5, 0.03])
 cbar1 = fig.colorbar(plot_s.collections[1], ax=axes, orientation='horizontal', shrink=0.3, cax=cax)
 cbar1.set_label('median ANPP change %', labelpad=1)
 
-axes.set_title(r"greening trends (median_ANPP_change_as_perc > 0)")
+axes.set_title(r"greening trends (median_ANPP_change_as_perc > 0)", y=0.97)
 
 fig.subplots_adjust(top=0.91, bottom=0.01, left=0.01, right=0.981, hspace=0.05, wspace=0.05)
 file_name = bio_plots + "medianNPP_percChange.png"
 plt.savefig(file_name, bbox_inches='tight', dpi=map_dpi_)
 
 del(plot_s, cax, cbar1)
+
+# %%
 
 # %%
 fig, axes = plt.subplots(1, 1, figsize=(2, 2), sharex=True, sharey=True, dpi=map_dpi_)
@@ -621,7 +651,7 @@ cax = axes.inset_axes([0.03, 0.18, 0.5, 0.03])
 cbar1 = fig.colorbar(plot_s.collections[1], ax=axes, orientation='horizontal', shrink=0.3, cax=cax)
 cbar1.set_label('median ANPP change %', labelpad=1)
 #####
-axes.set_title(r"greening trends (median_ANPP_change_as_perc > 0)")
+axes.set_title(r"greening trends (median_ANPP_change_as_perc > 0)", y=0.97)
 
 fig.subplots_adjust(top=0.91, bottom=0.01, left=0.01, right=0.981, hspace=0.05, wspace=0.05)
 file_name = bio_plots + "medianNPP_percChange_GreenCmap.png"
@@ -642,7 +672,8 @@ params = {"legend.fontsize": tick_legend_FontSize,
           "xtick.labelsize": tick_legend_FontSize * 0.7,
           "ytick.labelsize": tick_legend_FontSize * 0.7,
           "axes.titlepad": 5, 
-          "legend.handlelength": 2}
+          "legend.handlelength": 2,
+         'axes.linewidth' : .05}
 plt.rcParams.update(params)
 
 # %%
@@ -678,7 +709,7 @@ cbar2.set_label(r"Sen's slope", labelpad=1)
 # plt.show();
 fig.subplots_adjust(top=0.91, bottom=0.01, left=0.01, right=0.981, hspace=0.01, wspace=-0.2)
 file_name = bio_plots + "sensSlopes_2colorbars.png"
-# plt.savefig(file_name, bbox_inches='tight', dpi=map_dpi_)
+plt.savefig(file_name, bbox_inches='tight', dpi=map_dpi_)
 
 del(p1, p2, cax2, cax1, cbar1, cbar2, norm1, min_max)
 
@@ -768,7 +799,7 @@ max_col_ = max(Albers_SF_west_increase['sens_slope'].max(),
 norm_col = Normalize(vmin= min_col_, vmax = max_col_);
 
 fig, axes = plt.subplots(1, 2, figsize=(8, 4), sharex=True, sharey=True, dpi=map_dpi_,
-                         gridspec_kw={"hspace": 0.15, "wspace": 0.01})
+                         gridspec_kw={"hspace": 0.15, "wspace": -0.11})
 (ax1, ax2) = axes
 ax1.set_xticks([]); ax1.set_yticks([])
 ax2.set_xticks([]); ax2.set_yticks([])
@@ -783,7 +814,7 @@ ax1.set_title(r"greening trends (Sen's slope)")
 p2 = Albers_SF_west_median_diff_increase.plot(column='medians_diff_slope_ANPP', ax=ax2, cmap=cmap_G, norm=norm_col)
 ax2.set_title(r"greening trends (ANPP medians diff slope)")
 
-fig.subplots_adjust(top=0.91, bottom=0.08, left=0.082, right=0.981, wspace=-0.1, hspace=0)
+# fig.subplots_adjust(top=0.91, bottom=0.08, left=0.082, right=0.981, wspace=-1, hspace=0)
 cax = ax2.inset_axes([1.05, 0.3, 0.04, 0.4])
 fig.colorbar(p1.get_children()[1], cax=cax, orientation='vertical')
 #fig.colorbar(p1.get_children()[1], ax=axes, fraction=0.02, location='bottom', orientation='horizontal')
@@ -823,7 +854,8 @@ params = {"font.family": "Palatino",
           "xtick.bottom": True,
           "ytick.left": True,
           "xtick.labelbottom": True,
-          "ytick.labelleft": True}
+          "ytick.labelleft": True,
+         'axes.linewidth' : .05}
 plt.rcParams.update(params)
 
 # %%
@@ -878,7 +910,8 @@ params = {"font.family": "Palatino",
           "ytick.left":True,
           "ytick.labelleft":True,
           "xtick.bottom":False,
-          "xtick.labelbottom":True}
+          "xtick.labelbottom":True,
+         'axes.linewidth' : .05}
 plt.rcParams.update(params)
 
 # %%
@@ -973,10 +1006,11 @@ params = {"font.family": "Palatino",
           "xtick.labelsize": tick_legend_FontSize * 1.1,
           "ytick.labelsize": tick_legend_FontSize * 1.1,
           "axes.titlepad": 10,
-          "xtick.bottom": True
-          "ytick.left": True
-          "xtick.labelbottom": True
-          "ytick.labelleft": True}
+          "xtick.bottom": True,
+          "ytick.left": True,
+          "xtick.labelbottom": True,
+          "ytick.labelleft": True,
+         'axes.linewidth' : .05}
 plt.rcParams.update(params)
 
 # %%
@@ -1123,7 +1157,6 @@ fig.colorbar(p1.get_children()[1], cax=cax, orientation='vertical')
 # plt.tight_layout()
 
 plt.show();
-
 del(p1, p2, cax, norm_colorB, min_color, max_color)
 
 # %%
@@ -1203,7 +1236,8 @@ params = {"font.family": "Palatino",
           "xtick.bottom" : False,
           "ytick.left" : False,
           "xtick.labelbottom": False,
-          "ytick.labelleft": False}
+          "ytick.labelleft": False,
+         'axes.linewidth' : .2}
 plt.rcParams.update(params)
 
 # %%
@@ -1223,7 +1257,6 @@ cbar2 = fig.colorbar(p2.collections[2], ax=axes, orientation='vertical', shrink=
 
 cbar1.set_label(r"$Kendal's~\tau$: (no trend locations)", labelpad=1)
 cbar2.set_label(r"$Kendal's~\tau$: (greening locations)", labelpad=1)
-
 ####################################################################################
 axes.set_title(r"Kendal's $\tau$: no trends in red, greening in green")
 plt.tight_layout()

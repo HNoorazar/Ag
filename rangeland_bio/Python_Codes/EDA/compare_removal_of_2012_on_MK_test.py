@@ -5,7 +5,7 @@
 #       extension: .py
 #       format_name: percent
 #       format_version: '1.3'
-#       jupytext_version: 1.15.2
+#       jupytext_version: 1.16.1
 #   kernelspec:
 #     display_name: Python 3 (ipykernel)
 #     language: python
@@ -51,10 +51,12 @@ bio_plots = rangeland_bio_base + "plots/"
 os.makedirs(bio_plots, exist_ok=True)
 
 # %%
-filename = bio_reOrganized + "ANPP_MK_Spearman.sav"
-ANPP_MK_Spearman = pd.read_pickle(filename)
-ANPP_MK_Spearman = ANPP_MK_Spearman["ANPP_MK_df"]
-ANPP_MK_Spearman.head(2)
+# filename = bio_reOrganized + "ANPP_MK_Spearman.sav"
+# ANPP_MK_Spearman = pd.read_pickle(filename)
+# ANPP_MK_Spearman = ANPP_MK_Spearman["ANPP_MK_df"]
+# ANPP_MK_Spearman.head(2)
+
+# %%
 
 # %%
 filename = bio_reOrganized + "ANPP_MK_Spearman_no2012.sav"
@@ -63,34 +65,28 @@ ANPP_MK_Spearman_no2012 = ANPP_MK_Spearman_no2012["ANPP_MK_df"]
 ANPP_MK_Spearman_no2012.head(2)
 
 # %%
-trend_col = "trend"
-trend_count_orig = ANPP_MK_Spearman[[trend_col, "fid"]].groupby([trend_col]).count().reset_index()
-trend_count_orig.rename(columns={"fid": "fid_original"}, inplace=True)
+# trend_col = "trend"
+# trend_count_orig = ANPP_MK_Spearman[[trend_col, "fid"]].groupby([trend_col]).count().reset_index()
+# trend_count_orig.rename(columns={"fid": "fid_original"}, inplace=True)
 
-trend_count_orig
+# trend_col = "trend_yue"
+# trend_count_yue = ANPP_MK_Spearman[[trend_col, "fid"]].groupby([trend_col]).count().reset_index()
+# trend_count_yue.rename(columns={"fid": "fid_yue",
+#                                 "trend_yue" : "trend"}, inplace=True)
+# trend_col = "trend_rao"
+# trend_count_rao = ANPP_MK_Spearman[[trend_col, "fid"]].groupby([trend_col]).count().reset_index()
+# trend_count_rao.rename(columns={"fid": "fid_rao", 
+#                                "trend_rao" : "trend"}, inplace=True)
 
-trend_col = "trend_yue"
-trend_count_yue = ANPP_MK_Spearman[[trend_col, "fid"]].groupby([trend_col]).count().reset_index()
-trend_count_yue.rename(columns={"fid": "fid_yue",
-                                "trend_yue" : "trend"}, inplace=True)
-trend_count_yue
-
-trend_col = "trend_rao"
-trend_count_rao = ANPP_MK_Spearman[[trend_col, "fid"]].groupby([trend_col]).count().reset_index()
-trend_count_rao.rename(columns={"fid": "fid_rao", 
-                               "trend_rao" : "trend"}, inplace=True)
-trend_count_rao
-
-trend_counts = pd.merge(trend_count_orig, trend_count_yue, on="trend", how="outer")
-trend_counts = pd.merge(trend_counts, trend_count_rao, on="trend", how="outer")
-trend_counts
+# trend_counts = pd.merge(trend_count_rao, trend_count_yue, on="trend", how="outer")
+# trend_counts = pd.merge(trend_counts, trend_count_orig, on="trend", how="outer")
+# trend_counts
 
 # %%
 trend_col = "trend"
-trend_count_orig = ANPP_MK_Spearman_no2012[[trend_col, "fid"]].groupby([trend_col]).count().reset_index()
-trend_count_orig.rename(columns={"fid": "fid_original"}, inplace=True)
-
-trend_count_orig
+# trend_count_orig = ANPP_MK_Spearman_no2012[[trend_col, "fid"]].groupby([trend_col]).count().reset_index()
+# trend_count_orig.rename(columns={"fid": "fid_original"}, inplace=True)
+# trend_count_orig
 
 trend_col = "trend_yue"
 trend_count_yue = ANPP_MK_Spearman_no2012[[trend_col, "fid"]].groupby([trend_col]).count().reset_index()
@@ -104,38 +100,38 @@ trend_count_rao.rename(columns={"fid": "fid_rao",
                                "trend_rao" : "trend"}, inplace=True)
 trend_count_rao
 
-trend_counts_no2012 = pd.merge(trend_count_orig, trend_count_yue, on="trend", how="outer")
-trend_counts_no2012 = pd.merge(trend_counts_no2012, trend_count_rao, on="trend", how="outer")
+trend_counts_no2012 = pd.merge(trend_count_rao, trend_count_yue, on="trend", how="outer")
+# trend_counts_no2012 = pd.merge(trend_counts_no2012, trend_count_orig, on="trend", how="outer")
 trend_counts_no2012
 
 # %%
 
 # %%
-orig = (trend_counts_no2012.loc[trend_counts_no2012["trend"] == "increasing", "fid_original"] - \
-        trend_counts.loc[trend_counts["trend"] == "increasing", "fid_original"]).item()
+# orig = (trend_counts_no2012.loc[trend_counts_no2012["trend"] == "increasing", "fid_original"] - \
+#         trend_counts.loc[trend_counts["trend"] == "increasing", "fid_original"]).item()
 
-Yue = (trend_counts_no2012.loc[trend_counts_no2012["trend"] == "increasing", "fid_yue"] - \
-       trend_counts.loc[trend_counts["trend"] == "increasing", "fid_yue"]).item()
+# Yue = (trend_counts_no2012.loc[trend_counts_no2012["trend"] == "increasing", "fid_yue"] - \
+#        trend_counts.loc[trend_counts["trend"] == "increasing", "fid_yue"]).item()
 
-Rao = (trend_counts_no2012.loc[trend_counts_no2012["trend"] == "increasing", "fid_rao"] - \
-       trend_counts.loc[trend_counts["trend"] == "increasing", "fid_rao"]).item()
+# Rao = (trend_counts_no2012.loc[trend_counts_no2012["trend"] == "increasing", "fid_rao"] - \
+#        trend_counts.loc[trend_counts["trend"] == "increasing", "fid_rao"]).item()
 
-print ("diff. as a result of removing 2012 in  MK: {}".format(orig))
-print ("diff. as a result of removing 2012 in Rao: {}".format(Rao))
-print ("diff. as a result of removing 2012 in Yue: {}".format(Yue))
+# print ("diff. as a result of removing 2012 in  MK: {}".format(orig))
+# print ("diff. as a result of removing 2012 in Rao: {}".format(Rao))
+# print ("diff. as a result of removing 2012 in Yue: {}".format(Yue))
 
 # %%
-bpszone_ANPP = pd.read_pickle(bio_reOrganized + "bpszone_ANPP.sav")
-print (bpszone_ANPP["Date"])
-bpszone_ANPP = bpszone_ANPP["bpszone_ANPP"]
+# bpszone_ANPP = pd.read_pickle(bio_reOrganized + "bpszone_ANPP.sav")
+# print (bpszone_ANPP["Date"])
+# bpszone_ANPP = bpszone_ANPP["bpszone_ANPP"]
 # bpszone_ANPP.rename(columns=lambda x: x.lower().replace(' ', '_'), inplace=True)
 # bpszone_ANPP.rename(columns={"area": "area_sqMeter", 
 #                              "count": "pixel_count",
 #                              "mean" : "mean_lb_per_acr"}, inplace=True)
 
-bpszone_ANPP.sort_values(by=['fid', 'year'], inplace=True)
-bpszone_ANPP.reset_index(drop=True, inplace=True)
-bpszone_ANPP.head(2)
+# bpszone_ANPP.sort_values(by=['fid', 'year'], inplace=True)
+# bpszone_ANPP.reset_index(drop=True, inplace=True)
+# bpszone_ANPP.head(2)
 
 # %% [markdown]
 # ### Lets stick to no-2012
@@ -191,21 +187,34 @@ len(Yue_FIDs_missed_by_Rao)
 #    - Near 4: Strong negative autocorrelation
 
 # %%
-bpszone_ANPP_no2012 = bpszone_ANPP[bpszone_ANPP["year"]!=2012].copy()
+# bpszone_ANPP_no2012 = bpszone_ANPP[bpszone_ANPP["year"]!=2012].copy()
 
 # %%
-# %%time
-data = {'fid': bpszone_ANPP["fid"].unique(), 
-        'dw_stat': [-666]*len(bpszone_ANPP["fid"].unique())}
+# # %%time
+# data = {'fid': bpszone_ANPP["fid"].unique(), 
+#         'dw_stat': [-666]*len(bpszone_ANPP["fid"].unique())}
 
-dw_stats_df = pd.DataFrame(data)
+# dw_stats_df = pd.DataFrame(data)
 
-# Perform the Durbin-Watson test
-for a_fid in bpszone_ANPP["fid"].unique():
-    TS = bpszone_ANPP.loc[bpszone_ANPP["fid"] == a_fid, "mean_lb_per_acr"]
-    dw_stats_df.loc[dw_stats_df["fid"] == a_fid, "dw_stat"] = sm.stats.stattools.durbin_watson(TS)
+# # Perform the Durbin-Watson test
+# for a_fid in bpszone_ANPP["fid"].unique():
+#     TS = bpszone_ANPP.loc[bpszone_ANPP["fid"] == a_fid, "mean_lb_per_acr"]
+#     dw_stats_df.loc[dw_stats_df["fid"] == a_fid, "dw_stat"] = sm.stats.stattools.durbin_watson(TS)
 
-dw_stats_df.head(2)
+# dw_stats_df.head(2)
+
+# %%
+bpszone_ANPP_no2012 = pd.read_pickle(bio_reOrganized + "bpszone_ANPP_no2012.sav")
+print (bpszone_ANPP_no2012["Date"])
+bpszone_ANPP_no2012 = bpszone_ANPP_no2012["bpszone_ANPP"]
+bpszone_ANPP_no2012.rename(columns=lambda x: x.lower().replace(' ', '_'), inplace=True)
+bpszone_ANPP_no2012.rename(columns={"area": "area_sqMeter", 
+                             "count": "pixel_count",
+                             "mean" : "mean_lb_per_acr"}, inplace=True)
+
+bpszone_ANPP_no2012.sort_values(by=['fid', 'year'], inplace=True)
+bpszone_ANPP_no2012.reset_index(drop=True, inplace=True)
+bpszone_ANPP_no2012.head(2)
 
 # %%
 # %%time
@@ -223,15 +232,15 @@ dw_stats_df_no2012.rename(columns={"dw_stat": "dw_stat_no2012"}, inplace=True)
 dw_stats_df_no2012.head(2)
 
 # %%
-dw_stats_df = pd.merge(dw_stats_df, dw_stats_df_no2012, how="left", on="fid")
-dw_stats_df.head(2)
+# dw_stats_df = pd.merge(dw_stats_df, dw_stats_df_no2012, how="left", on="fid")
+# dw_stats_df.head(2)
 
 # %%
-dw_stats_df["dw_diff"] = dw_stats_df["dw_stat"] - dw_stats_df["dw_stat_no2012"]
+# dw_stats_df["dw_diff"] = dw_stats_df["dw_stat"] - dw_stats_df["dw_stat_no2012"]
 
-dw_stats_df.sort_values(by=["dw_diff"], ascending=False, inplace=True)
-dw_stats_df.reset_index(drop=True, inplace=True)
-dw_stats_df.head(6)
+# dw_stats_df.sort_values(by=["dw_diff"], ascending=False, inplace=True)
+# dw_stats_df.reset_index(drop=True, inplace=True)
+# dw_stats_df.head(6)
 
 # %%
 y_var = "mean_lb_per_acr"
@@ -255,33 +264,33 @@ plt.rcParams["ytick.labelleft"] = True
 plt.rcParams.update(params)
 
 # %%
-fig, axes = plt.subplots(1, 1, figsize=(4, 1.5), sharex=True, sharey=False, dpi=dpi_)
+# fig, axes = plt.subplots(1, 1, figsize=(4, 1.5), sharex=True, sharey=False, dpi=dpi_)
 
-axes.grid(axis="y", which="both");
+# axes.grid(axis="y", which="both");
 
-######### Maximum correlation by DW test
-loc_ = 0
-fid_corr = int(dw_stats_df.iloc[loc_]["fid"])
-df = bpszone_ANPP[bpszone_ANPP["fid"] == fid_corr]
-axes.plot(df.year, df[y_var], linewidth=2, color="dodgerblue", zorder=1);
-axes.scatter(df.year, df[y_var], marker='o', facecolors='r', edgecolors='r', s=5, zorder=2);
+# ######### Maximum correlation by DW test
+# loc_ = 0
+# fid_corr = int(dw_stats_df.iloc[loc_]["fid"])
+# df = bpszone_ANPP[bpszone_ANPP["fid"] == fid_corr]
+# axes.plot(df.year, df[y_var], linewidth=2, color="dodgerblue", zorder=1);
+# axes.scatter(df.year, df[y_var], marker='o', facecolors='r', edgecolors='r', s=5, zorder=2);
 
-state = ANPP_MK_Spearman.loc[ANPP_MK_Spearman["fid"] == fid_corr, "state_majority_area"].item()
-DW_ = round(dw_stats_df.iloc[loc_]["dw_stat"], 2)
-DW_no2012 = round(dw_stats_df.iloc[loc_]["dw_stat_no2012"], 2)
+# state = ANPP_MK_Spearman.loc[ANPP_MK_Spearman["fid"] == fid_corr, "state_majority_area"].item()
+# DW_ = round(dw_stats_df.iloc[loc_]["dw_stat"], 2)
+# DW_no2012 = round(dw_stats_df.iloc[loc_]["dw_stat_no2012"], 2)
 
-title_ = "{}, FID: {}, DW: {}, DW (no 2012): {}".format(state, str(fid_corr), DW_, DW_no2012)
-axes.set_title(title_);
+# title_ = "{}, FID: {}, DW: {}, DW (no 2012): {}".format(state, str(fid_corr), DW_, DW_no2012)
+# axes.set_title(title_);
 
-axes.axvline(x=2012, color = 'k', label = '2012', linestyle="-")
-axes.legend(loc='best');
+# axes.axvline(x=2012, color = 'k', label = '2012', linestyle="-")
+# axes.legend(loc='best');
 
-axes.set_xlabel("year"); axes.set_ylabel("ANPP (mean lb/acr)");
+# axes.set_xlabel("year"); axes.set_ylabel("ANPP (mean lb/acr)");
 
-# plt.tight_layout()
-fig.subplots_adjust(top=0.85, bottom=0.21, left=0.11, right=0.981)
-file_name = bio_plots + "DW_test_2012_adverse.pdf"
-plt.savefig(file_name, dpi=save_dpi)
+# # plt.tight_layout()
+# fig.subplots_adjust(top=0.85, bottom=0.21, left=0.11, right=0.981)
+# file_name = bio_plots + "DW_test_2012_adverse.pdf"
+# plt.savefig(file_name, dpi=save_dpi)
 
 # %%
 # del(dw_stats_df)
@@ -329,12 +338,16 @@ axes.set_xlabel("Durbin–Watson statistic");
 
 fig.subplots_adjust(top=0.85, bottom=0.23, left=0.12, right=0.981)
 file_name = bio_plots + "DW_test_distribution.pdf"
-plt.savefig(file_name, dpi=save_dpi)
+# plt.savefig(file_name, dpi=save_dpi)
 
 # %% [markdown]
 # ### Plot 3 ACFs
 
 # %%
+dw_stats_df_no2012["dw_stat_no2012"].median()
+
+# %%
+dw_stats_df_no2012[dw_stats_df_no2012.fid==6645]["dw_stat_no2012"].item()
 
 # %%
 min_DW_fid = dw_stats_df_no2012.loc[dw_stats_df_no2012["dw_stat_no2012"].idxmin(), "fid"]
@@ -342,7 +355,11 @@ max_DW_fid = dw_stats_df_no2012.loc[dw_stats_df_no2012["dw_stat_no2012"].idxmax(
 
 # median
 median_DF = dw_stats_df_no2012["dw_stat_no2012"].median()
-median_DW_fid = dw_stats_df_no2012.loc[dw_stats_df_no2012["dw_stat_no2012"] == median_DF, "fid"].item()
+# median_DW_fid = dw_stats_df_no2012.loc[dw_stats_df_no2012["dw_stat_no2012"] == median_DF, "fid"].item()
+median_DW_fid = 6645 # Dec. 10. from old plot! how come this does not exist anymore?
+
+# %%
+import matplotlib.ticker as plticker
 
 # %%
 fig, axes = plt.subplots(3, 1, figsize=(4, 4.5), sharey=True, sharex=True, dpi=dpi_)
@@ -367,7 +384,8 @@ sm.graphics.tsa.plot_acf(df.mean_lb_per_acr.squeeze(), lags=5, ax=axes[ax_])
 loc = plticker.MultipleLocator(base=.5)
 axes[ax_].yaxis.set_major_locator(loc)
 
-state_= ANPP_MK_Spearman_no2012.loc[ANPP_MK_Spearman_no2012["fid"] == median_DW_fid, "state_majority_area"].item()
+state_= ANPP_MK_Spearman_no2012.loc[ANPP_MK_Spearman_no2012["fid"] == \
+                                    median_DW_fid, "state_majority_area"].item()
 txt_ = "location with median DW stat.\n{} (FID:{})".format(state_, median_DW_fid)
 axes[ax_].text(3, .6, txt_, fontsize=6);
 ###################################
@@ -378,7 +396,8 @@ sm.graphics.tsa.plot_acf(df.mean_lb_per_acr.squeeze(), lags=5, ax=axes[ax_])
 loc = plticker.MultipleLocator(base=.5)
 axes[ax_].yaxis.set_major_locator(loc)
 
-state_= ANPP_MK_Spearman_no2012.loc[ANPP_MK_Spearman_no2012["fid"] == min_DW_fid, "state_majority_area"].item()
+state_= ANPP_MK_Spearman_no2012.loc[ANPP_MK_Spearman_no2012["fid"] == \
+                                    min_DW_fid, "state_majority_area"].item()
 
 txt_ = "location with minimum DW stat.\n{} (FID:{})".format(state_, min_DW_fid)
 axes[ax_].text(3, .6, txt_, fontsize=6);
@@ -390,10 +409,79 @@ axes[2].set_title(None);
 
 axes[2].set_xlabel("lag"); axes[1].set_ylabel("autocorrelation");
 
-
 fig.subplots_adjust(top=0.95, bottom=0.08, left=0.14, right=0.981)
 file_name = bio_plots + "ACF_for_3FIDs.pdf"
-plt.savefig(file_name, dpi=save_dpi)
+plt.savefig(file_name, dpi=save_dpi, bbox_inches="tight")
+
+# %%
+tick_legend_FontSize = 8
+params = {"legend.fontsize": tick_legend_FontSize*.8,
+          "axes.labelsize": tick_legend_FontSize * .8,
+          "axes.titlesize": tick_legend_FontSize * 1,
+          "xtick.labelsize": tick_legend_FontSize * 0.8,
+          "ytick.labelsize": tick_legend_FontSize * 0.8,
+          "axes.titlepad": 5, 
+          'legend.handlelength': 2}
+
+plt.rcParams["xtick.bottom"] = True
+plt.rcParams["ytick.left"] = True
+plt.rcParams["xtick.labelbottom"] = True
+plt.rcParams["ytick.labelleft"] = True
+plt.rcParams.update(params)
+
+# %%
+fig, axes = plt.subplots(1, 3, figsize=(4.5, 2), sharey=True, sharex=True, dpi=dpi_)
+x_text, y_text = 0.2, 0.6
+###################################
+ax_ = 0
+a_fid = max_DW_fid
+df = bpszone_ANPP_no2012[bpszone_ANPP_no2012.fid == a_fid]
+sm.graphics.tsa.plot_acf(df.mean_lb_per_acr.squeeze(), lags=5, ax=axes[ax_], label="max DW stat.")
+loc = plticker.MultipleLocator(base=.5)
+axes[ax_].yaxis.set_major_locator(loc)
+# axes[ax_].legend(loc='best');
+
+state_= ANPP_MK_Spearman_no2012.loc[ANPP_MK_Spearman_no2012["fid"] == max_DW_fid, "state_majority_area"].item()
+
+txt_ = "FID w/ max. DW stat.\n{} (FID:{})".format(state_, max_DW_fid)
+axes[ax_].text(x_text, y_text, txt_, fontsize=6);
+###################################
+ax_ = 1
+a_fid = median_DW_fid
+df = bpszone_ANPP_no2012[bpszone_ANPP_no2012.fid == a_fid]
+sm.graphics.tsa.plot_acf(df.mean_lb_per_acr.squeeze(), lags=5, ax=axes[ax_])
+loc = plticker.MultipleLocator(base=.5)
+axes[ax_].yaxis.set_major_locator(loc)
+
+state_= ANPP_MK_Spearman_no2012.loc[ANPP_MK_Spearman_no2012["fid"] == \
+                                    median_DW_fid, "state_majority_area"].item()
+txt_ = "FID w/ median DW stat.\n{} (FID:{})".format(state_, median_DW_fid)
+axes[ax_].text(x_text, y_text, txt_, fontsize=6);
+###################################
+ax_ = 2
+a_fid = min_DW_fid
+df = bpszone_ANPP_no2012[bpszone_ANPP_no2012.fid == a_fid]
+sm.graphics.tsa.plot_acf(df.mean_lb_per_acr.squeeze(), lags=5, ax=axes[ax_])
+loc = plticker.MultipleLocator(base=.5)
+axes[ax_].yaxis.set_major_locator(loc)
+
+state_= ANPP_MK_Spearman_no2012.loc[ANPP_MK_Spearman_no2012["fid"] == \
+                                    min_DW_fid, "state_majority_area"].item()
+
+txt_ = "FID w/ min. DW stat.\n{} (FID:{})".format(state_, min_DW_fid)
+axes[ax_].text(x_text, y_text, txt_, fontsize=6);
+
+###################################
+axes[1].set_title("ACF of ANPP"); axes[0].set_title(None); axes[2].set_title(None);
+axes[1].set_xlabel("lag"); axes[0].set_ylabel("autocorrelation");
+
+fig.subplots_adjust(top=0.91, bottom=0.2, left=0.12, right=0.981)
+file_name = bio_plots + "ACF_for_3FIDs_wide2.pdf"
+plt.savefig(file_name, dpi=save_dpi, bbox_inches="tight")
+
+# %%
+
+# %%
 
 # %%
 
@@ -516,7 +604,7 @@ axes[2].set_xlabel("lag"); axes[1].set_ylabel("autocorrelation");
 
 fig.subplots_adjust(top=0.95, bottom=0.08, left=0.14, right=0.981)
 file_name = bio_plots + "ACF_for_3random_FIDs.pdf"
-plt.savefig(file_name, dpi=save_dpi)
+plt.savefig(file_name, dpi=save_dpi, bbox_inches="tight")
 
 # %%
 tick_legend_FontSize = 8
@@ -571,9 +659,8 @@ axes[1].tick_params(axis='y', left=False)
 axes[2].tick_params(axis='y', left=False)
 
 axes[1].set_xlabel("lag"); axes[0].set_ylabel("autocorrelation");
-plt.tight_layout()
 fig.subplots_adjust(top=0.91, bottom=0.2, left=0.12, right=0.981)
 file_name = bio_plots + "ACF_for_3random_FIDs_narow.pdf"
-plt.savefig(file_name, dpi=save_dpi)
+plt.savefig(file_name, dpi=save_dpi, bbox_inches="tight")
 
 # %%

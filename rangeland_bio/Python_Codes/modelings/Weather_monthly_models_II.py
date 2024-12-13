@@ -161,55 +161,12 @@ SF_west.head(2)
 # # Read Weather Data
 
 # %%
-filename = bio_reOrganized + "bps_weather.sav"
-monthly_weather = pd.read_pickle(filename)
-monthly_weather = monthly_weather["bps_weather"]
-# change the order of columns!
-monthly_weather.head(2)
-
-# %%
-print (f'{len(monthly_weather["fid"].unique())=}')
-print (f'{len(ANPP["fid"].unique())=}')
-
-# %%
 FIDs_weather_ANPP_common = pd.read_pickle(bio_reOrganized + "common_FID_NPP_weather_west.sav")
 FIDs_weather_ANPP_common = FIDs_weather_ANPP_common["common_FID_NPP_weather_west"]
 FIDs_weather_ANPP_common = list(FIDs_weather_ANPP_common["common_FIDs_NPP_WA_west"])
 
 # %% [markdown]
 # ### Subset to common FIDs:
-
-# %%
-ANPP    = ANPP[ANPP["fid"].isin(FIDs_weather_ANPP_common)]
-monthly_weather = monthly_weather[monthly_weather["fid"].isin(FIDs_weather_ANPP_common)]
-
-SF_west = SF_west[SF_west["fid"].isin(FIDs_weather_ANPP_common)]
-
-# %%
-monthly_weather.head(2)
-
-# %%
-# # %%time
-# unique_number_of_years = {}
-# for a_fid in FIDs_weather_ANPP_common:
-#     LL = str(len(monthly_weather[monthly_weather.fid == a_fid])) + "_months"    
-#     if not (LL in unique_number_of_years.keys()):
-#         unique_number_of_years[LL] = 1
-#     else:
-#         unique_number_of_years[LL] = unique_number_of_years[LL] + 1
-# print (unique_number_of_years)
-
-528 / 12
-
-# # %%time
-# unique_number_of_years = {}
-# for a_fid in ANPP.fid.unique():
-#     LL = str(len(ANPP[ANPP.fid == a_fid])) + "_years"
-#     if not (LL in unique_number_of_years.keys()):
-#         unique_number_of_years[LL] = 1
-#     else:
-#         unique_number_of_years[LL] = unique_number_of_years[LL] + 1
-# unique_number_of_years
 
 # %%
 ANPP.head(2)
@@ -219,51 +176,6 @@ monthly_weather.head(2)
 
 # %%
 monthly_weather.isna().sum()
-
-# %%
-# # %%time
-# monthly_weather_wide = monthly_weather.copy()
-# monthly_weather_wide.sort_values(by= ['fid', 'year', "month"], inplace=True)
-# monthly_weather_wide["month"] = monthly_weather_wide["month"].astype(str)
-# df1 = monthly_weather_wide[['fid', 'year', "month", 'avg_of_dailyAvg_rel_hum']].copy()
-# df2 = monthly_weather_wide[['fid', 'year', "month", 'avg_of_dailyAvgTemp_C']].copy()
-# df3 = monthly_weather_wide[['fid', 'year', "month", 'thi_avg']].copy()
-# df4 = monthly_weather_wide[['fid', 'year', "month", 'precip_mm_month']].copy()
-# ########################################################################
-# df1 = df1.pivot(index=['fid', 'year'], columns=['month'])
-# df2 = df2.pivot(index=['fid', 'year'], columns=['month'])
-# df3 = df3.pivot(index=['fid', 'year'], columns=['month'])
-# df4 = df4.pivot(index=['fid', 'year'], columns=['month'])
-# ########################################################################
-# df1.reset_index(drop=False, inplace=True)
-# df2.reset_index(drop=False, inplace=True)
-# df3.reset_index(drop=False, inplace=True)
-# df4.reset_index(drop=False, inplace=True)
-# ########################################################################
-# df1.columns = ["_".join(tup) for tup in df1.columns.to_flat_index()]
-# df2.columns = ["_".join(tup) for tup in df2.columns.to_flat_index()]
-# df3.columns = ["_".join(tup) for tup in df3.columns.to_flat_index()]
-# df4.columns = ["_".join(tup) for tup in df4.columns.to_flat_index()]
-# ########################################################################
-# df1.rename(columns={"fid_": "fid", "year_":"year"}, inplace=True)
-# df2.rename(columns={"fid_": "fid", "year_": "year"}, inplace=True)
-# df3.rename(columns={"fid_": "fid", "year_": "year"}, inplace=True)
-# df4.rename(columns={"fid_": "fid", "year_": "year"}, inplace=True)
-
-# df1.head(2)
-
-# wide_WA = pd.merge(df1, df2, how="left", on=["fid", "year"])
-# wide_WA = pd.merge(wide_WA, df3, how="left", on=["fid", "year"])
-# wide_WA = pd.merge(wide_WA, df4, how="left", on=["fid", "year"])
-
-# filename = bio_reOrganized + "bps_weather_wide.sav"
-
-# export_ = {"bps_weather_wide": wide_WA, 
-#            "source_code" : "Weather_monthly_models",
-#            "Author": "HN",
-#            "Date" : datetime.now().strftime('%Y-%m-%d %H:%M:%S')}
-# pickle.dump(export_, open(filename, 'wb'))
-# wide_WA.head(2)
 
 # %%
 filename = bio_reOrganized + "bps_weather_wide.sav"

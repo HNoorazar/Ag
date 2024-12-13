@@ -5,7 +5,7 @@
 #       extension: .py
 #       format_name: percent
 #       format_version: '1.3'
-#       jupytext_version: 1.15.2
+#       jupytext_version: 1.16.1
 #   kernelspec:
 #     display_name: Python 3 (ipykernel)
 #     language: python
@@ -18,12 +18,10 @@
 # %%
 import warnings
 warnings.filterwarnings("ignore")
-import pickle
 from datetime import datetime
-
 import pandas as pd
 import numpy as np
-from datetime import datetime
+import random
 import os, os.path, pickle, sys
 import pymannkendall as mk
 
@@ -81,18 +79,15 @@ yue_plots = bio_plots + "yue/"
 os.makedirs(yue_plots, exist_ok=True)
 
 # %%
-ANPP = pd.read_csv(min_bio_dir + "bpszone_annual_productivity_rpms_MEAN.csv")
-
-ANPP.rename(columns=lambda x: x.lower().replace(' ', '_'), inplace=True)
-ANPP.rename(columns={"area": "area_sqMeter", 
-                     "count": "pixel_count",
-                     "mean" : "mean_lb_per_acr"}, inplace=True)
-
-ANPP.sort_values(by=['fid', 'year'], inplace=True)
+ANPP = pd.read_pickle(bio_reOrganized + "bpszone_ANPP_no2012.sav")
+ANPP = ANPP["bpszone_ANPP"]
 ANPP.head(2)
 
 # %%
-filename = bio_reOrganized + "ANPP_MK_Spearman.sav"
+2012 in sorted(ANPP.year.unique())
+
+# %%
+filename = bio_reOrganized + "ANPP_MK_Spearman_no2012.sav"
 ANPP_MK_df = pd.read_pickle(filename)
 ANPP_MK_df = ANPP_MK_df["ANPP_MK_df"]
 
@@ -101,7 +96,7 @@ ANPP_MK_df.head(2)
 
 # %%
 # %%time
-Albers_SF_name = min_bio_dir + "Albers_BioRangeland_Min_Ehsan"
+Albers_SF_name = bio_reOrganized + "Albers_BioRangeland_Min_Ehsan" # laptop
 Albers_SF = geopandas.read_file(Albers_SF_name)
 Albers_SF.rename(columns=lambda x: x.lower().replace(' ', '_'), inplace=True)
 Albers_SF.rename(columns={"minstatsid": "fid", 
@@ -111,13 +106,33 @@ Albers_SF["centroid"] = Albers_SF["geometry"].centroid
 Albers_SF.head(2)
 
 # %%
-
-# %%
 # %%time
-f_name = bio_reOrganized + 'Albers_SF_west_ANPP_MK_Spearman.shp.zip'
+## bad 2012
+# f_name = bio_reOrganized + 'Albers_SF_west_ANPP_MK_Spearman.shp.zip'
+f_name = bio_reOrganized + 'Albers_SF_west_ANPP_MK_Spearman_no2012.shp.zip'
 SF_west = geopandas.read_file(f_name)
 SF_west["centroid"] = SF_west["geometry"].centroid
 SF_west.head(2)
+
+# %%
+groupveg = sorted(SF_west["groupveg"].unique())
+
+veg_colors = {"Barren-Rock/Sand/Clay" : "blue",
+              "Conifer" : "green",
+              "Grassland" : "red",
+              "Hardwood" : "cyan",
+              "Riparian" : "magenta",
+              "Shrubland" : "yellow",
+              "Sparse" : "black"}
+
+for a_veg in  groupveg:
+    SF_west.loc[SF_west['groupveg'] == a_veg, 'color'] = veg_colors[a_veg]
+    Albers_SF.loc[Albers_SF['groupveg'] == a_veg, 'color'] = veg_colors[a_veg]
+
+SF_west.head(2)
+
+# %%
+SF_west[["fid", "trend_yue"]].groupby("trend_yue").count()
 
 # %%
 sorted(SF_west['state_1'].unique())
@@ -198,8 +213,8 @@ state_fips.head(2)
 
 # %%
 from shapely.geometry import Polygon
-gdf = geopandas.read_file(rangeland_base +'cb_2018_us_state_500k.zip')
-# gdf = geopandas.read_file(rangeland_bio_base +'cb_2018_us_state_500k')
+# gdf = geopandas.read_file(rangeland_base +'cb_2018_us_state_500k.zip')
+gdf = geopandas.read_file(rangeland_bio_base +'cb_2018_us_state_500k')
 
 gdf.rename(columns={"STUSPS": "state"}, inplace=True)
 gdf = gdf[~gdf.state.isin(["PR", "VI", "AS", "GU", "MP"])]
@@ -216,29 +231,9 @@ visframe_mainLand_west = visframe_mainLand_west[~visframe_mainLand_west.state.is
 ANPP.head(2)
 
 # %%
-groupveg = sorted(SF_west["groupveg"].unique())
-groupveg
+sorted(ANPP.year.unique())
 
 # %%
-veg_colors = {"Barren-Rock/Sand/Clay" : "blue",
-              "Conifer" : "green",
-              "Grassland" : "red",
-              "Hardwood" : "cyan",
-              "Riparian" : "magenta",
-              "Shrubland" : "yellow",
-              "Sparse" : "black"}
-
-# %%
-for a_veg in  groupveg:
-    SF_west.loc[SF_west['groupveg'] == a_veg, 'color'] = veg_colors[a_veg]
-
-SF_west.head(2)
-
-# %%
-for a_veg in  groupveg:
-    Albers_SF.loc[Albers_SF['groupveg'] == a_veg, 'color'] = veg_colors[a_veg]
-
-Albers_SF.head(2)
 
 # %% [markdown]
 # ### Plot a couple of examples
@@ -263,8 +258,6 @@ mystery_FID_wNoState_in_SF
 
 # %%
 ANPP_west.head(2)
-
-# %%
 
 # %%
 SF_west_Yue_notOrig = SF_west[SF_west["fid"].isin(green_Yue_notoriginal_FIDs)].copy()
@@ -294,16 +287,11 @@ plt.rcParams.update(params)
 Albers_SF.head(2)
 
 # %%
-
-# %%
-
-# %%
 fig, ax = plt.subplots(1, 1, figsize=(2, 2), dpi=map_dpi_)
 ax.set_xticks([]); ax.set_yticks([])
 plt.title('Where are FIDs {}?'.format(list(mystery_FID_wNoState_in_SF)), y=.92)
 
 plot_SF(SF=visframe_mainLand, ax_=ax, col="EW_meridian", cmap_ = "Pastel2")
-
 
 mystery_SF = Albers_SF[Albers_SF["fid"].isin(list(mystery_FID_wNoState_in_SF))]
 mystery_SF["geometry"].centroid.plot(ax=ax, markersize=.5)
@@ -500,14 +488,14 @@ df = ANPP_west[ANPP_west["fid"] == a_fid]
 trend_ = SF_west.loc[SF_west.fid == a_fid, "trend_yue"].values[0]
 a_metric_val = round(ANPP_MK_df.loc[ANPP_MK_df.fid == a_fid, a_metric].values[0], 2)
 state_ = list(df['state_majority_area'].unique())[0]
-ax1.plot(df.year, df[y_var], linewidth=3);
-ax1.scatter(df.year, df[y_var]);
+ax1.plot(df.year, df[y_var], linewidth=3, color="dodgerblue");
+ax1.scatter(df.year, df[y_var], color="dodgerblue");
 # ax1.legend(loc='best')
 
 text_ = ("Yue trend:   {}\n" + a_metric + ": {}\n{} (FID: {})").format(trend_, a_metric_val, state_, a_fid)
-y_txt = int(df[y_var].max()/1.8)
-ax1.text(1984, y_txt, text_, fontsize = 12);
-# ax1.set_ylim(3000, 4500);
+
+y_txt = df[y_var].max() * .99
+ax1.text(1984, y_txt, text_, fontsize=tick_legend_FontSize*1.2, va="top");
 ######
 ###### subplot 2
 ######
@@ -516,14 +504,12 @@ df = ANPP_west[ANPP_west["fid"] == a_fid]
 trend_ = SF_west.loc[SF_west.fid == a_fid, "trend_yue"].values[0]
 a_metric_val = round(ANPP_MK_df.loc[ANPP_MK_df.fid == a_fid, a_metric].values[0], 2)
 state_ = list(df['state_majority_area'].unique())[0]
-ax2.plot(df.year, df[y_var], linewidth=3);
-ax2.scatter(df.year, df[y_var]);
-# ax2.legend(loc='best')
+ax2.plot(df.year, df[y_var], linewidth=3, color="dodgerblue");
+ax2.scatter(df.year, df[y_var], color="dodgerblue");
 
 text_ = ("Yue trend:   {}\n" + a_metric + ": {}\n{} (FID: {})").format(trend_, a_metric_val, state_, a_fid)
-y_txt = int(df[y_var].max()/1.8)
-ax2.text(1984, y_txt, text_, fontsize = 12);
-
+y_txt = df[y_var].max() * .99
+ax2.text(1984, y_txt, text_, fontsize=tick_legend_FontSize*1.2, va="top");
 
 ax1.set_ylabel(r'$\mu_{NPP}$ (lb/acr)')
 ax2.set_ylabel(r'$\mu_{NPP}$ (lb/acr)')
@@ -542,6 +528,8 @@ del(a_metric, min_idx, max_idx, fid_min, fid_max)
 
 # %% [markdown]
 # ### Plot the FID with minimum Sen's slope
+
+# %%
 
 # %%
 a_metric = "sens_slope"
@@ -570,15 +558,17 @@ a_fid = fid_min
 df = ANPP_west[ANPP_west["fid"] == a_fid]
 trend_ = SF_west.loc[SF_west.fid == a_fid, "trend_yue"].values[0]
 a_metric_val = round(ANPP_MK_df.loc[ANPP_MK_df.fid == a_fid, a_metric].values[0], 2)
+slope_ = round(ANPP_MK_df.loc[ANPP_MK_df.fid == a_fid, "sens_slope"].item(), 2)
+Tau_ = round(ANPP_MK_df.loc[ANPP_MK_df.fid == a_fid, "Tau"].item(), 2)
 state_ = list(df['state_majority_area'].unique())[0]
-ax1.plot(df.year, df[y_var], linewidth=3);
-ax1.scatter(df.year, df[y_var]);
+ax1.plot(df.year, df[y_var], linewidth=3, color="dodgerblue");
+ax1.scatter(df.year, df[y_var], color="dodgerblue");
 # ax1.legend(loc='best')
 
-text_ = ("Yue trend:   {}\n" + a_metric + ": {}\n{} (FID: {})").format(trend_, a_metric_val, state_, a_fid)
-y_txt = int(df[y_var].max()/1.5)
-ax1.text(1984, y_txt, text_, fontsize = 12);
-# ax1.set_ylim(3000, 4500);
+text_ = ("Yue trend:   {}\nSen's slope: {}"  + "\nTau: {}" + "\n{} (FID: {})").format(trend_, slope_, Tau_,
+                                                                                         state_, a_fid)
+y_txt = df[y_var].max() * .99
+ax1.text(1984, y_txt, text_, fontsize=tick_legend_FontSize*1.2, va="top");
 ######
 ###### subplot 2
 ######
@@ -586,15 +576,18 @@ a_fid = fid_max
 df = ANPP_west[ANPP_west["fid"] == a_fid]
 trend_ = SF_west.loc[SF_west.fid == a_fid, "trend_yue"].values[0]
 a_metric_val = round(ANPP_MK_df.loc[ANPP_MK_df.fid == a_fid, a_metric].values[0], 2)
+slope_ = round(ANPP_MK_df.loc[ANPP_MK_df.fid == a_fid, "sens_slope"].item(), 2)
+Tau_ = round(ANPP_MK_df.loc[ANPP_MK_df.fid == a_fid, "Tau"].item(), 2)
+
 state_ = list(df['state_majority_area'].unique())[0]
-ax2.plot(df.year, df[y_var], linewidth=3);
-ax2.scatter(df.year, df[y_var]);
+ax2.plot(df.year, df[y_var], linewidth=3, color="dodgerblue");
+ax2.scatter(df.year, df[y_var], color="dodgerblue");
 # ax2.legend(loc='best')
 
-text_ = ("Yue trend:   {}\n" + a_metric + ": {}\n{} (FID: {})").format(trend_, a_metric_val, state_, a_fid)
-y_txt = int(df[y_var].max()/1.5)
-ax2.text(1984, y_txt, text_, fontsize = 12);
-
+text_ = ("Yue trend:   {}\nSen's slope: {}"  + "\nTau: {}" + "\n{} (FID: {})").format(trend_, slope_, Tau_,
+                                                                                         state_, a_fid)
+y_txt = df[y_var].max() * .99
+ax2.text(1984, y_txt, text_, fontsize=tick_legend_FontSize*1.2, va="top");
 
 ax1.set_ylabel(r'$\mu_{NPP}$ (lb/acr)')
 ax2.set_ylabel(r'$\mu_{NPP}$ (lb/acr)')
@@ -608,6 +601,10 @@ plt.suptitle("(extremes of " + a_metric + ")", fontsize=15, y=.95, color="red");
 file_name = yue_plots + "greenYue_extreme" + a_metric +".pdf"
 plt.savefig(file_name, bbox_inches='tight', dpi=map_dpi_)
 del(a_metric, min_idx, max_idx, fid_min, fid_max)
+
+# %%
+
+# %%
 
 # %%
 SF_west_Yue_notOrig.columns
@@ -639,15 +636,17 @@ a_fid = fid_min
 df = ANPP_west[ANPP_west["fid"] == a_fid]
 trend_ = SF_west.loc[SF_west.fid == a_fid, "trend_yue"].values[0]
 a_metric_val = round(ANPP_MK_df.loc[ANPP_MK_df.fid == a_fid, a_metric].values[0], 2)
-state_ = list(df['state_majority_area'].unique())[0]
-ax1.plot(df.year, df[y_var], linewidth=3);
-ax1.scatter(df.year, df[y_var]);
-# ax1.legend(loc='best')
+slope_ = round(ANPP_MK_df.loc[ANPP_MK_df.fid == a_fid, "sens_slope"].item(), 2)
+Tau_ = round(ANPP_MK_df.loc[ANPP_MK_df.fid == a_fid, "Tau"].item(), 2)
 
-text_ = ("Yue trend:    {}\n" + a_metric + ": {}\n{} (FID:{})").format(trend_, a_metric_val, state_, a_fid)
-y_txt = int(df[y_var].max()/1.5)
-ax1.text(1984, y_txt, text_, fontsize = 12);
-# ax1.set_ylim(3000, 4500);
+state_ = list(df['state_majority_area'].unique())[0]
+ax1.plot(df.year, df[y_var], linewidth=3, color="dodgerblue");
+ax1.scatter(df.year, df[y_var], color="dodgerblue");
+
+text_ = ("Yue trend:   {}\nSen's slope: {}"  + "\nTau: {}" + "\n{} (FID: {})").format(trend_, slope_, Tau_,
+                                                                                         state_, a_fid)
+y_txt = df[y_var].max() * .99
+ax1.text(1984, y_txt, text_, fontsize=tick_legend_FontSize*1.2, va="top");
 ######
 ###### subplot 2
 ######
@@ -655,14 +654,18 @@ a_fid = fid_max
 df = ANPP_west[ANPP_west["fid"] == a_fid]
 trend_ = SF_west.loc[SF_west.fid == a_fid, "trend_yue"].values[0]
 a_metric_val = round(ANPP_MK_df.loc[ANPP_MK_df.fid == a_fid, a_metric].values[0], 2)
+slope_ = round(ANPP_MK_df.loc[ANPP_MK_df.fid == a_fid, "sens_slope"].item(), 2)
+Tau_ = round(ANPP_MK_df.loc[ANPP_MK_df.fid == a_fid, "Tau"].item(), 2)
+
 state_ = list(df['state_majority_area'].unique())[0]
-ax2.plot(df.year, df[y_var], linewidth=3);
-ax2.scatter(df.year, df[y_var]);
+ax2.plot(df.year, df[y_var], linewidth=3, color="dodgerblue");
+ax2.scatter(df.year, df[y_var], color="dodgerblue");
 # ax2.legend(loc='best')
 
-text_ = ("Yue trend:    {}\n" + a_metric + ": {}\n{} (FID:{})").format(trend_, a_metric_val, state_, a_fid)
-y_txt = int(df[y_var].max()/1.5)
-ax2.text(1984, y_txt, text_, fontsize = 12);
+text_ = ("Yue trend:   {}\nSen's slope: {}"  + "\nTau: {}" + "\n{} (FID: {})").format(trend_, slope_, Tau_,
+                                                                                      state_, a_fid)
+y_txt = df[y_var].max() * .99
+ax2.text(1984, y_txt, text_, fontsize=tick_legend_FontSize*1.2, va="top");
 
 ax1.set_ylabel(r'$\mu_{NPP}$ (lb/acr)')
 ax2.set_ylabel(r'$\mu_{NPP}$ (lb/acr)')
@@ -674,15 +677,12 @@ plt.suptitle("(extremes of " + a_metric + ")", fontsize=15, y=.95, color='red');
 # plt.tight_layout();
 # fig.subplots_adjust(top=0.8, bottom=0.08, left=0.082, right=0.981)
 file_name = yue_plots + "greenYue_extreme" + a_metric +".pdf"
-plt.savefig(file_name, bbox_inches='tight', dpi=map_dpi_)
+# plt.savefig(file_name, bbox_inches='tight', dpi=map_dpi_)
 del(a_metric, min_idx, max_idx, fid_min, fid_max)
 
 # %%
 
 # %%
-
-# %%
-import random
 random.seed(3)
 random_idx = random.sample(list(SF_west_Yue_notOrig.index), 2)
 min_idx = random_idx[0]
@@ -710,16 +710,18 @@ ax2.grid(which='major', alpha=0.5, axis="x")
 a_fid = fid_min
 df = ANPP_west[ANPP_west["fid"] == a_fid]
 trend_ = SF_west.loc[SF_west.fid == a_fid, "trend_yue"].values[0]
+slope_ = round(ANPP_MK_df.loc[ANPP_MK_df.fid == a_fid, "sens_slope"].item(), 2)
+Tau_ = round(ANPP_MK_df.loc[ANPP_MK_df.fid == a_fid, "Tau"].item(), 2)
 
 state_ = list(df['state_majority_area'].unique())[0]
-ax1.plot(df.year, df[y_var], linewidth=3);
-ax1.scatter(df.year, df[y_var]);
+ax1.plot(df.year, df[y_var], linewidth=3, color="dodgerblue");
+ax1.scatter(df.year, df[y_var], color="dodgerblue");
 # ax1.legend(loc='best')
 
-text_ = ("Yue trend: {}" + "\n{} (FID:{})").format(trend_, state_, a_fid)
-y_txt = int(df[y_var].max()/1.2)
-ax1.text(1984, y_txt, text_, fontsize = 12);
-# ax1.set_ylim(3000, 4500);
+text_ = ("Yue trend:   {}\nSen's slope: {}"  + "\nTau: {}" + "\n{} (FID: {})").format(trend_, slope_, Tau_,
+                                                                                      state_, a_fid)
+y_txt = df[y_var].max() * .99
+ax1.text(1984, y_txt, text_, fontsize=tick_legend_FontSize*1.2, va="top");
 ax1.xaxis.set_ticks_position('none')
 ######
 ###### subplot 2
@@ -728,18 +730,20 @@ a_fid = fid_max
 df = ANPP_west[ANPP_west["fid"] == a_fid]
 trend_ = SF_west.loc[SF_west.fid == a_fid, "trend_yue"].values[0]
 state_ = list(df['state_majority_area'].unique())[0]
-ax2.plot(df.year, df[y_var], linewidth=3);
-ax2.scatter(df.year, df[y_var]);
-# ax2.legend(loc='best')
+slope_ = round(ANPP_MK_df.loc[ANPP_MK_df.fid == a_fid, "sens_slope"].item(), 2)
+Tau_ = round(ANPP_MK_df.loc[ANPP_MK_df.fid == a_fid, "Tau"].item(), 2)
 
-text_ = ("Yue trend: {}\n" + "{} (FID:{})").format(trend_, state_, a_fid)
-y_txt = int(df[y_var].max()/1.2)
-ax2.text(1984, y_txt, text_, fontsize = 12);
+ax2.plot(df.year, df[y_var], linewidth=3, color="dodgerblue");
+ax2.scatter(df.year, df[y_var], color="dodgerblue");
+
+text_ = ("Yue trend:   {}\nSen's slope: {}"  + "\nTau: {}" + "\n{} (FID: {})").format(trend_, slope_, Tau_,
+                                                                                         state_, a_fid)
+y_txt = df[y_var].max() * .99
+ax2.text(1984, y_txt, text_, fontsize=tick_legend_FontSize*1.2, va="top");
 
 ax1.set_ylabel(r'$\mu_{NPP}$ (lb/acr)')
 ax2.set_ylabel(r'$\mu_{NPP}$ (lb/acr)')
 ax2.set_xlabel('year') #, fontsize=14
-
 
 # plt.subplots_adjust(left=0.9, right=0.92, top=0.92, bottom=0.9)
 #ax1.set_title("Yue Greening, dismissed by Original", fontsize=13, y=1.18)
@@ -748,8 +752,6 @@ plt.suptitle("random FIDs. Green by Yue. Dismissed by original", fontsize=13, y=
 # fig.subplots_adjust(top=0.8, bottom=0.08, left=0.082, right=0.981)
 file_name = yue_plots + "greenYue_ random.pdf"
 plt.savefig(file_name, bbox_inches='tight', dpi=map_dpi_)
-
-# %%
 
 # %%
 # drop trend so there is no bug later
@@ -891,5 +893,12 @@ plt.rcParams.update(params)
 # # Same plot as above. Just pick the ones with low p-value
 
 # %%
+
+# %%
+NPP_TS = pd.read_csv(rangeland_bio_base + ".csv.csv")
+NPP_TS.head(2)
+
+# %%
+NPP_TS_21519 = NPP_TS[NPP_TS.FID==21519].copy()
 
 # %%

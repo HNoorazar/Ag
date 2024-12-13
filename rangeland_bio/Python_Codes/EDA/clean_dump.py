@@ -134,7 +134,7 @@ export_ = {"bps_weather": bps_weather,
            "Author": "HN",
            "Date" : datetime.now().strftime('%Y-%m-%d %H:%M:%S')}
 
-pickle.dump(export_, open(filename, 'wb'))
+# pickle.dump(export_, open(filename, 'wb'))
 
 del(bps_weather)
 
@@ -176,7 +176,7 @@ export_ = {"bpszone_ANPP": bpszone_ANPP,
            "Author": "HN",
            "Date" : datetime.now().strftime('%Y-%m-%d %H:%M:%S')}
 
-pickle.dump(export_, open(filename, 'wb'))
+# pickle.dump(export_, open(filename, 'wb'))
 
 # %%
 print (len(Albers_SF["fid"].unique()))
@@ -293,7 +293,7 @@ export_ = {"FID_veg": FID_veg,
            "Author": "HN",
            "Date" : datetime.now().strftime('%Y-%m-%d %H:%M:%S')}
 
-pickle.dump(export_, open(filename, 'wb'))
+# pickle.dump(export_, open(filename, 'wb'))
 del(FID_veg, bps_weather)
 
 # %%
@@ -702,7 +702,7 @@ export_ = {"ANPP_MK_df": ANPP_MK_df,
            "Author": "HN",
            "Date" : datetime.now().strftime('%Y-%m-%d %H:%M:%S')}
 
-pickle.dump(export_, open(filename, 'wb'))
+# pickle.dump(export_, open(filename, 'wb'))
 
 # %%
 Albers_SF_west_noCentroid = Albers_SF_west.copy()

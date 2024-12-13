@@ -17,6 +17,7 @@ from datetime import date
 import datetime
 import time
 import sys
+
 start_time = time.time()
 
 # search path for modules
@@ -28,13 +29,13 @@ start_time = time.time()
 ###
 ####################################################################################
 
-sys.path.append('/home/hnoorazar/NASA/')
+sys.path.append("/home/hnoorazar/NASA/")
 import NASA_core as nc
 import NASA_plot_core as ncp
 
 ####################################################################################
 ###
-###      Parameters                   
+###      Parameters
 ###
 ####################################################################################
 
@@ -42,10 +43,10 @@ indeks = sys.argv[1]
 random_or_all = sys.argv[2]
 
 # do the following since walla walla has two parts and we have to use walla_walla in terminal
-print ("Terminal Arguments are: ")
-print (indeks)
-print (random_or_all)
-print ("__________________________________________")
+print("Terminal Arguments are: ")
+print(indeks)
+print(random_or_all)
+print("__________________________________________")
 if indeks == "NDVI":
     NoVI = "EVI"
 else:
@@ -71,19 +72,34 @@ os.makedirs(output_dir, exist_ok=True)
 ###
 ########################################################################################
 if random_or_all == "random":
-    f_name = "regular_int_Grant_Irr_2008_2018_" + indeks + "_" + str(randCount) + "randomfields_JFD.csv"
-    out_name = output_dir + "SG_int_Grant_Irr_2008_2018_" + indeks + "_" + str(randCount) + "randomfields_JFD.csv"
+    f_name = (
+        "regular_int_Grant_Irr_2008_2018_"
+        + indeks
+        + "_"
+        + str(randCount)
+        + "randomfields_JFD.csv"
+    )
+    out_name = (
+        output_dir
+        + "SG_int_Grant_Irr_2008_2018_"
+        + indeks
+        + "_"
+        + str(randCount)
+        + "randomfields_JFD.csv"
+    )
 else:
     f_name = "regular_int_Grant_Irr_2008_2018_" + indeks + "_JFD.csv"
     out_name = output_dir + "SG_int_Grant_Irr_2008_2018_" + indeks + "_JFD.csv"
 
-print (f_name)
+print(f_name)
 
 an_EE_TS = pd.read_csv(data_dir + f_name, low_memory=False)
-an_EE_TS['human_system_start_time'] = pd.to_datetime(an_EE_TS['human_system_start_time'])
+an_EE_TS["human_system_start_time"] = pd.to_datetime(
+    an_EE_TS["human_system_start_time"]
+)
 
-print ("an_EE_TS dimension is:", str(an_EE_TS.shape))
-print (an_EE_TS.head(2))
+print("an_EE_TS dimension is:", str(an_EE_TS.shape))
+print(an_EE_TS.head(2))
 ###
 ### List of unique polygons
 ###
@@ -93,29 +109,31 @@ print("len(ID_list) is: " + str(len(ID_list)))
 ########################################################################################
 ###
 ###  initialize output data. all polygons in this case
-###  will have the same length. 
+###  will have the same length.
 ###
 counter = 0
 
-an_EE_TS.sort_values(by=[IDcolName, 'human_system_start_time'], inplace=True)
+an_EE_TS.sort_values(by=[IDcolName, "human_system_start_time"], inplace=True)
 an_EE_TS.reset_index(drop=True, inplace=True)
 
 for a_poly in ID_list:
-    if (counter % 300 == 0):
-        print (counter)
-    
-    curr_field = an_EE_TS[an_EE_TS[IDcolName]==a_poly].copy()
-    
+    if counter % 300 == 0:
+        print(counter)
+
+    curr_field = an_EE_TS[an_EE_TS[IDcolName] == a_poly].copy()
+
     # Smoothen by Savitzky-Golay
-    SG = scipy.signal.savgol_filter(curr_field[indeks].values, window_length=7, polyorder=3)
-    SG[SG > 1 ] = 1 # SG might violate the boundaries. clip them:
-    SG[SG < -1 ] = -1
+    SG = scipy.signal.savgol_filter(
+        curr_field[indeks].values, window_length=7, polyorder=3
+    )
+    SG[SG > 1] = 1  # SG might violate the boundaries. clip them:
+    SG[SG < -1] = -1
     if counter == 0:
         print(curr_field.head(2))
         print(curr_field.index)
-        print (an_EE_TS.loc[curr_field.index, ])
+        print(an_EE_TS.loc[curr_field.index,])
         print("len(SG) is " + str(len(SG)))
-        print (SG[1:10])
+        print(SG[1:10])
 
     an_EE_TS.loc[curr_field.index, indeks] = SG
     counter += 1
@@ -129,8 +147,8 @@ for a_poly in ID_list:
 an_EE_TS.drop_duplicates(inplace=True)
 an_EE_TS.dropna(inplace=True)
 
-an_EE_TS.to_csv(out_name, index = False)
+an_EE_TS.to_csv(out_name, index=False)
 
 
 end_time = time.time()
-print ("it took {:.0f} minutes to run this code.".format((end_time - start_time)/60))
+print("it took {:.0f} minutes to run this code.".format((end_time - start_time) / 60))
