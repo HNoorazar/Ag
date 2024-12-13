@@ -19,8 +19,6 @@
 import warnings
 warnings.filterwarnings("ignore")
 import pickle
-from datetime import datetime
-
 import pandas as pd
 import numpy as np
 from datetime import datetime
@@ -100,17 +98,20 @@ len(ANPP_MK_df[ANPP_MK_df["trend"] == "increasing"])
 
 # %%
 df = ANPP_MK_df[(ANPP_MK_df["trend"] == "increasing") & (ANPP_MK_df["sens_slope"] < 20)]
-len(df)
+print ("s < 20:    {:,}".format(len(df)))
 
-# %%
-df = ANPP_MK_df[(ANPP_MK_df["trend"] == "increasing") & (ANPP_MK_df["sens_slope"] > 30)]
-len(df)
-
-# %%
 df = ANPP_MK_df[(ANPP_MK_df["trend"] == "increasing") & 
                (ANPP_MK_df["sens_slope"] > 20) & 
                ((ANPP_MK_df["sens_slope"] < 30))]
-len(df)
+print ("s in 20-30: {:,}".format(len(df)))
+
+df = ANPP_MK_df[(ANPP_MK_df["trend"] == "increasing") & (ANPP_MK_df["sens_slope"] > 30)]
+print ("s > 30:     {:,}".format(len(df)))
+
+# %%
+sorted(ANPP_MK_df["EW_meridian"].unique())
+
+# %%
 
 # %%
 f_name = bio_reOrganized + 'Albers_SF_west_ANPP_MK_Spearman_no2012.shp.zip'
@@ -187,7 +188,7 @@ params = {"font.family": "Palatino",
           "ytick.left": True,
           "xtick.labelbottom": True,
           "ytick.labelleft": True,
-         'axes.linewidth' : .05}
+          'axes.linewidth' : .05}
 
 plt.rcParams.update(params)
 

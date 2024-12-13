@@ -1,4 +1,3 @@
-# %%
 import os, os.path, pickle, sys
 import pandas as pd
 import numpy as np
@@ -11,6 +10,15 @@ import matplotlib.colors as colors
 from matplotlib.colors import ListedColormap, Normalize
 from matplotlib import cm
 
+
+####################################################################################
+###
+###      Parameters
+###
+####################################################################################
+# I have only 3 conditions. Greening locations with slope less than 20, 20-30, more than 20.
+slope_class = int(sys.argv[1])
+####################################################################################
 # %%
 # Major ticks every 5, minor ticks every 1
 major_ticks = np.arange(1984, 2024, 5)
@@ -27,7 +35,7 @@ bio_reOrganized = rangeland_bio_data + "reOrganized/"
 bio_plots = rangeland_bio_base + "plots/"
 os.makedirs(bio_plots, exist_ok=True)
 
-orig_plots = bio_plots + "plot_bySlope_TS/"
+orig_plots = bio_plots + "increasing_originalMK_slope_TS/"
 os.makedirs(orig_plots, exist_ok=True)
 
 # %%
@@ -49,12 +57,24 @@ len(ANPP_MK_df["EW_meridian"].unique())
 # %%
 
 # %%
-green_99 = ANPP_MK_df[["fid", "trend", "p"]].copy()
-green_99 = green_99[green_99["trend"] == "increasing"]
+green_99 = ANPP_MK_df.copy()
+green_99 = green_99[green_99["trend"] == "increasing"].copy()
 # green_99 = green_99[green_99["p"] < 0.01].copy()
+
+if slope_class == 1:
+    green_99 = green_99[green_99["sens_slope"] <= 20].copy()
+elif slope_class == 2:
+    green_99 = green_99[
+        (green_99["sens_slope"] > 20) & (green_99["sens_slope"] <= 30)
+    ].copy()
+elif slope_class == 3:
+    green_99 = green_99[green_99["sens_slope"] > 30].copy()
+
 
 green_99.head(2)
 green_99 = list(green_99["fid"].unique())
+print("len(Green_99 - line 76")
+print(len(green_99))
 len(green_99)
 
 # %%
@@ -102,7 +122,7 @@ for a_fid in green_99:
     ###
     ### Text
     trend_ = ANPP_MK_df.loc[ANPP_MK_df.fid == a_fid, "trend"].item()
-    slope_ = round(ANPP_MK_df.loc[ANPP_MK_df.fid == a_fid, "sens_slope"].item(), 2)
+    slope_ = round(ANPP_MK_df.loc[ANPP_MK_df.fid == a_fid, "sens_slope"].item(), 4)
     Tau_ = round(ANPP_MK_df.loc[ANPP_MK_df.fid == a_fid, "Tau"].item(), 2)
     state_ = ANPP_MK_df.loc[ANPP_MK_df.fid == a_fid, "state_majority_area"].item()
 
@@ -119,18 +139,17 @@ for a_fid in green_99:
     if slope_ <= 20:
         orig_plots_less20 = orig_plots + "slope_less20/"
         os.makedirs(orig_plots_less20, exist_ok=True)
-        file_name = orig_plots_less20 + "FID_" + str(a_fid) + "_Orig99PercCL.pdf"
-    elif (slope_ >= 20) and (slope_ < 30):
+        file_name = orig_plots_less20 + "FID_" + str(a_fid) + "_OrigGreen.pdf"
+    elif (slope_ > 20) and (slope_ <= 30):
         orig_plots_20to30 = orig_plots + "slope_20to30/"
         os.makedirs(orig_plots_20to30, exist_ok=True)
-
-        file_name = orig_plots_20to30 + "FID_" + str(a_fid) + "_Orig99PercCL.pdf"
-    elif slope_ >= 30:
+        file_name = orig_plots_20to30 + "FID_" + str(a_fid) + "_OrigGreen.pdf"
+    elif slope_ > 30:
         orig_plots_ge30 = orig_plots + "slope_ge30/"
         os.makedirs(orig_plots_ge30, exist_ok=True)
-        file_name = orig_plots_ge30 + "FID_" + str(a_fid) + "_Orig99PercCL.pdf"
+        file_name = orig_plots_ge30 + "FID_" + str(a_fid) + "_OrigGreen.pdf"
 
     plt.savefig(file_name, dpi=dpi_, bbox_inches="tight")
     plt.close("all")
 
-# %%
+    # %%

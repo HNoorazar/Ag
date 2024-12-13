@@ -196,37 +196,37 @@ steepSlope_noTrend_dir = bio_plots + "steepSlope_noTrend/"
 os.makedirs(steepSlope_noTrend_dir, exist_ok=True)
 
 # %%
-for a_fid in list(green_99["fid"]):
-    fig, axes = plt.subplots(1, 1, figsize=(10, 3), sharex=True, 
-                             gridspec_kw={"hspace": 0.15, "wspace": 0.05}, dpi=dpi_)
-    # axes.grid(which='major', alpha=0.5, axis="both")
-    axes.set_xticks(major_ticks)
-    axes.set_xticks(minor_ticks, minor=True)
-    axes.grid(which='minor', alpha=0.2, axis="x")
-    axes.grid(which='major', alpha=0.5, axis="x")
+# for a_fid in list(green_99["fid"]):
+#     fig, axes = plt.subplots(1, 1, figsize=(10, 3), sharex=True, 
+#                              gridspec_kw={"hspace": 0.15, "wspace": 0.05}, dpi=dpi_)
+#     # axes.grid(which='major', alpha=0.5, axis="both")
+#     axes.set_xticks(major_ticks)
+#     axes.set_xticks(minor_ticks, minor=True)
+#     axes.grid(which='minor', alpha=0.2, axis="x")
+#     axes.grid(which='major', alpha=0.5, axis="x")
 
-    ########## plot 1
-    df = ANPP[ANPP.fid == a_fid].copy()
-    axes.plot(df.year, df[y_var], linewidth=3, color="dodgerblue");
-    axes.scatter(df.year, df[y_var], zorder=3, color="dodgerblue");
+#     ########## plot 1
+#     df = ANPP[ANPP.fid == a_fid].copy()
+#     axes.plot(df.year, df[y_var], linewidth=3, color="dodgerblue");
+#     axes.scatter(df.year, df[y_var], zorder=3, color="dodgerblue");
 
-    ###
-    ### Text 
-    trend_ = ANPP_MK_df.loc[ANPP_MK_df.fid == a_fid, "trend"].item()
-    slope_ = round(ANPP_MK_df.loc[ANPP_MK_df.fid == a_fid, "sens_slope"].item(), 2)
-    Tau_   = round(ANPP_MK_df.loc[ANPP_MK_df.fid == a_fid, "Tau"].item(), 2)
-    state_ = ANPP_MK_df.loc[ANPP_MK_df.fid==a_fid, "state_majority_area"].item()
+#     ###
+#     ### Text 
+#     trend_ = ANPP_MK_df.loc[ANPP_MK_df.fid == a_fid, "trend"].item()
+#     slope_ = round(ANPP_MK_df.loc[ANPP_MK_df.fid == a_fid, "sens_slope"].item(), 2)
+#     Tau_   = round(ANPP_MK_df.loc[ANPP_MK_df.fid == a_fid, "Tau"].item(), 2)
+#     state_ = ANPP_MK_df.loc[ANPP_MK_df.fid==a_fid, "state_majority_area"].item()
 
-    text_ = "trend: {}\nSen's slope: {}, \nTau: {}, \n{} (FID: {})".format(trend_, slope_, Tau_, state_, a_fid)
-    y_txt = df[y_var].max() * .99
-    axes.text(1983, y_txt, text_, fontsize=tick_legend_FontSize*1.2, va="top");
-    ####
-    axes.set_title("Sens slope greater than 30 but labeled as no trend by original MK");
-    axes.set_ylabel(r'$\mu_{NPP}$ (lb/acr)');
+#     text_ = "trend: {}\nSen's slope: {}, \nTau: {}, \n{} (FID: {})".format(trend_, slope_, Tau_, state_, a_fid)
+#     y_txt = df[y_var].max() * .99
+#     axes.text(1983, y_txt, text_, fontsize=tick_legend_FontSize*1.2, va="top");
+#     ####
+#     axes.set_title("Sens slope greater than 30 but labeled as no trend by original MK");
+#     axes.set_ylabel(r'$\mu_{NPP}$ (lb/acr)');
 
-    file_name = steepSlope_noTrend_dir + str(a_fid) + "_SloleGE30_noTrendOrigMK.pdf"
-    plt.savefig(file_name, dpi=dpi_, bbox_inches='tight')
-    plt.close("all")
+#     file_name = steepSlope_noTrend_dir + str(a_fid) + "_SloleGE30_noTrendOrigMK.pdf"
+#     plt.savefig(file_name, dpi=dpi_, bbox_inches='tight')
+#     plt.close("all")
 
 # %% [markdown]
 # ## 99% confidence level
@@ -420,6 +420,46 @@ file_name = yue_plots + "Yue99PercCL_TauExtremes.pdf"
 plt.savefig(file_name, dpi=dpi_, bbox_inches='tight')
 
 # %% [markdown]
+# # Play with Yue's Lag
+
+# %%
+FIDs = [14926]
+a_fid = 14926
+lag_ = 1
+
+fig, axes = plt.subplots(1, 1, figsize=(10, 3), sharex=True, dpi=dpi_)
+axes.set_xticks(major_ticks)
+axes.set_xticks(minor_ticks, minor=True)
+axes.grid(which='minor', alpha=0.2, axis="x")
+axes.grid(which='major', alpha=0.5, axis="x")
+##########
+########## plot 1
+##########
+df = ANPP[ANPP.fid == a_fid].copy()
+axes.plot(df.year, df[y_var], linewidth=3, color="dodgerblue");
+axes.scatter(df.year, df[y_var], zorder=3, color="dodgerblue");
+
+###
+### Text
+trend_yue, _, p_yue, _, Tau_yue, _, var_s_yue, slope_yue, _ = mk.yue_wang_modification_test(df[y_var], 
+                                                                                            lag=lag_)
+
+state_ = ANPP_MK_df.loc[ANPP_MK_df.fid==a_fid, "state_majority_area"].item()
+
+text_ = "Yue trend: {} ({:.4f})\nSen's slope: {:.2f}, \nTau: {:.2f}, \n{} (FID: {})"
+text_ = text_.format(trend_yue, p_yue, slope_yue, Tau_yue, state_, a_fid)
+y_txt = df[y_var].max() * .99
+axes.text(1983, y_txt, text_, fontsize=tick_legend_FontSize*1.2, va="top");
+
+del(trend_yue, p_yue, Tau_yue, var_s_yue, slope_yue, state_)
+####################################################################################
+# axes.legend(loc="upper right");
+
+# %%
+
+# %%
+
+# %% [markdown]
 # ### Filter by both Slope and Tau and see:
 
 # %%
@@ -544,6 +584,8 @@ axes[1].set_xticks(major_ticks)
 axes[1].set_xticks(minor_ticks, minor=True)
 axes[1].grid(which='minor', alpha=0.2, axis="x")
 axes[1].grid(which='major', alpha=0.5, axis="x")
+
+x_text_SG = 1996
 ##########
 ########## plot 1
 ##########
@@ -578,7 +620,7 @@ p_yue_ = ANPP_MK_SG.loc[ANPP_MK_SG.fid == a_fid, "p_yue"].item()
 slope_ = round(ANPP_MK_SG.loc[ANPP_MK_SG.fid == a_fid, "sens_slope"].item(), 2)
 Tau_ = round(ANPP_MK_SG.loc[ANPP_MK_SG.fid == a_fid, "Tau"].item(), 2)
 text_ = "trend: {} ({:.4f})\nSen's slope: {}, \nTau: {}\n".format(trend_, p_yue_, slope_, Tau_)
-axes[0].text(1995, y_txt, text_, color="green", fontsize=tick_legend_FontSize*1.2, va="top");
+axes[0].text(x_text_SG, y_txt, text_, color="green", fontsize=tick_legend_FontSize*1.2, va="top");
 print (p_yue_)
 del(trend_, p_yue_, slope_, Tau_)
 ##########
@@ -611,7 +653,7 @@ p_yue_ = ANPP_MK_SG.loc[ANPP_MK_SG.fid == a_fid, "p_yue"].item()
 slope_ = round(ANPP_MK_SG.loc[ANPP_MK_SG.fid == a_fid, "sens_slope"].item(), 2)
 Tau_ = round(ANPP_MK_SG.loc[ANPP_MK_SG.fid == a_fid, "Tau"].item(), 2)
 text_ = "trend: {} ({:.4f})\nSen's slope: {}, \nTau: {}\n".format(trend_, p_yue_, slope_, Tau_)
-axes[1].text(1995, y_txt, text_, color="green", fontsize=tick_legend_FontSize*1.2, va="top");
+axes[1].text(x_text_SG, y_txt, text_, color="green", fontsize=tick_legend_FontSize*1.2, va="top");
 
 print (p_yue_)
 del(trend_, p_yue_, slope_, Tau_)
@@ -621,32 +663,38 @@ axes[1].legend(loc="upper right")
 file_name = yue_plots + "A3.pdf"
 # plt.savefig(file_name, dpi=dpi_, bbox_inches='tight')
 
+# %%
+
+# %%
+
+# %%
+
 # %% [markdown]
 # ### Annual change sign
 
 # %%
-# %%time
-all_FID_list = ANPP_MK_df["fid"].unique()
-cols_ = ["fid", "num_yrs", "increase_count"]
-positive_count_df = pd.DataFrame(index=np.arange(len(all_FID_list)), columns=cols_)
-positive_count_df["fid"] = all_FID_list
+# # %%time
+# all_FID_list = ANPP_MK_df["fid"].unique()
+# cols_ = ["fid", "num_yrs", "increase_count"]
+# positive_count_df = pd.DataFrame(index=np.arange(len(all_FID_list)), columns=cols_)
+# positive_count_df["fid"] = all_FID_list
 
-for an_fid in all_FID_list:
-    df = ANPP[ANPP["fid"] == an_fid]
-    delta = df.iloc[1:][y_var].values - df.iloc[:-1][y_var].values
+# for an_fid in all_FID_list:
+#     df = ANPP[ANPP["fid"] == an_fid]
+#     delta = df.iloc[1:][y_var].values - df.iloc[:-1][y_var].values
     
-    positive_count_df.loc[positive_count_df["fid"] == an_fid, "num_yrs"] = len(df)
-    positive_count_df.loc[positive_count_df["fid"] == an_fid, "increase_count"] = sum(delta>0)
+#     positive_count_df.loc[positive_count_df["fid"] == an_fid, "num_yrs"] = len(df)
+#     positive_count_df.loc[positive_count_df["fid"] == an_fid, "increase_count"] = sum(delta>0)
+    
+# positive_count_df["num_yrs"] = positive_count_df["num_yrs"].astype("int")
+# positive_count_df["increase_count"] = positive_count_df["increase_count"].astype("int")
+# positive_count_df.head(3)
+
+# print (ANPP_MK_df.shape)
+# ANPP_MK_df = pd.merge(ANPP_MK_df, positive_count_df, how="left", on="fid")
+# print (ANPP_MK_df.shape)
 
 # %%
-positive_count_df["num_yrs"] = positive_count_df["num_yrs"].astype("int")
-positive_count_df["increase_count"] = positive_count_df["increase_count"].astype("int")
-positive_count_df.head(3)
-
-# %%
-print (ANPP_MK_df.shape)
-ANPP_MK_df = pd.merge(ANPP_MK_df, positive_count_df, how="left", on="fid")
-print (ANPP_MK_df.shape)
 
 # %%
 tick_legend_FontSize = 10

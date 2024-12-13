@@ -481,7 +481,7 @@ del(cent_plt, cax, cbar1, norm1, min_max)
 # %%
 # Dec 22, 2024. Had a conversation with Matt.
 Matt_df = Albers_SF_west.copy()
-sens_thresh = 40
+sens_thresh = 15
 Matt_df = Matt_df[Matt_df["sens_slope"] > sens_thresh]
 
 fig, ax = plt.subplots(1, 1, figsize=(2, 2), sharex=True, sharey=True, dpi=map_dpi_)
@@ -506,7 +506,7 @@ plt.title("Sen's slope > " + str(sens_thresh), y=.97)
 
 # plt.tight_layout()
 # fig.subplots_adjust(top=0.91, bottom=0.01, left=-0.1, right=1)
-file_name = bio_plots + "sensSlopes_GE" + str(sens_thresh) + "_centerColorBar.png"
+file_name = bio_plots + "/for_Matt/" + "sensSlopes_GE" + str(sens_thresh) + "_centerColorBar.png"
 plt.savefig(file_name, bbox_inches='tight', dpi=map_dpi_)
 
 del(cent_plt, cax, cbar1, norm1, min_max)
