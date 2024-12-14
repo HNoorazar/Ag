@@ -5,7 +5,7 @@
 #       extension: .py
 #       format_name: percent
 #       format_version: '1.3'
-#       jupytext_version: 1.15.2
+#       jupytext_version: 1.16.1
 #   kernelspec:
 #     display_name: Python 3 (ipykernel)
 #     language: python
@@ -42,6 +42,8 @@ from scipy.linalg import inv
 current_time = datetime.now().strftime("%H:%M:%S")
 print("Today's date:", date.today())
 print("Current Time =", current_time)
+
+from pysal.model import spreg
 
 # %%
 dpi_ = 300
@@ -84,6 +86,8 @@ state_name_fips.head(2)
 state_fips_SoI = state_name_fips[state_name_fips.state.isin(SoI_abb)].copy()
 state_fips_SoI.reset_index(drop=True, inplace=True)
 state_fips_SoI.head(2)
+
+# %%
 
 # %%
 # DF = pd.read_csv(reOrganized_dir + "NPP_NDVI_Invent_Mike_2May2024.csv")
@@ -150,10 +154,10 @@ tick_legend_FontSize = 5
 params = {"legend.fontsize": tick_legend_FontSize,
           "legend.title_fontsize" : tick_legend_FontSize * 1.3,
           "legend.markerscale" : 2,
-          "axes.labelsize": tick_legend_FontSize * 1.3,
-          "axes.titlesize": tick_legend_FontSize * 1.5,
-          "xtick.labelsize": tick_legend_FontSize * 1.3,
-          "ytick.labelsize": tick_legend_FontSize * 1.3,
+          "axes.labelsize": tick_legend_FontSize * 2,
+          "axes.titlesize": tick_legend_FontSize * 2,
+          "xtick.labelsize": tick_legend_FontSize * 2,
+          "ytick.labelsize": tick_legend_FontSize * 2,
           "axes.titlepad": 10,
           'axes.linewidth' : .05}
 plt.rcParams.update(params)
@@ -178,7 +182,7 @@ sns.histplot(data=DF_plot["diff_of_logs_of_inv_per_sqKilometer"],
              ax=axes, bins=40, kde=False, zorder=3, color="dodgerblue", linewidth=0.1);
 
 axes.set_xlabel(r"log$_{t+1}$(inv/sqKilometer) - log$_{t}$(inv/sqKilometer)");
-
+axes.tick_params(length=2, width=.51) # axis='both', which='major', 
 # min_loc = DF_inventory_diff_ratio["diff_of_logs_of_inv_per_sqKilometer"].min()
 # text_ = min_loc + ", " + str(min_year)
 # axes.text(df.loc[0, "season_length"]-2, 3, text_, fontsize = 12);
@@ -247,7 +251,7 @@ sns.histplot(data=DF_plot["diff_of_logs_of_inv_per_sqKilometer"],
              ax=axes, bins=40, kde=False, zorder=3, color="dodgerblue", linewidth=0.1);
 axes.set_xlabel(r"log$_{t+1}$(inv/sqKilometer) - log$_{t}$(inv/sqKilometer)");
 axes.set_title('only common years present', y=.95);
-
+axes.tick_params(length=2, width=.51) # axis='both', which='major', 
 file_name = plot_dir + "difference_of_logInvPerSqKm_commonYrs.pdf"
 plt.savefig(file_name, dpi=dpi_, bbox_inches='tight')
 
@@ -305,6 +309,7 @@ sns.histplot(data=DF_plot["diff_of_logs_of_unitMetricNPP"],
 
 axes.set_xlabel("diff_of_logs_of_unitMetricNPP".replace("_", " "));
 axes.set_title('all years of NPP present', y=.95);
+axes.tick_params(length=2, width=.51) # axis='both', which='major', 
 
 file_name = plot_dir + "diff_of_logs_of_unitMetricNPP.pdf"
 plt.savefig(file_name, dpi=dpi_, bbox_inches='tight')
@@ -364,9 +369,9 @@ sns.histplot(data=DF_plot["diff_of_logs_of_unitMetricNPP"],
 
 axes.set_xlabel("diff_of_logs_of_unitMetricNPP".replace("_", " "));
 axes.set_title('only common years present', y=.95);
-
+axes.tick_params(length=2, width=.51) # axis='both', which='major', 
 file_name = plot_dir + "diff_of_logs_of_unitMetricNPP_commonYrs.pdf"
-# plt.savefig(file_name, dpi=dpi_, bbox_inches='tight')
+plt.savefig(file_name, dpi=dpi_, bbox_inches='tight')
 
 # %% [markdown]
 # ## Regression Replication
@@ -461,6 +466,9 @@ print (DF_w_logRatioInv.shape)
 DF_w_logRatioInv.head(3)
 
 # %%
+DF_w_logRatioInv["log_of_ratio_of_inv_per_sqkm"] = DF_w_logRatioInv["log_of_ratio_of_inv_per_sqkm"].astype(float)
+
+# %%
 [x for x in sorted(DF.columns) if "npp" in x]
 
 # %% [markdown]
@@ -524,7 +532,6 @@ DF_w_NDVI_diff = pd.DataFrame(index=list(DF.index), columns=new_cols)
 print (DF_w_NDVI_diff.shape)
 DF_w_NDVI_diff.head(2)
 
-
 counter = 0
 for a_state in DF["state_fips"].unique():
     curr_state_df = DF[DF["state_fips"] == a_state].copy()
@@ -581,6 +588,10 @@ print (f"{y_deltaNPP_df.shape = }")
 y_deltaNPP_df.head(2)
 
 # %%
+DF["beef_price_at_1982"] = DF["beef_price_at_1982"].astype(float)
+DF["hay_price_at_1982"] = DF["hay_price_at_1982"].astype(float)
+
+# %%
 print (y_deltaNPP_df.shape)
 y_deltaNPP_df = pd.merge(y_deltaNPP_df, 
                          DF[["year", "state_fips", "beef_price_at_1982", "hay_price_at_1982"]], 
@@ -592,35 +603,253 @@ y_deltaNPP_df.head(2)
 
 # %%
 
+# %% [markdown]
+# # Start Modeling
+#
+# statsmodels.regression.linear_model
+
 # %%
-A.head(2)
+west_fips = state_fips_SoI.copy()
+west_fips = west_fips[west_fips["EW_meridian"] == "W"]
+west_fips = list(west_fips["state_fips"].values)
 
 # %%
 
 # %%
+y_deltaNPP_df["state_fips"] = y_deltaNPP_df["state_fips"].astype(str)
+y_deltaNPP_df["log_of_ratio_of_inv_per_sqkm"] = y_deltaNPP_df["log_of_ratio_of_inv_per_sqkm"].astype(float)
+
+c_ = "diff_unit_matt_npp_kg_per_sq_kilometer"
+y_deltaNPP_df[c_] = y_deltaNPP_df[c_].astype(float)
+
+c_ = "log_of_ratio_of_inv_per_sqkm"
+y_deltaNPP_df[c_] = y_deltaNPP_df[c_].astype(float)
+
+# %% [markdown]
+# ### 1st Row of Mike's Table?
+
+# %%
+df_model = y_deltaNPP_df.copy()
+df_model.head(2)
+
+df_model.head(2)
+
+# %%
+depen_var_name = "log_of_ratio_of_inv_per_sqkm"
+indp_vars = ["diff_unit_matt_npp_kg_per_sq_kilometer", "beef_price_at_1982", "hay_price_at_1982"]
+
+df_model = y_deltaNPP_df.copy()
+m5 = spreg.OLS_Regimes(y = df_model[depen_var_name].values,
+                       x = df_model[indp_vars].values,
+
+                       # Variable specifying neighborhood membership
+                       regimes = df_model["state_fips"].tolist(),
+              
+                       # Variables to be allowed to vary (True) or kept
+                       # constant (False). Here we set all to False
+                       cols2regi=[False] * len(indp_vars),
+                        
+                       # Allow the constant term to vary by group/regime
+                       constant_regi = "many",
+                        
+                       # Allow separate sigma coefficients to be estimated
+                       # by regime (False so a single sigma)
+                       regime_err_sep=False,
+                       name_y = depen_var_name, # Dependent variable name
+                       name_x = indp_vars)
+
+print (m5.r2.round(2))
+
+m5_results = pd.DataFrame({"Coeff.": m5.betas.flatten(), # Pull out regression coefficients and
+                           "Std. Error": m5.std_err.flatten(), # Pull out and flatten standard errors
+                           "P-Value": [i[1] for i in m5.t_stat], # Pull out P-values from t-stat object
+                           }, index=m5.name_x)
+
+m5_results[25:]
+
+# %% [markdown]
+# ### 5th Row of Mike's Table?
+
+# %%
+#####
+##### Just west Meridian
+#####
+depen_var_name = "log_of_ratio_of_inv_per_sqkm"
+indp_vars = ["diff_unit_matt_npp_kg_per_sq_kilometer", "beef_price_at_1982", "hay_price_at_1982"]
+
+df_model = y_deltaNPP_df.copy()
+df_model = df_model[df_model["state_fips"].isin(west_fips)]
+print (len(df_model))
+
+m5 = spreg.OLS_Regimes(y = df_model[depen_var_name].values,
+                       x = df_model[indp_vars].values,
+
+                       # Variable specifying neighborhood membership
+                       regimes = df_model["state_fips"].tolist(),
+              
+                       # Variables to be allowed to vary (True) or kept
+                       # constant (False). Here we set all to False
+                       cols2regi=[False] * len(indp_vars),
+                        
+                       # Allow the constant term to vary by group/regime
+                       constant_regi = "many",
+                        
+                       # Allow separate sigma coefficients to be estimated
+                       # by regime (False so a single sigma)
+                       regime_err_sep=False,
+                       name_y = depen_var_name, # Dependent variable name
+                       name_x = indp_vars)
+
+print (m5.r2.round(2))
+
+
+m5_results = pd.DataFrame({"Coeff.": m5.betas.flatten(), # Pull out regression coefficients and
+                           "Std. Error": m5.std_err.flatten(), # Pull out and flatten standard errors
+                           "P-Value": [i[1] for i in m5.t_stat], # Pull out P-values from t-stat object
+                           }, index=m5.name_x)
+
+m5_results[15:]
 
 # %%
 
 # %%
 
 # %% [markdown]
-# ## Form X/state-mean DataFrames
+# ## Form relative X/state-mean DataFrames
+
+# %%
+DF_w_logRatioInv.head(2)
+
+# %%
+DF_NPP_ratio = DF[["year", "state_fips", "unit_matt_npp_kg_per_sq_kilometer"]].copy()
+DF_NPP_ratio.dropna(inplace=True)
+DF_NPP_ratio.reset_index(inplace=True, drop=True)
+DF_NPP_ratio.head(2)
+
+# %%
+DF_NPP_state_means = DF_NPP_ratio.groupby(["state_fips"]).mean().reset_index()
+DF_NPP_state_means = DF_NPP_state_means[["state_fips", "unit_matt_npp_kg_per_sq_kilometer"]]
+DF_NPP_state_means.rename(columns={'unit_matt_npp_kg_per_sq_kilometer': 
+                                   'TemporalAvg_unit_matt_npp_kg_per_sq_kilometer'}, inplace=True)
+DF_NPP_state_means.head(2)
+
+# %%
+DF_NPP_ratio = pd.merge(DF_NPP_ratio, DF_NPP_state_means, how="left", on="state_fips")
+DF_NPP_ratio["NPP_div_by_AvgNPP_unitMetric"] = DF_NPP_ratio["unit_matt_npp_kg_per_sq_kilometer"] / \
+                                               DF_NPP_ratio["TemporalAvg_unit_matt_npp_kg_per_sq_kilometer"]
+
+DF_NPP_ratio.head(2)
+
+# %%
+DF_NPP_ratio.drop(['unit_matt_npp_kg_per_sq_kilometer',
+                    "TemporalAvg_unit_matt_npp_kg_per_sq_kilometer"], axis=1, inplace=True)
+DF_NPP_ratio.head(2)
+
+# %%
+DF_w_logRatioInv.head(2)
+
+# %%
+y_ratioNPP_df = pd.merge(DF_w_logRatioInv, DF_NPP_ratio, how="left", on=["state_fips", "year"])
+print (y_ratioNPP_df.shape)
+y_ratioNPP_df.dropna(inplace=True)
+y_ratioNPP_df.reset_index(inplace=True, drop=True)
+print (y_ratioNPP_df.shape)
 
 # %% [markdown]
-# ### Model with x/state_mean
+# ### 2nd row of Mike's Table?
 
 # %%
+y_ratioNPP_df = pd.merge(y_ratioNPP_df, 
+                         DF[["year", "state_fips", "beef_price_at_1982", "hay_price_at_1982"]], 
+                         how="left", 
+                         on=["year", "state_fips"])
+
+y_ratioNPP_df.head(2)
 
 # %%
-a_state = DF["state_fips"].unique()[0]
-curr_state_df = DF[DF["state_fips"] == a_state].copy()
-curr_state_df.sort_values(by="year", inplace=True)
-curr_state_df.reset_index(drop=True, inplace=True)
-years_ = sorted(curr_state_df["year"].unique())[1:]
-a_year = years_[0]
+y_ratioNPP_df["state_fips"] = y_ratioNPP_df["state_fips"].astype(str)
+y_ratioNPP_df["log_of_ratio_of_inv_per_sqkm"] = y_ratioNPP_df["log_of_ratio_of_inv_per_sqkm"].astype(float)
 
-curr_state_yr_df = curr_state_df[curr_state_df["year"].isin([a_year-1, a_year])].copy()
-curr_state_yr_df
+c_ = "NPP_div_by_AvgNPP_unitMetric"
+y_ratioNPP_df[c_] = y_ratioNPP_df[c_].astype(float)
+
+# %%
+#### All states
+
+depen_var_name = "log_of_ratio_of_inv_per_sqkm"
+indp_vars = ["NPP_div_by_AvgNPP_unitMetric", "beef_price_at_1982", "hay_price_at_1982"]
+
+df_model = y_ratioNPP_df.copy()
+m5 = spreg.OLS_Regimes(y = df_model[depen_var_name].values,
+                       x = df_model[indp_vars].values,
+
+                       # Variable specifying neighborhood membership
+                       regimes = df_model["state_fips"].tolist(),
+              
+                       # Variables to be allowed to vary (True) or kept
+                       # constant (False). Here we set all to False
+                       cols2regi=[False] * len(indp_vars),
+                        
+                       # Allow the constant term to vary by group/regime
+                       constant_regi = "many",
+                        
+                       # Allow separate sigma coefficients to be estimated
+                       # by regime (False so a single sigma)
+                       regime_err_sep=False,
+                       name_y = depen_var_name, # Dependent variable name
+                       name_x = indp_vars)
+
+print (m5.r2.round(2))
+
+m5_results = pd.DataFrame({"Coeff.": m5.betas.flatten(), # Pull out regression coefficients and
+                           "Std. Error": m5.std_err.flatten(), # Pull out and flatten standard errors
+                           "P-Value": [i[1] for i in m5.t_stat], # Pull out P-values from t-stat object
+                           }, index=m5.name_x)
+
+m5_results[25:]
+
+# %% [markdown]
+# ### 6th row of Mike's Table?
+
+# %%
+#####
+##### Just west Meridian
+#####
+depen_var_name = "log_of_ratio_of_inv_per_sqkm"
+indp_vars = ["NPP_div_by_AvgNPP_unitMetric", "beef_price_at_1982", "hay_price_at_1982"]
+
+df_model = y_ratioNPP_df.copy()
+df_model = df_model[df_model["state_fips"].isin(west_fips)]
+print (len(df_model))
+
+m5 = spreg.OLS_Regimes(y = df_model[depen_var_name].values,
+                       x = df_model[indp_vars].values,
+
+                       # Variable specifying neighborhood membership
+                       regimes = df_model["state_fips"].tolist(),
+              
+                       # Variables to be allowed to vary (True) or kept
+                       # constant (False). Here we set all to False
+                       cols2regi=[False] * len(indp_vars),
+                        
+                       # Allow the constant term to vary by group/regime
+                       constant_regi = "many",
+                        
+                       # Allow separate sigma coefficients to be estimated
+                       # by regime (False so a single sigma)
+                       regime_err_sep=False,
+                       name_y = depen_var_name, # Dependent variable name
+                       name_x = indp_vars)
+
+print (m5.r2.round(2))
+
+
+m5_results = pd.DataFrame({"Coeff.": m5.betas.flatten(), # Pull out regression coefficients and
+                           "Std. Error": m5.std_err.flatten(), # Pull out and flatten standard errors
+                           "P-Value": [i[1] for i in m5.t_stat], # Pull out P-values from t-stat object
+                           }, index=m5.name_x)
+
+m5_results[15:]
 
 # %%
 
