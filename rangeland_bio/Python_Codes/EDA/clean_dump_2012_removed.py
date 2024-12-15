@@ -95,6 +95,7 @@ Albers_SF.rename(columns={"minstatsid": "fid",
 Albers_SF.head(2)
 
 # %%
+len(Albers_SF["fid"].unique())
 
 # %% [markdown]
 # # Focus only on West Meridian
@@ -290,6 +291,9 @@ for a_FID in median_diff["fid"].unique():
 median_diff.head(2)
 
 # %%
+len(median_diff["fid"].unique())
+
+# %%
 # Not all locations have the same number of data in them
 # Lets just assume they do. The missing year
 median_diff["first_10_years_median_ANPP"] = -666
@@ -344,26 +348,32 @@ median_diff.head(2)
 # %%
 bpszone_ANPP.head(2)
 
+# %%
+len(bpszone_ANPP["fid"].unique())
+
 # %% [markdown]
 # # MK test for ANPP and Spearman's rank
 
 # %%
-need_cols = ["fid", "state_majority_area", "EW_meridian"]
+# %%time
+
+need_cols = ["fid"]
 ANPP_MK_df = bpszone_ANPP[need_cols].copy()
 print (ANPP_MK_df.shape)
-
 ANPP_MK_df.drop_duplicates(inplace=True)
 ANPP_MK_df.reset_index(drop=True, inplace=True)
-
 print (ANPP_MK_df.shape)
 ANPP_MK_df.head(3)
 ##### z: normalized test statistics
 ##### Tau: Kendall Tau
-MK_test_cols = ["trend", "trend_yue", "trend_rao",
-                "p", "p_yue", "p_rao",
-                "z", "Tau", "MK_score", 
-                "var_s", "var_s_yue", "var_s_rao",
-                "sens_slope", "intercept",
+MK_test_cols = ["sens_slope", "Tau", "MK_score",
+                "trend", "p", "var_s",
+                "trend_yue", "p_yue", "var_s_yue",
+                "trend_yue_lag0", "p_yue_lag0", "var_s_yue_lag0",
+                "trend_yue_lag1", "p_yue_lag1", "var_s_yue_lag1",
+                "trend_yue_lag2", "p_yue_lag2", "var_s_yue_lag2",
+                "trend_yue_lag3", "p_yue_lag3", "var_s_yue_lag3",
+                "trend_rao", "p_rao", "var_s_rao",
                 "Spearman", "p_Spearman"]
 
 ANPP_MK_df = pd.concat([ANPP_MK_df, pd.DataFrame(columns = MK_test_cols)])
@@ -371,42 +381,58 @@ ANPP_MK_df[MK_test_cols] = ["-666"] + [-666] * (len(MK_test_cols)-1)
 
 # Why data type changed?!
 ANPP_MK_df["fid"] = ANPP_MK_df["fid"].astype(np.int64)
-ANPP_MK_df.head(2)
-
-# %%
-# %%time
+###############################################################
 # populate the dataframe with MK test result now
 for a_FID in ANPP_MK_df["fid"].unique():
     ANPP_TS = bpszone_ANPP.loc[bpszone_ANPP.fid==a_FID, "mean_lb_per_acr"].values
     year_TS = bpszone_ANPP.loc[bpszone_ANPP.fid==a_FID, "year"].values
     
     # MK test
+    #### original
     trend, _, p, z, Tau, MK_score, var_s, slope, intercept = mk.original_test(ANPP_TS)
-    trend_yue, _, p_yue, _, _, _, var_s_yue, _, _ = mk.yue_wang_modification_test(ANPP_TS)
-    trend_rao, _, p_rao, _, _, _, var_s_rao, _, _ = mk.hamed_rao_modification_test(ANPP_TS)    
-
-    # Spearman's rank
-    Spearman, p_Spearman = stats.spearmanr(year_TS, ANPP_TS)
-
+    
+    #### Yue
+    trend_u, _, p_u, _, _, _, var_s_u, _, _                = mk.yue_wang_modification_test(ANPP_TS)
+    trend_u_lag0, _, p_u_lag0, _, _, _, var_s_u_lag0, _, _ = mk.yue_wang_modification_test(ANPP_TS, lag=0)
+    trend_u_lag1, _, p_u_lag1, _, _, _, var_s_u_lag1, _, _ = mk.yue_wang_modification_test(ANPP_TS, lag=1)
+    trend_u_lag2, _, p_u_lag2, _, _, _, var_s_u_lag2, _, _ = mk.yue_wang_modification_test(ANPP_TS, lag=2)
+    trend_u_lag3, _, p_u_lag3, _, _, _, var_s_u_lag3, _, _ = mk.yue_wang_modification_test(ANPP_TS, lag=3)
+    
+    trend_rao, _, p_rao, _, _, _, var_s_rao, _, _ = mk.hamed_rao_modification_test(ANPP_TS) #### Rao
+    Spearman, p_Spearman = stats.spearmanr(year_TS, ANPP_TS) # Spearman's rank
+    
     # Update dataframe by MK result
-    L_ = [trend, trend_yue, trend_rao, p, p_yue, p_rao, 
-          z, Tau, MK_score, var_s, var_s_yue, var_s_rao,
-          slope, intercept, Spearman, p_Spearman]
+    L_ = [slope, Tau, MK_score, 
+          trend,        p,        var_s,
+          trend_u,      p_u,      var_s_u, 
+          trend_u_lag0, p_u_lag0, var_s_u_lag0,
+          trend_u_lag1, p_u_lag1, var_s_u_lag1,
+          trend_u_lag2, p_u_lag2, var_s_u_lag2,
+          trend_u_lag3, p_u_lag3, var_s_u_lag3,
+          trend_rao,    p_rao,    var_s_rao,
+          Spearman, p_Spearman]
+    
     ANPP_MK_df.loc[ANPP_MK_df["fid"]==a_FID, MK_test_cols] = L_
     
-    del(trend, p, z, Tau, MK_score, var_s, slope, intercept)
-    del(trend_yue, p_yue, var_s_yue)
-    del(trend_rao, p_rao, var_s_rao)
+    del(slope, Tau, MK_score)
+    del(trend, p, var_s)
+    del(trend_u, p_u, var_s_u)
+    del(trend_u_lag0, p_u_lag0, var_s_u_lag0)
+    del(trend_u_lag1, p_u_lag1, var_s_u_lag1)
+    del(trend_u_lag2, p_u_lag2, var_s_u_lag2)
+    del(trend_u_lag3, p_u_lag3, var_s_u_lag3)
+    del(Spearman, p_Spearman )
     del(L_, ANPP_TS, year_TS)
 
-print (len(ANPP_MK_df["var_s"].unique()))
-print (len(ANPP_MK_df["var_s_yue"].unique()))
-print (len(ANPP_MK_df["var_s_rao"].unique()))
-
 # Round the columns to 6-decimals
-for a_col in list(ANPP_MK_df.columns[7:]):
+for a_col in ["sens_slope", "Tau", "MK_score",
+              "p", "var_s",
+              "p_yue"     , "var_s_yue",
+              "p_yue_lag0", "var_s_yue_lag0",
+              "p_yue_lag1", "var_s_yue_lag1",
+              "p_yue_lag2", "var_s_yue_lag2",
+              "p_yue_lag3", "var_s_yue_lag3"]:
     ANPP_MK_df[a_col] = ANPP_MK_df[a_col].round(6)
-
 ANPP_MK_df.head(2)
 
 # %%
@@ -427,38 +453,14 @@ print (np.var(ANPP_TS))
 mk.original_test(ANPP_TS)[6]
 
 # %%
+ANPP_MK_df.shape
 
 # %%
-some_col = ["fid", "medians_diff_ANPP", "medians_diff_slope_ANPP", "median_ANPP_change_as_perc"]
+some_col = ["fid", "medians_diff_ANPP", "medians_diff_slope_ANPP", "median_ANPP_change_as_perc", 
+            "state_majority_area"]
 
 ANPP_MK_df = pd.merge(ANPP_MK_df, median_diff[some_col], on="fid", how="left")
 ANPP_MK_df.head(2)
-
-# %%
-trend_col = "trend"
-trend_count_orig = ANPP_MK_df[[trend_col, "fid"]].groupby([trend_col]).count().reset_index()
-trend_count_orig.rename(columns={"fid": "fid_original"}, inplace=True)
-
-trend_count_orig
-
-# %%
-trend_col = "trend_yue"
-trend_count_yue = ANPP_MK_df[[trend_col, "fid"]].groupby([trend_col]).count().reset_index()
-trend_count_yue.rename(columns={"fid": "fid_yue",
-                                "trend_yue" : "trend"}, inplace=True)
-trend_count_yue
-
-# %%
-trend_col = "trend_rao"
-trend_count_rao = ANPP_MK_df[[trend_col, "fid"]].groupby([trend_col]).count().reset_index()
-trend_count_rao.rename(columns={"fid": "fid_rao", 
-                               "trend_rao" : "trend"}, inplace=True)
-trend_count_rao
-
-# %%
-trend_counts = pd.merge(trend_count_orig, trend_count_yue, on="trend", how="outer")
-trend_counts = pd.merge(trend_counts, trend_count_rao, on="trend", how="outer")
-trend_counts
 
 # %%
 spearman_increase_pval5 = ANPP_MK_df[ANPP_MK_df["p_Spearman"] < 0.05]
@@ -474,34 +476,7 @@ spearman_decrease_pval5.shape
 len(ANPP_MK_df) - (len(spearman_increase_pval5) + len(spearman_decrease_pval5))
 
 # %%
-trend_col = "trend"
-decreasing_df_orig = ANPP_MK_df[ANPP_MK_df[trend_col] == "decreasing"].copy()
-decreasing_df_orig = decreasing_df_orig[["fid", "state_majority_area"]].groupby(
-                            ["state_majority_area"]).count().reset_index()
-
-decreasing_df_orig
-
-# %%
-trend_col = "trend_yue"
-decreasing_df_yue = ANPP_MK_df[ANPP_MK_df[trend_col] == "decreasing"].copy()
-decreasing_df_yue = decreasing_df_yue[["fid", "state_majority_area"]].groupby(
-                                    ["state_majority_area"]).count().reset_index()
-
-decreasing_df_yue
-
-# %%
-trend_col = "trend_rao"
-decreasing_df_rao = ANPP_MK_df[ANPP_MK_df[trend_col] == "decreasing"].copy()
-decreasing_df_rao = decreasing_df_rao[["fid", "state_majority_area"]].groupby(\
-                                                    ["state_majority_area"]).count().reset_index()
-
-decreasing_df_rao
-
-# %%
 Albers_SF.head(2)
-
-# %%
-print (MK_test_cols)
 
 # %%
 some_col = ["fid", "sens_slope", "trend", 'trend_yue','p_yue', 'trend_rao', 'p_rao',

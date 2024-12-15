@@ -98,14 +98,17 @@ len(ANPP_MK_df[ANPP_MK_df["trend"] == "increasing"])
 
 # %%
 df = ANPP_MK_df[(ANPP_MK_df["trend"] == "increasing") & (ANPP_MK_df["sens_slope"] < 20)]
+df = df[df["p"] < 0.01]
 print ("s < 20:    {:,}".format(len(df)))
 
 df = ANPP_MK_df[(ANPP_MK_df["trend"] == "increasing") & 
                (ANPP_MK_df["sens_slope"] > 20) & 
                ((ANPP_MK_df["sens_slope"] < 30))]
+df = df[df["p"] < 0.01]
 print ("s in 20-30: {:,}".format(len(df)))
 
 df = ANPP_MK_df[(ANPP_MK_df["trend"] == "increasing") & (ANPP_MK_df["sens_slope"] > 30)]
+df = df[df["p"] < 0.01]
 print ("s > 30:     {:,}".format(len(df)))
 
 # %%
@@ -290,5 +293,22 @@ axes.yaxis.set_major_locator(plt.MultipleLocator(300));
 # axes.legend(loc="best");
 
 # %%
+
+# %% [markdown]
+# ## Find bad MK labels
+
+# %%
+ANPP_MK_df.head(2)
+
+# %%
+ANPP_MK_df_99CL = ANPP_MK_df[ANPP_MK_df["p"] < 0.01].copy()
+ANPP_MK_df_99CL = ANPP_MK_df_99CL[ANPP_MK_df_99CL["trend"] == "increasing"].copy()
+ANPP_MK_df_99CL.shape
+
+# %%
+ANPP_MK_df_99CL[ANPP_MK_df_99CL["sens_slope"] < 10].shape
+
+# %%
+ANPP_MK_df_99CL[ANPP_MK_df_99CL["sens_slope"] < 10]
 
 # %%

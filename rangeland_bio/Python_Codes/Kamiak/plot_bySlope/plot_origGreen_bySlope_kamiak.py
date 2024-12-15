@@ -59,7 +59,7 @@ len(ANPP_MK_df["EW_meridian"].unique())
 # %%
 green_99 = ANPP_MK_df.copy()
 green_99 = green_99[green_99["trend"] == "increasing"].copy()
-# green_99 = green_99[green_99["p"] < 0.01].copy()
+green_99 = green_99[green_99["p"] < 0.01].copy()
 
 if slope_class == 1:
     green_99 = green_99[green_99["sens_slope"] <= 20].copy()
@@ -126,14 +126,14 @@ for a_fid in green_99:
     Tau_ = round(ANPP_MK_df.loc[ANPP_MK_df.fid == a_fid, "Tau"].item(), 2)
     state_ = ANPP_MK_df.loc[ANPP_MK_df.fid == a_fid, "state_majority_area"].item()
 
-    text_ = "trend: {}\nSen's slope: {}, \nTau: {}, \n{} (FID: {})".format(
+    text_ = "trend: {}\nSen's slope: {}\nTau: {}\n{} (FID: {})".format(
         trend_, slope_, Tau_, state_, a_fid
     )
 
     y_txt = df[y_var].max() * 0.99
     axes.text(1983, y_txt, text_, fontsize=tick_legend_FontSize * 1.2, va="top")
     ####
-    axes.set_title("99% Original Greening. Dismissed by Original MK.")
+    axes.set_title("99% Original Greening")
     axes.set_ylabel(r"$\mu_{NPP}$ (lb/acr)")
 
     if slope_ <= 20:
