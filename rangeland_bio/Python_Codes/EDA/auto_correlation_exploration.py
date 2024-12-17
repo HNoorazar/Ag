@@ -377,7 +377,7 @@ plt.savefig(file_name, dpi=save_dpi, bbox_inches="tight")
 # %%
 fig, axes = plt.subplots(3, 2, figsize=(4, 4.5), 
                          sharey=False, sharex=False, dpi=dpi_,
-                        gridspec_kw={'width_ratios': [2, 1], "hspace": 0.1, "wspace": 0.05})
+                         gridspec_kw={'width_ratios': [2, 1], "hspace": 0.1, "wspace": 0.05})
 (ax1, ax2), (ax3, ax4), (ax5, ax6) = axes
 
 ###################################
@@ -632,5 +632,25 @@ ax1.set_xticks([]); ax4.set_xticks([])
 fig.subplots_adjust(top=0.95, bottom=0.08, left=0.14, right=0.981)
 file_name = bio_plots + "NPP_TS_for_3FIDs_random_sideBySide.pdf"
 plt.savefig(file_name, dpi=save_dpi, bbox_inches="tight")
+
+# %%
+fig, axes = plt.subplots(1, 1, figsize=(4, 2), sharey=False, sharex=False, dpi=dpi_)
+# fig, axes = plt.subplots(3, 1, figsize=(2, 4.5), sharey=True, sharex=True, dpi=dpi_)
+###################################
+a_fid = 22591
+
+df = bpszone_ANPP_no2012[bpszone_ANPP_no2012["fid"] == a_fid]
+axes.plot(df.year, df[y_var], linewidth=2, color="dodgerblue", zorder=1);
+axes.scatter(df.year, df[y_var], marker='o', facecolors='r', edgecolors='r', s=5, zorder=2);
+
+# %%
+fig, axes = plt.subplots(1, 1, figsize=(2, 3), sharey=False, sharex=False, dpi=dpi_)
+# fig, axes = plt.subplots(3, 1, figsize=(2, 4.5), sharey=True, sharex=True, dpi=dpi_)
+###################################
+a_fid = 22591
+
+df = bpszone_ANPP_no2012[bpszone_ANPP_no2012["fid"] == a_fid]
+axes.plot(df.year, df[y_var], linewidth=2, color="dodgerblue", zorder=1);
+axes.scatter(df.year, df[y_var], marker='o', facecolors='r', edgecolors='r', s=5, zorder=2);
 
 # %%

@@ -115,7 +115,7 @@ DF = DF[DF["year"] <= 2021].copy()
 
 DF["inv_per_sqkm"] = DF["inventory"] / DF["rangeland_sq_kilometer"]
 DF["log_inv_per_sqkm"] = np.log(DF["inv_per_sqkm"])
-
+ 
 DF.head(5)
 
 # %%
@@ -450,6 +450,146 @@ Mike_DF = pd.merge(Mike_DF,
 Mike_DF.head(2)
 
 # %% [markdown]
+# ## Form relative X/state-mean DataFrames
+
+# %%
+DF_NPP_ratio = DF[["year", "state_fips", "unit_matt_npp_kg_per_sq_kilometer"]].copy()
+DF_NPP_ratio.dropna(inplace=True)
+DF_NPP_ratio.reset_index(inplace=True, drop=True)
+DF_NPP_ratio.head(2)
+
+# %%
+DF_NPP_state_means = DF_NPP_ratio.groupby(["state_fips"]).mean().reset_index()
+DF_NPP_state_means = DF_NPP_state_means[["state_fips", "unit_matt_npp_kg_per_sq_kilometer"]]
+DF_NPP_state_means.rename(columns={'unit_matt_npp_kg_per_sq_kilometer': 
+                                   'TemporalAvg_unit_matt_npp_kg_per_sq_kilometer'}, inplace=True)
+DF_NPP_state_means.head(2)
+
+# %%
+DF_NPP_ratio = pd.merge(DF_NPP_ratio, DF_NPP_state_means, how="left", on="state_fips")
+DF_NPP_ratio["NPP_div_by_AvgNPP_unitMetric"] = DF_NPP_ratio["unit_matt_npp_kg_per_sq_kilometer"] / \
+                                               DF_NPP_ratio["TemporalAvg_unit_matt_npp_kg_per_sq_kilometer"]
+
+DF_NPP_ratio.head(2)
+
+# %%
+DF_NPP_ratio.drop(['unit_matt_npp_kg_per_sq_kilometer',
+                    "TemporalAvg_unit_matt_npp_kg_per_sq_kilometer"], axis=1, inplace=True)
+DF_NPP_ratio.head(2)
+
+# %%
+Mike_DF = pd.merge(Mike_DF, DF_NPP_ratio, how="outer", on=["year", "state_fips"])
+Mike_DF.head(2)
+
+# %% [markdown]
+# ### NDVI ratios
+
+# %%
+DF_NDVI_ratio = DF[["year", "state_fips", "max_ndvi_in_year_modis"]].copy()
+DF_NDVI_ratio.dropna(inplace=True)
+DF_NDVI_ratio.reset_index(inplace=True, drop=True)
+DF_NDVI_ratio.head(2)
+
+# %%
+DF_NDVI_state_means = DF_NDVI_ratio.groupby(["state_fips"]).mean().reset_index()
+DF_NDVI_state_means = DF_NDVI_state_means[["state_fips", "max_ndvi_in_year_modis"]]
+DF_NDVI_state_means.rename(columns={'max_ndvi_in_year_modis': 
+                                   'TemporalAvg_max_ndvi_in_year_modis'}, inplace=True)
+DF_NDVI_state_means.head(2)
+
+# %%
+DF_NDVI_ratio = pd.merge(DF_NDVI_ratio, DF_NDVI_state_means, how="left", on="state_fips")
+DF_NDVI_ratio["NDVI_div_by_AvgNDVI"] = DF_NDVI_ratio["max_ndvi_in_year_modis"] / \
+                                               DF_NDVI_ratio["TemporalAvg_max_ndvi_in_year_modis"]
+
+DF_NDVI_ratio.drop(['max_ndvi_in_year_modis',
+                    "TemporalAvg_max_ndvi_in_year_modis"], axis=1, inplace=True)
+
+DF_NDVI_ratio.head(2)
+
+# %%
+Mike_DF = pd.merge(Mike_DF, DF_NDVI_ratio, how="outer", on=["year", "state_fips"])
+Mike_DF.head(2)
+
+# %%
+Mike_DF = pd.merge(Mike_DF, state_name_fips[["state_fips", "state_full", "EW_meridian"]],
+                  how="left", on="state_fips")
+Mike_DF.head(2)
+
+# %%
+
+# %% [markdown]
+# ## Check some computations
+
+# %%
+yr_ = 1985
+fips = "04"
+DF.loc[(DF["year"].isin([yr_-1, yr_])) & (DF["state_fips"] == fips)]
+
+# %%
+
+# %%
+# inventory / area
+print ("inventory / area\n_____________________")
+print (272000.0 / 220460.267862)
+print (293000.0 / 220460.267862)
+print ()
+print ("log(inventory / area)\n_____________________")
+print (np.log(272000.0 / 220460.267862))
+print (np.log(293000.0 / 220460.267862))
+
+# %%
+yr_ = 2010
+fips = "04"
+
+DF.loc[(DF["year"].isin([yr_-1, yr_])) & (DF["state_fips"] == fips), "max_ndvi_in_year_modis"]
+
+# %%
+Mike_DF.loc[(Mike_DF["year"].isin([yr_-1, yr_])) & (Mike_DF["state_fips"] == fips)]
+
+# %%
+[x for x in Mike_DF.columns if "ndvi" in x]
+
+# %%
+print (0.246282 - 0.207875)
+print (0.246282 / DF.loc[DF["state_fips"] == fips, "max_ndvi_in_year_modis"].mean())
+
+# %%
+
+# %%
+Mike_DF.describe()
+
+# %%
+Mike_DF.head(2)
+
+# %%
+for a_state in sorted(Mike_DF["state_full"].unique()):
+    df = Mike_DF[Mike_DF["state_full"] == a_state]
+    df_inv = df[["year", "log_of_ratio_of_inv_per_sqkm"]].copy()
+    df_delta_NPP = df[["year", "diff_unit_matt_npp_kg_per_sq_kilometer"]].copy()
+    df_ratio_NPP = df[["year", "NPP_div_by_AvgNPP_unitMetric"]].copy()
+    
+    df_delta_ndvi = df[["year", "diff_max_ndvi_in_year_modis"]].copy()
+    df_ratio_ndvi = df[["year", "NDVI_div_by_AvgNDVI"]].copy()
+    
+    df_inv.dropna(inplace=True)
+    df_delta_NPP.dropna(inplace=True)
+    df_ratio_NPP.dropna(inplace=True)
+    df_delta_ndvi.dropna(inplace=True)
+    df_ratio_ndvi.dropna(inplace=True)
+    
+    print (f"{a_state}, {len(df_inv)=}")
+    print (f"{a_state}, {len(df_delta_NPP)=}")
+    print (f"{a_state}, {len(df_ratio_NPP)=}")
+    print (f"{a_state}, {len(df_delta_ndvi)=}")
+    print (f"{a_state}, {len(df_ratio_ndvi)=}")
+    print ("________________________________________")
+
+# %%
+
+# %%
+
+# %% [markdown]
 # # Start Modeling
 #
 # ### Model with x-deltas
@@ -521,6 +661,9 @@ m5_results = pd.DataFrame({"Coeff.": m5.betas.flatten(), # Pull out regression c
 m5_results[25:]
 
 # %%
+df_model.describe()
+
+# %%
 depen_var_name = "log_of_ratio_of_inv_per_sqkm"
 indp_vars = ["diff_unit_matt_npp_kg_per_sq_kilometer", "beef_price_at_1982", "hay_price_at_1982"]
 extra_cols = ["state_fips"]
@@ -589,38 +732,6 @@ m5_results = pd.DataFrame({"Coeff.": m5.betas.flatten(), # Pull out regression c
 m5_results[15:]
 
 # %%
-
-# %% [markdown]
-# ## Form relative X/state-mean DataFrames
-
-# %%
-DF_NPP_ratio = DF[["year", "state_fips", "unit_matt_npp_kg_per_sq_kilometer"]].copy()
-DF_NPP_ratio.dropna(inplace=True)
-DF_NPP_ratio.reset_index(inplace=True, drop=True)
-DF_NPP_ratio.head(2)
-
-# %%
-DF_NPP_state_means = DF_NPP_ratio.groupby(["state_fips"]).mean().reset_index()
-DF_NPP_state_means = DF_NPP_state_means[["state_fips", "unit_matt_npp_kg_per_sq_kilometer"]]
-DF_NPP_state_means.rename(columns={'unit_matt_npp_kg_per_sq_kilometer': 
-                                   'TemporalAvg_unit_matt_npp_kg_per_sq_kilometer'}, inplace=True)
-DF_NPP_state_means.head(2)
-
-# %%
-DF_NPP_ratio = pd.merge(DF_NPP_ratio, DF_NPP_state_means, how="left", on="state_fips")
-DF_NPP_ratio["NPP_div_by_AvgNPP_unitMetric"] = DF_NPP_ratio["unit_matt_npp_kg_per_sq_kilometer"] / \
-                                               DF_NPP_ratio["TemporalAvg_unit_matt_npp_kg_per_sq_kilometer"]
-
-DF_NPP_ratio.head(2)
-
-# %%
-DF_NPP_ratio.drop(['unit_matt_npp_kg_per_sq_kilometer',
-                    "TemporalAvg_unit_matt_npp_kg_per_sq_kilometer"], axis=1, inplace=True)
-DF_NPP_ratio.head(2)
-
-# %%
-Mike_DF = pd.merge(Mike_DF, DF_NPP_ratio, how="outer", on=["year", "state_fips"])
-Mike_DF.head(2)
 
 # %% [markdown]
 # ### 2nd row of Mike's Table?
