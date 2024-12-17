@@ -290,15 +290,6 @@ Statistics about the locations labeled as greening by Yue (default lag) but dism
 %%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%
 
-\begin{frame}
-\frametitle{Other Metrics Extremes}
-\begin{center}
-\includegraphics[height=.7\textheight]{greenYue_extrememedian_ANPP_change_as_perc}
-\end{center}
-\vspace{-.2in}
-{\scriptsize Maybe the difference between medians of NPP in the first and last decades is not the way to go about it?
-But, it seems we need to toss some of the Yue's greening locations for sure.}
-\end{frame}
 %%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%
@@ -397,34 +388,42 @@ rejected by original MK but Yue confidently (99\%) labels them as greening.{\foo
 \end{frame}
 %%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%
-%%%%%%%%%%%%%%%%%%%%
 \begin{frame}[t]
-\frametitle{Trend Definition}
-\begin{enumerate}
-\item What is the point of killing autocorrelation?\\
-
-\item Our visual inspection of plots do not detect trend, but MK test
-sees a trend. Do our definitions agree? 
-
-From Yue: Let 
-\[X_t = {\color{red}\beta (t-1)} + {\color{mgreen} A_t},\]
-
-where the red part is the linear trend part and the green part is the auto-correlation part; ${\color{mgreen}A_t = \mu_A+\rho (A_{t-1} - \mu_A) + \varepsilon_t},$ where $\varepsilon_t $ is noise, $\rho$ is correlation parameter, and
-$\mu_A$ is the mean of autoregressive (AR) process!
-\end{enumerate}
+\frametitle{Autocorrelations: Extremes of DW statistics}
+\vspace{-.2in}
+\begin{figure}[H]
+\centering
+\includegraphics[width=.6\textwidth]{../NPP_TS_for_3FIDs_DWStatRange_sideBySide}
+\captionsetup{singlelinecheck=false} 
+\caption*{DW contradicting ACF test. Look into \color{red}{Ljung-Box Q test}.}
+\label{fig:NPP_TS_for_3FIDs_DWStatRange_sideBySide}
+\end{figure}
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[t]
+\frametitle{Autocorrelations: 3 random examples}
+\vspace{-.2in}
+\begin{figure}[H]
+\centering
+\includegraphics[width=.6\textwidth]{../NPP_TS_for_3FIDs_random_sideBySide}
+\captionsetup{singlelinecheck=false} 
+\caption*{Three random examples of DW vs ACF.}
+\label{fig:NPP_TS_for_3FIDs_random_sideBySide}
+\end{figure}
 \end{frame}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \begin{frame}
-\frametitle{No lag to more than 1-lag}
+\frametitle{Lags}
 
 \begin{figure}[H]
 \centering
 \includegraphics[width=.8\textwidth]{../ACF_for_3random_FIDs_narow}
 \captionsetup{singlelinecheck=false} 
-\caption*{Three random examples of: they show autocorrelation can go beyond 1 year. 
-Yue is based on 1-lag (at least the experiments). What if our case has more than 1 lag.
+\caption*{Three random examples: they show autocorrelation can go beyond 1 year. 
 On a slightly, different tangent, there are other examples that showed 
 no autocorrelation with this test 
 while DW (another autocorrelation test) said there are strong autocorrelation.
@@ -461,13 +460,37 @@ subfolder \code{increasing\_originalMK\_slope\_TS}; \href{https://drive.google.c
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}
+\frametitle{Other Metrics Extremes}
+\begin{center}
+\includegraphics[height=.7\textheight]{greenYue_extrememedian_ANPP_change_as_perc}
+\end{center}
+\vspace{-.2in}
+{\scriptsize Maybe the difference between medians of NPP in the first and last decades is not the way to go about it?
+But, it seems we need to toss some of the Yue's greening locations for sure.}
+\end{frame}
 
 
 %%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%
 
+%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[t]
+\frametitle{Trend Definition}
+\begin{enumerate}
+\item What is the point of killing autocorrelation?\\
 
+\item Our visual inspection of plots do not detect trend, but MK test
+sees a trend. Do our definitions agree? 
+
+From Yue: Let 
+\[X_t = {\color{red}\beta (t-1)} + {\color{mgreen} A_t},\]
+
+where the red part is the linear trend part and the green part is the auto-correlation part; ${\color{mgreen}A_t = \mu_A+\rho (A_{t-1} - \mu_A) + \varepsilon_t},$ where $\varepsilon_t $ is noise, $\rho$ is correlation parameter, and
+$\mu_A$ is the mean of autoregressive (AR) process!
+\end{enumerate}
+\end{frame}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%

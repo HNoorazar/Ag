@@ -5,7 +5,7 @@
 #       extension: .py
 #       format_name: percent
 #       format_version: '1.3'
-#       jupytext_version: 1.16.1
+#       jupytext_version: 1.15.2
 #   kernelspec:
 #     display_name: Python 3 (ipykernel)
 #     language: python
@@ -78,10 +78,6 @@ list(abb_dict.keys())
 state_name_fips = pd.DataFrame({"state_full" : list(abb_dict["full_2_abb"].keys()),
                                 "state" : list(abb_dict["full_2_abb"].values())})
 
-
-state_name_fips.head(2)
-
-# %%
 state_name_fips = pd.merge(state_name_fips, 
                            abb_dict["state_fips"][["state_fips", "EW_meridian", "state"]], 
                            on=["state"], how="left")
@@ -93,25 +89,52 @@ state_fips_SoI.reset_index(drop=True, inplace=True)
 state_fips_SoI.head(2)
 
 # %%
+state_fips_west = list(state_fips_SoI[state_fips_SoI["EW_meridian"] == "W"]["state_fips"].values)
+state_fips_west[:3]
+
+# %%
+
+# %%
+DF_csv = pd.read_csv(reOrganized_dir + "NPP_NDVI_Invent_Mike_2May2024.csv")
+DF_csv.head(2)
 
 # %%
 # DF = pd.read_csv(reOrganized_dir + "NPP_NDVI_Invent_Mike_2May2024.csv")
 DF = pd.read_pickle(reOrganized_dir + "NPP_NDVI_Invent_Mike_2May2024.sav")
 DF = DF["NPP_NDVI_Invent_Mike_2May2024"]
-DF.head(2)
+
+if len(DF["EW_meridian_x"])==(DF["EW_meridian_x"] == DF["EW_meridian_y"]).sum():
+    DF.drop('EW_meridian_x', axis=1, inplace=True)
+    DF.rename(columns={'EW_meridian_y': 'EW_meridian'}, inplace=True)
+###
+### Subset years and drop Kentucky
+###
+DF = DF[DF.state_full != "Kentucky"]
+DF = DF[DF["year"] >= 1984].copy()
+DF = DF[DF["year"] <= 2021].copy()
+
+DF["inv_per_sqkm"] = DF["inventory"] / DF["rangeland_sq_kilometer"]
+DF["log_inv_per_sqkm"] = np.log(DF["inv_per_sqkm"])
+
+DF.head(5)
 
 # %%
-DF_inventory = DF[["year", "inventory", "state_fips", "rangeland_sq_kilometer"]].copy()
+
+# %%
+DF_inventory = DF[["year", "state_fips", 
+                   "inventory", "inv_per_sqkm", "log_inv_per_sqkm",
+                   "rangeland_sq_kilometer"]].copy()
 DF_inventory.dropna(inplace=True)
 DF_inventory.reset_index(inplace=True, drop=True)
-
-DF_inventory["inv_per_sqKilometer"] = DF_inventory["inventory"] / DF_inventory["rangeland_sq_kilometer"]
-
-print (DF_inventory.shape)
 DF_inventory.head(2)
 
 # %%
-cc = "diff_of_logs_of_inv_per_sqKilometer"
+DF_inventory.describe()
+
+# %%
+
+# %%
+cc = "diff_of_logs_of_inv_per_sqkm"
 cols_ = ["year", "state_fips", cc]
 DF_inventory_diff = pd.DataFrame(columns=cols_)
 
@@ -125,13 +148,15 @@ for a_state in DF_inventory.state_fips.unique():
         curr_diff["state_fips"] = a_state
         curr_diff["year"] = str(a_year) + "-" + str(a_year-1)
         
-        curr_diff[cc] = np.log(curr_DF.loc[curr_DF["year"] == a_year, "inv_per_sqKilometer"].item()) - \
-                        np.log(curr_DF.loc[curr_DF["year"] == a_year-1, "inv_per_sqKilometer"].item())
+        curr_diff[cc] = np.log(curr_DF.loc[curr_DF["year"] == a_year, "inv_per_sqkm"].item()) - \
+                        np.log(curr_DF.loc[curr_DF["year"] == a_year-1, "inv_per_sqkm"].item())
 
         DF_inventory_diff = pd.concat([DF_inventory_diff, curr_diff])
 
 # %%
-cc = "ratio_of_logs_of_inv_per_sqKilometer"
+
+# %%
+cc = "ratio_of_logs_of_inv_per_sqkm"
 cols_ = ["year", "state_fips", cc]
 DF_inventory_ratio = pd.DataFrame(columns=cols_)
 
@@ -145,8 +170,8 @@ for a_state in DF_inventory.state_fips.unique():
         curr_ratio["state_fips"] = a_state
         curr_ratio["year"] = str(a_year) + "-" + str(a_year-1)
         
-        curr_ratio[cc] = np.log(curr_DF.loc[curr_DF["year"] == a_year, "inv_per_sqKilometer"].item()) / \
-                        np.log(curr_DF.loc[curr_DF["year"] == a_year-1, "inv_per_sqKilometer"].item())
+        curr_ratio[cc] = np.log(curr_DF.loc[curr_DF["year"] == a_year, "inv_per_sqkm"].item()) / \
+                        np.log(curr_DF.loc[curr_DF["year"] == a_year-1, "inv_per_sqkm"].item())
 
         DF_inventory_ratio = pd.concat([DF_inventory_ratio, curr_ratio])
 
@@ -161,17 +186,11 @@ params = {"legend.fontsize": tick_legend_FontSize,
           "legend.markerscale" : 2,
           "axes.labelsize": tick_legend_FontSize * 2,
           "axes.titlesize": tick_legend_FontSize * 2,
-          "xtick.labelsize": tick_legend_FontSize * 2,
-          "ytick.labelsize": tick_legend_FontSize * 2,
+          "xtick.labelsize": tick_legend_FontSize * 1.7,
+          "ytick.labelsize": tick_legend_FontSize * 1.7,
           "axes.titlepad": 10,
           'axes.linewidth' : .05}
 plt.rcParams.update(params)
-
-# %%
-state_fips_west = list(state_fips_SoI[state_fips_SoI["EW_meridian"] == "W"]["state_fips"].values)
-state_fips_west[:3]
-
-# %%
 
 # %%
 fig, axes = plt.subplots(1, 1, figsize=(5, 2), sharey=False, sharex=False, dpi=dpi_)
@@ -181,7 +200,7 @@ axes.grid(axis='y', which='both', zorder=0)
 DF_plot = DF_inventory_diff_ratio.copy()
 DF_plot = DF_plot[DF_plot["state_fips"].isin(state_fips_west)]
 
-sns.histplot(data=DF_plot["diff_of_logs_of_inv_per_sqKilometer"], 
+sns.histplot(data=DF_plot["diff_of_logs_of_inv_per_sqkm"], 
              ax=axes, bins=40, kde=False, zorder=3, color="dodgerblue", linewidth=0.1);
 
 axes.set_xlabel(r"log$_{t+1}$(inv/sqKilometer) - log$_{t}$(inv/sqKilometer)");
@@ -203,67 +222,8 @@ plt.savefig(file_name, dpi=dpi_, bbox_inches='tight')
 # %%
 DF.head(2)
 
-# %%
-DF_noNA = DF.copy()
-DF_noNA.dropna(inplace=True)
-common_years = list(DF_noNA.year.unique())
-
-# %%
-DF_inventory_commonYears = DF_noNA[["year", "inventory", "state_fips", "rangeland_sq_kilometer"]].copy()
-DF_inventory_commonYears.reset_index(inplace=True, drop=True)
-DF_inventory_commonYears["inv_per_sqKilometer"] = DF_inventory_commonYears["inventory"] / \
-                                                  DF_inventory_commonYears["rangeland_sq_kilometer"]
-
-print (DF_inventory_commonYears.shape)
-DF_inventory_commonYears.head(2)
-
-# %%
-cc = "diff_of_logs_of_inv_per_sqKilometer"
-cols_ = ["year", "state_fips", cc]
-DF_inventory_diff_commonYears = pd.DataFrame(columns=cols_)
-
-for a_state in DF_inventory_commonYears.state_fips.unique():
-    curr_DF = DF_inventory_commonYears[DF_inventory_commonYears["state_fips"] == a_state].copy()
-    curr_DF.sort_values(by="year", inplace=True)
-    curr_DF.reset_index(drop=True, inplace=True)
-    
-    for a_year in curr_DF.year.unique()[1:]:
-        curr_diff = pd.DataFrame(index=range(1), columns=cols_)
-        curr_diff["state_fips"] = a_state
-        curr_diff["year"] = str(a_year) + "-" + str(a_year-1)
-        
-        curr_diff[cc] = np.log(curr_DF.loc[curr_DF["year"] == a_year, "inv_per_sqKilometer"].item()) - \
-                        np.log(curr_DF.loc[curr_DF["year"] == a_year-1, "inv_per_sqKilometer"].item())
-
-        DF_inventory_diff_commonYears = pd.concat([DF_inventory_diff_commonYears, curr_diff])
-
-DF_inventory_diff_commonYears.head(2)
-
-# %%
-
-# %%
-fig, axes = plt.subplots(1, 1, figsize=(5, 2), sharey=False, sharex=False, dpi=dpi_)
-sns.set_style({'axes.grid' : False})
-axes.grid(axis='y', which='both', zorder=0)
-
-DF_plot = DF_inventory_diff_commonYears.copy()
-DF_plot = DF_plot[DF_plot["state_fips"].isin(state_fips_west)]
-# DF_plot = DF_plot[DF_plot.year.isin(common_years)]
-
-sns.histplot(data=DF_plot["diff_of_logs_of_inv_per_sqKilometer"], 
-             ax=axes, bins=40, kde=False, zorder=3, color="dodgerblue", linewidth=0.1);
-axes.set_xlabel(r"log$_{t+1}$(inv/sqKilometer) - log$_{t}$(inv/sqKilometer)");
-axes.set_title('only common years present', y=.95);
-axes.tick_params(length=2, width=.51) # axis='both', which='major', 
-file_name = plot_dir + "difference_of_logInvPerSqKm_commonYrs.pdf"
-plt.savefig(file_name, dpi=dpi_, bbox_inches='tight')
-
-# %%
-
 # %% [markdown]
 # ## Figure 2 replication
-
-# %%
 
 # %%
 DF_NPP = DF[["year", "state_fips", "unit_matt_npp_kg_per_sq_kilometer", "total_matt_npp_kg"]].copy()
@@ -318,101 +278,13 @@ file_name = plot_dir + "diff_of_logs_of_unitMetricNPP.pdf"
 plt.savefig(file_name, dpi=dpi_, bbox_inches='tight')
 
 # %% [markdown]
-# ### Figure 2 replication: common years
-
-# %%
-c_ = ["year", "state_fips", "unit_matt_npp_kg_per_sq_kilometer", "total_matt_npp_kg"]
-DF_NPP_commonYears = DF_noNA[c_].copy()
-print (DF_NPP.shape)
-print (DF_NPP_commonYears.shape)
-
-DF_NPP_commonYears.dropna(inplace=True)
-DF_NPP_commonYears.reset_index(inplace=True, drop=True)
-print (DF_NPP_commonYears.shape)
-DF_NPP_commonYears.head(2)
-
-# %%
-cc = "diff_of_logs_of_unitMetricNPP"
-cols_ = ["year", "state_fips", cc]
-DF_unitNPP_diff_commonYrs = pd.DataFrame(columns=cols_)
-
-column_2_diff = "unit_matt_npp_kg_per_sq_kilometer"
-print (column_2_diff)
-
-for a_state in DF_NPP_commonYears.state_fips.unique():
-    curr_DF = DF_NPP_commonYears[DF_NPP_commonYears["state_fips"] == a_state].copy()
-    curr_DF.sort_values(by="year", inplace=True)
-    curr_DF.reset_index(drop=True, inplace=True)
-    
-    for a_year in curr_DF.year.unique()[1:]:
-        curr_diff = pd.DataFrame(index=range(1), columns=cols_)
-        curr_diff["state_fips"] = a_state
-        curr_diff["year"] = str(a_year) + "-" + str(a_year-1)
-        
-        curr_diff[cc] = np.log(curr_DF.loc[curr_DF["year"] == a_year, column_2_diff].item()) - \
-                        np.log(curr_DF.loc[curr_DF["year"] == a_year-1, column_2_diff].item())
-
-        DF_unitNPP_diff_commonYrs = pd.concat([DF_unitNPP_diff_commonYrs, curr_diff])
-        
-DF_unitNPP_diff_commonYrs.head(2)
-
-# %%
-fig, axes = plt.subplots(1, 1, figsize=(4, 2), sharey=False, sharex=False, dpi=dpi_,
-                         gridspec_kw={'hspace': .5, 'wspace': .05})
-
-axes.grid(axis='y', which='both', zorder=0)
-# sns.set_style({'axes.grid' : False},)
-# sns.set_context(rc={"lines.linewidth": .1})
-
-DF_plot = DF_unitNPP_diff.copy()
-DF_plot = DF_plot[DF_plot["state_fips"].isin(state_fips_west)]
-
-sns.histplot(data=DF_plot["diff_of_logs_of_unitMetricNPP"], 
-             ax=axes, bins=40, kde=False, zorder=3, color="dodgerblue", linewidth=0.1);
-
-axes.set_xlabel("diff_of_logs_of_unitMetricNPP".replace("_", " "));
-axes.set_title('only common years present', y=.95);
-axes.tick_params(length=2, width=.51) # axis='both', which='major', 
-file_name = plot_dir + "diff_of_logs_of_unitMetricNPP_commonYrs.pdf"
-plt.savefig(file_name, dpi=dpi_, bbox_inches='tight')
-
-# %% [markdown]
 # ## Regression Replication
 
 # %%
-# DF = pd.read_csv(reOrganized_dir + "NPP_NDVI_Invent_Mike_2May2024.csv")
-DF = pd.read_pickle(reOrganized_dir + "NPP_NDVI_Invent_Mike_2May2024.sav")
-DF = DF["NPP_NDVI_Invent_Mike_2May2024"]
-
-#### We must have inventory. So, drop NAs
-DF.dropna(subset=['inventory'], inplace=True)
-DF.reset_index(inplace=True, drop=True)
-len(DF)
-
 DF.head(2)
 
 # %%
-
-# %%
-if len(DF["EW_meridian_x"])==(DF["EW_meridian_x"] == DF["EW_meridian_y"]).sum():
-    DF.drop('EW_meridian_x', axis=1, inplace=True)
-    DF.rename(columns={'EW_meridian_y': 'EW_meridian'}, inplace=True)
-
-# %%
-print (len(DF))
-DF_common_years = DF.copy()
-DF_common_years.dropna(inplace=True)
-print (len(DF_common_years))
-
-# %%
-DF["inv_per_sqkm"] = DF["inventory"] / DF["rangeland_sq_kilometer"]
-DF.head(2)
-
-# %%
-DF.drop(columns=["inventory"], inplace=True)
-DF.head(2)
-
-# %%
+DF.describe()
 
 # %% [markdown]
 # ## Form Delta DataFrames
@@ -584,6 +456,20 @@ Mike_DF.head(2)
 #
 # statsmodels.regression.linear_model
 
+# %% [raw]
+# indp_vars = ["county_total_npp"]
+# y_var = "inventory"
+#
+# #################################################################
+# X_npp = inv_2017_NPP_SW_heat_avg_normal[indp_vars]
+# X_npp = sm.add_constant(X_npp)
+# Y = np.log(inv_2017_NPP_SW_heat_avg_normal[y_var].astype(float))
+# npp_inv_model = sm.OLS(Y, X_npp)
+# npp_inv_model_result = npp_inv_model.fit()
+# npp_inv_model_result.summary()
+
+# %%
+
 # %%
 west_fips = state_fips_SoI.copy()
 west_fips = west_fips[west_fips["EW_meridian"] == "W"]
@@ -634,6 +520,38 @@ m5_results = pd.DataFrame({"Coeff.": m5.betas.flatten(), # Pull out regression c
 
 m5_results[25:]
 
+# %%
+depen_var_name = "log_of_ratio_of_inv_per_sqkm"
+indp_vars = ["diff_unit_matt_npp_kg_per_sq_kilometer", "beef_price_at_1982", "hay_price_at_1982"]
+extra_cols = ["state_fips"]
+
+df_model = Mike_DF.copy()
+df_model = df_model[[depen_var_name] + indp_vars + extra_cols].copy()
+df_model.dropna(inplace=True)
+df_model.reset_index(inplace=True, drop=True)
+print (f"Number of samples here is {len(df_model)}")
+
+
+m5 = spreg.OLS_Regimes(y = df_model[depen_var_name].values,
+                       x = df_model[indp_vars].values,
+                       regimes = df_model["state_fips"].tolist(),              
+                       cols2regi=[False] * len(indp_vars),
+                       constant_regi = "many",
+                       regime_err_sep=False,
+                       name_y = depen_var_name,
+                       name_x = indp_vars)
+
+
+m5_results = pd.DataFrame({"Coeff.": m5.betas.flatten(), # Pull out regression coefficients and
+                           "Std. Error": m5.std_err.flatten(), # Pull out and flatten standard errors
+                           "P-Value": [i[1] for i in m5.t_stat], # Pull out P-values from t-stat object
+                           }, index=m5.name_x)
+
+print (f"R2 = {m5.r2.round(2)}")
+m5_results[25:]
+
+# %%
+
 # %% [markdown]
 # ### 5th Row of Mike's Table?
 
@@ -653,25 +571,15 @@ print (f"Number of samples here is {len(df_model)}")
 
 m5 = spreg.OLS_Regimes(y = df_model[depen_var_name].values,
                        x = df_model[indp_vars].values,
-
-                       # Variable specifying neighborhood membership
                        regimes = df_model["state_fips"].tolist(),
-              
-                       # Variables to be allowed to vary (True) or kept
-                       # constant (False). Here we set all to False
+
                        cols2regi=[False] * len(indp_vars),
-                        
-                       # Allow the constant term to vary by group/regime
                        constant_regi = "many",
-                        
-                       # Allow separate sigma coefficients to be estimated
-                       # by regime (False so a single sigma)
                        regime_err_sep=False,
                        name_y = depen_var_name, # Dependent variable name
                        name_x = indp_vars)
 
 print (m5.r2.round(2))
-
 
 m5_results = pd.DataFrame({"Coeff.": m5.betas.flatten(), # Pull out regression coefficients and
                            "Std. Error": m5.std_err.flatten(), # Pull out and flatten standard errors
@@ -679,6 +587,8 @@ m5_results = pd.DataFrame({"Coeff.": m5.betas.flatten(), # Pull out regression c
                            }, index=m5.name_x)
 
 m5_results[15:]
+
+# %%
 
 # %% [markdown]
 # ## Form relative X/state-mean DataFrames
@@ -777,6 +687,10 @@ m5_results = pd.DataFrame({"Coeff.": m5.betas.flatten(), # Pull out regression c
                            }, index=m5.name_x)
 
 m5_results[15:]
+
+# %%
+
+# %%
 
 # %%
 

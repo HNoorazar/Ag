@@ -5,7 +5,7 @@
 #       extension: .py
 #       format_name: percent
 #       format_version: '1.3'
-#       jupytext_version: 1.16.1
+#       jupytext_version: 1.15.2
 #   kernelspec:
 #     display_name: Python 3 (ipykernel)
 #     language: python
@@ -274,3 +274,9 @@ trend_count_all_99CL = pd.merge(trend_count_all_99CL, trend_count_yue_lag1, how=
 trend_count_all_99CL = pd.merge(trend_count_all_99CL, trend_count_yue_lag2, how="left", on="trend")
 trend_count_all_99CL = pd.merge(trend_count_all_99CL, trend_count_yue_lag3, how="left", on="trend")
 trend_count_all_99CL
+
+# %%
+
+# %%
+
+# %%
