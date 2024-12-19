@@ -311,7 +311,7 @@ filename = bio_reOrganized + "bps_weather.sav"
 bps_weather.reset_index(drop=True, inplace=True)
 
 export_ = {"bps_weather": bps_weather, 
-           "source_code" : "clean_dump_2012_removed",
+           "source_code" : "Min_2_Min_v1.1",
            "Author": "HN",
            "Date" : datetime.now().strftime('%Y-%m-%d %H:%M:%S')}
 
@@ -410,3 +410,73 @@ del(FID_veg)
 
 # %%
 landcover_dir = min_bio_dir + "Rangeland_Landcover/"
+
+# %%
+landcover_files = os.listdir(landcover_dir)
+landcover_files = sorted([x for x in landcover_files if x.endswith(".csv")])
+landcover_files[0:4]
+
+# %%
+# DF = pd.DataFrame()
+
+# prefix = "Rangeland_rap_mean_vegcover_allpixels_"
+# for a_year in np.arange(1986, 2024):
+#     curr_df = pd.read_csv(landcover_dir + prefix + str(a_year) + ".csv")
+#     DF = pd.concat([DF, curr_df])
+
+
+# all_yrs_Min.sort_values(by= ['MinStatsID', 'year'], inplace=True)
+# DF.sort_values(by= ['MinStatsID', 'year'], inplace=True)
+
+# DF.reset_index(drop=True, inplace=True)
+# all_yrs_Min.reset_index(drop=True, inplace=True)
+
+# all_yrs_Min = all_yrs_Min[list(DF.columns)]
+
+# DF.head(2)
+
+# %%
+rangeland_rap = pd.read_csv(landcover_dir + "Rangeland_rap_mean_vegcover_allpixels_1986_2023.csv")
+
+rangeland_rap.rename(columns={"MinStatsID": "fid", 
+                          "AFG" : "Annual_Forb_Grass",
+                          "BGR" : "Bare_Ground",
+                          "LTR" : "Litter",
+                          "PFG" : "Perennial_Forb_Grass",
+                          "SHR" : "Shrub",
+                          "TRE" : "Tree",
+                         }, inplace=True)
+
+rangeland_rap.rename(columns=lambda x: x.lower().replace(' ', '_'), inplace=True)
+rangeland_rap.head(2)
+
+# %%
+L_ = sorted(rangeland_rap.columns)
+L_ = [x for x in L_ if not (x in (["fid", "year"]))]
+L_ = ["fid", "year"] + L_
+rangeland_rap = rangeland_rap[L_]
+rangeland_rap.head(2)
+
+# %%
+# Multiply by 100.
+# For some reason Matt says this works better.
+L_ = [x for x in L_ if not (x in (["fid", "year"]))]
+for a_col in L_:
+    rangeland_rap[a_col] = rangeland_rap[a_col] * 100
+
+rangeland_rap["total_area"] = rangeland_rap[L_].sum(axis=1)
+rangeland_rap.head(2)
+
+# %%
+filename = bio_reOrganized + "rangeland_rap.sav"
+
+export_ = {"rangeland_rap": rangeland_rap, 
+           "source_code" : "Min_2_Min_v1.1",
+           "Author": "HN",
+           "Date" : datetime.now().strftime('%Y-%m-%d %H:%M:%S')}
+
+pickle.dump(export_, open(filename, 'wb'))
+
+# %%
+
+# %%
