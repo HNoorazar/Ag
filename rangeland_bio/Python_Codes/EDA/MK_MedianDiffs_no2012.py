@@ -56,7 +56,8 @@ print (list(colormaps)[:4])
 # %%
 rangeland_bio_base = "/Users/hn/Documents/01_research_data/RangeLand_bio/"
 rangeland_bio_data = rangeland_bio_base + "Data/"
-min_bio_dir = rangeland_bio_data + "Min_Data/"
+# min_bio_dir = rangeland_bio_data + "Min_Data/"
+min_bio_dir_v11 = rangeland_bio_data + "Min_Data_v1.1/"
 
 rangeland_base = "/Users/hn/Documents/01_research_data/RangeLand/Data/"
 rangeland_reOrganized = rangeland_base + "reOrganized/"
@@ -131,58 +132,15 @@ print ((list(Albers_SF.index) == Albers_SF.fid).sum())
 Albers_SF.drop(columns=["value"], inplace=True)
 Albers_SF.head(2)
 
-# %%
-
-# %%
-
 # %% [markdown]
 # ## Read NPP Data
 
 # %%
-bpszone_ANPP = pd.read_csv(min_bio_dir + "2012_bpszone_annual_productivity_rpms_MEAN.csv")
-
-bpszone_ANPP.rename(columns=lambda x: x.lower().replace(' ', '_'), inplace=True)
-bpszone_ANPP.rename(columns={"area": "area_sqMeter", 
-                             "count": "pixel_count",
-                             "mean" : "mean_lb_per_acr"}, inplace=True)
-
-bpszone_ANPP.sort_values(by= ['fid', 'year'], inplace=True)
-bpszone_ANPP.reset_index(drop=True, inplace=True)
-bpszone_ANPP.head(2)
-
-# %%
-# I think Min mentioned that FID is the same as Min_statID
-# So, let us subset the west metidians
-print (bpszone_ANPP.shape)
-bpszone_ANPP = bpszone_ANPP[bpszone_ANPP["fid"].isin(list(Albers_SF["fid"]))].copy()
-print (bpszone_ANPP.shape)
-
-# %% [markdown]
-# # Remove 2012 data?
-
-# %%
-bpszone_ANPP = bpszone_ANPP[bpszone_ANPP.year != 2012]
-
-# %%
-bpszone_ANPP = pd.merge(bpszone_ANPP, Albers_SF[["fid", "groupveg"]], how="left", on="fid")
-bpszone_ANPP.head(2)
-
-# %%
-bpszone_ANPP.to_csv(min_bio_dir + "bpszone_annual_productivity_rpms_MEAN.csv", index=False)
-
-# %%
 filename = bio_reOrganized + "bpszone_ANPP_no2012.sav"
-export_ = {"bpszone_ANPP": bpszone_ANPP, 
-           "source_code" : "clean_dump_2012_removed",
-           "Author": "HN",
-           "Date" : datetime.now().strftime('%Y-%m-%d %H:%M:%S')}
+bpszone_ANPP = pd.read_pickle(filename)
+bpszone_ANPP = bpszone_ANPP["bpszone_ANPP"]
 
-pickle.dump(export_, open(filename, 'wb'))
-
-# %%
 bpszone_ANPP["fid"].unique()[-8::]
-
-# %%
 
 # %%
 print (len(bpszone_ANPP["fid"].unique()))
@@ -224,11 +182,6 @@ print (f'{Albers_SF["fid"].unique().max()= }')
 # %%
 bpszone_ANPP.head(2)
 
-# %%
-cols_ = ["fid", "state_majority_area", "state_1", "state_2", "EW_meridian"]
-bpszone_ANPP = pd.merge(bpszone_ANPP, Albers_SF[cols_], how="left", on = "fid")
-bpszone_ANPP.head(2)
-
 # %% [markdown]
 # # Make some plots
 
@@ -238,12 +191,10 @@ Albers_SF.plot(column='EW_meridian', categorical=True, legend=True);
 # %%
 from shapely.geometry import Polygon
 
-# gdf = geopandas.read_file(rangeland_bio_data +'cb_2018_us_state_500k.zip')
-gdf = geopandas.read_file(rangeland_bio_data +'cb_2018_us_state_500k')
+gdf = geopandas.read_file(rangeland_base +'cb_2018_us_state_500k.zip')
 
 gdf.rename(columns={"STUSPS": "state"}, inplace=True)
 gdf = gdf[~gdf.state.isin(["PR", "VI", "AS", "GU", "MP"])]
-
 gdf = pd.merge(gdf, state_fips[["EW_meridian", "state"]], how="left", on="state")
 
 # %%
@@ -266,6 +217,12 @@ bpszone_ANPP.head(2)
 # %%
 num_locs = len(bpszone_ANPP["fid"].unique())
 num_locs
+
+# %%
+cols_ = ["fid", "state_majority_area", "state_1", "state_2", "EW_meridian"]
+if not ("EW_meridian" in bpszone_ANPP.columns):
+    bpszone_ANPP = pd.merge(bpszone_ANPP, Albers_SF[cols_], how="left", on = "fid")
+bpszone_ANPP.head(2)
 
 # %%
 median_diff = bpszone_ANPP[["fid", "state_majority_area", "state_1", "state_2", "EW_meridian"]].copy()
@@ -423,7 +380,7 @@ for a_FID in ANPP_MK_df["fid"].unique():
     del(trend_u_lag3, p_u_lag3, var_s_u_lag3)
     del(Spearman, p_Spearman )
     del(L_, ANPP_TS, year_TS)
-
+    
 # Round the columns to 6-decimals
 for a_col in ["sens_slope", "Tau", "MK_score",
               "p", "var_s",
@@ -432,7 +389,12 @@ for a_col in ["sens_slope", "Tau", "MK_score",
               "p_yue_lag1", "var_s_yue_lag1",
               "p_yue_lag2", "var_s_yue_lag2",
               "p_yue_lag3", "var_s_yue_lag3"]:
-    ANPP_MK_df[a_col] = ANPP_MK_df[a_col].round(6)
+    ANPP_MK_df[a_col] = ANPP_MK_df[a_col].astype(float)
+    ANPP_MK_df[a_col] = round(ANPP_MK_df[a_col], 6)
+    
+ANPP_MK_df.head(2)
+
+# %%
 ANPP_MK_df.head(2)
 
 # %%
@@ -490,12 +452,10 @@ Albers_SF["centroid"] = Albers_SF["geometry"].centroid
 Albers_SF.head(2)
 
 # %%
-
-# %%
 filename = bio_reOrganized + "ANPP_MK_Spearman_no2012.sav"
 
 export_ = {"ANPP_MK_df": ANPP_MK_df, 
-           "source_code" : "clean_dump_2012_removed",
+           "source_code" : "MK_MedianDiffs_no2012",
            "Author": "HN",
            "Date" : datetime.now().strftime('%Y-%m-%d %H:%M:%S')}
 
@@ -507,174 +467,5 @@ Albers_SF_noCentroid.drop(columns=["centroid"], inplace=True)
 f_name = bio_reOrganized + 'Albers_SF_west_ANPP_MK_Spearman_no2012.shp.zip'
 Albers_SF_noCentroid.to_file(filename=f_name, driver='ESRI Shapefile')
 
-
-# %%
-Albers_SF_noCentroid.head(2)
-
-# %%
-
-# %%
-
-# %%
-
-# %% [markdown]
-# ## Read and dump weather data
-
-# %%
-bps_weather = pd.read_csv(min_bio_dir + "bps_gridmet_mean_indices.csv")
-bps_weather.rename(columns=lambda x: x.lower().replace(' ', '_'), inplace=True)
-bps_weather.head(2)
-
-bps_weather.rename(columns={"rmin_min" : "min_of_dailyMin_rel_hum", 
-                            "ravg_avg" : "avg_of_dailyAvg_rel_hum",
-                            "rmin_avg" : "avg_of_dailyMin_rel_hum",
-                            "rmax_max" : "max_of_dailyMax_rel_hum",
-                            "rmax_avg" : "max_of_dailyAvg_rel_hum",
-                            "tmin_min" : "min_of_dailyMinTemp_C",
-                            "tmin_avg" : "avg_of_dailyMinTemp_C",
-                            "tmax_max" : "max_of_dailyMaxTemp_C",
-                            "tmax_avg" : "avg_of_dailyMaxTemp_C",
-                            "tavg_avg" : "avg_of_dailyAvgTemp_C",
-                            "ppt" : "precip_mm_month",
-                            "bpshuc" : "fid" # I have no other choice at this time!
-                            }, 
-                    inplace=True)
-bps_weather.head(2)
-
-drop_cols = ['alert', 'danger', 'emergency', 'thi_90', 'thi_std', "normal",
-             
-             'min_of_dailyMin_rel_hum',
-             'avg_of_dailyMin_rel_hum',
-             'max_of_dailyMax_rel_hum',
-             'max_of_dailyAvg_rel_hum',
-             
-             'avg_of_dailyMaxTemp_C', 
-             'max_of_dailyMaxTemp_C', 
-             'avg_of_dailyMinTemp_C', 
-             'min_of_dailyMinTemp_C']
-
-bps_weather.drop(columns = drop_cols, axis="columns", inplace=True)
-bps_weather = bps_weather[[bps_weather.columns[-1]] + list(bps_weather.columns[:-1])]
-bps_weather.head(2)
-
-# %%
-Albers_SF.EW_meridian.unique()
-
-# %%
-print (bps_weather.shape)
-bps_weather = bps_weather[bps_weather.fid.isin(list(Albers_SF.fid.unique()))]
-print (bps_weather.shape)
-
-# %%
-filename = bio_reOrganized + "bps_weather.sav"
-
-bps_weather.reset_index(drop=True, inplace=True)
-
-export_ = {"bps_weather": bps_weather, 
-           "source_code" : "clean_dump_2012_removed",
-           "Author": "HN",
-           "Date" : datetime.now().strftime('%Y-%m-%d %H:%M:%S')}
-
-pickle.dump(export_, open(filename, 'wb'))
-
-del(bps_weather)
-
-# %%
-
-# %%
-filename = bio_reOrganized + "bps_weather.sav"
-monthly_weather = pd.read_pickle(filename)
-monthly_weather = monthly_weather["bps_weather"]
-monthly_weather.head(2)
-
-# %%
-print (f'{len(monthly_weather["fid"].unique())=}')
-print (f'{len(ANPP_MK_df["fid"].unique())=}')
-
-# %%
-# %%time
-monthly_weather_wide = monthly_weather.copy()
-monthly_weather_wide.sort_values(by= ['fid', 'year', "month"], inplace=True)
-monthly_weather_wide["month"] = monthly_weather_wide["month"].astype(str)
-df1 = monthly_weather_wide[['fid', 'year', "month", 'avg_of_dailyAvg_rel_hum']].copy()
-df2 = monthly_weather_wide[['fid', 'year', "month", 'avg_of_dailyAvgTemp_C']].copy()
-df3 = monthly_weather_wide[['fid', 'year', "month", 'thi_avg']].copy()
-df4 = monthly_weather_wide[['fid', 'year', "month", 'precip_mm_month']].copy()
-########################################################################
-df1 = df1.pivot(index=['fid', 'year'], columns=['month'])
-df2 = df2.pivot(index=['fid', 'year'], columns=['month'])
-df3 = df3.pivot(index=['fid', 'year'], columns=['month'])
-df4 = df4.pivot(index=['fid', 'year'], columns=['month'])
-########################################################################
-df1.reset_index(drop=False, inplace=True)
-df2.reset_index(drop=False, inplace=True)
-df3.reset_index(drop=False, inplace=True)
-df4.reset_index(drop=False, inplace=True)
-########################################################################
-df1.columns = ["_".join(tup) for tup in df1.columns.to_flat_index()]
-df2.columns = ["_".join(tup) for tup in df2.columns.to_flat_index()]
-df3.columns = ["_".join(tup) for tup in df3.columns.to_flat_index()]
-df4.columns = ["_".join(tup) for tup in df4.columns.to_flat_index()]
-########################################################################
-df1.rename(columns={"fid_": "fid", "year_":"year"}, inplace=True)
-df2.rename(columns={"fid_": "fid", "year_": "year"}, inplace=True)
-df3.rename(columns={"fid_": "fid", "year_": "year"}, inplace=True)
-df4.rename(columns={"fid_": "fid", "year_": "year"}, inplace=True)
-
-df1.head(2)
-
-wide_WA = pd.merge(df1, df2, how="left", on=["fid", "year"])
-wide_WA = pd.merge(wide_WA, df3, how="left", on=["fid", "year"])
-wide_WA = pd.merge(wide_WA, df4, how="left", on=["fid", "year"])
-
-# %%
-print (wide_WA.shape)
-print (wide_WA[wide_WA.fid.isin(list(Albers_SF.fid.unique()))].shape)
-
-# %%
-filename = bio_reOrganized + "bps_weather_wide.sav"
-export_ = {"bps_weather_wide": wide_WA, 
-           "source_code" : "clean_dump_2012_removed",
-           "Author": "HN",
-           "Date" : datetime.now().strftime('%Y-%m-%d %H:%M:%S')}
-pickle.dump(export_, open(filename, 'wb'))
-wide_WA.head(2)
-
-# %%
-Albers_SF.head(2)
-
-# %%
-
-# %%
-FIDs_weather_ANPP_common = Albers_SF[['fid', 'state_majority_area', 'groupveg']].copy()
-print (FIDs_weather_ANPP_common.shape)
-FIDs_weather_ANPP_common = FIDs_weather_ANPP_common[FIDs_weather_ANPP_common.fid.isin(list(\
-                                                                        monthly_weather.fid.unique()))]
-
-print (FIDs_weather_ANPP_common.shape)
-
-FIDs_weather_ANPP_common = FIDs_weather_ANPP_common[FIDs_weather_ANPP_common.fid.isin(list(\
-                                                                        bpszone_ANPP.fid.unique()))]
-
-print (FIDs_weather_ANPP_common.shape)
-
-# %%
-FID_veg = Albers_SF[['fid', 'groupveg']].copy()
-FID_veg.reset_index(drop=True, inplace=True)
-
-
-filename = bio_reOrganized + "FID_veg.sav"
-export_ = {"FID_veg": FID_veg, 
-           "FIDs_weather_ANPP_common" : FIDs_weather_ANPP_common,
-           "source_code" : "clean_dump_2012_removed",
-           "Author": "HN",
-           "Date" : datetime.now().strftime('%Y-%m-%d %H:%M:%S')}
-
-pickle.dump(export_, open(filename, 'wb'))
-del(FID_veg)
-
-# %%
-
-# %%
 
 # %%
