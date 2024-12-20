@@ -120,6 +120,7 @@ Albers_SF.head(2)
 
 # %%
 Albers_SF = Albers_SF[Albers_SF["EW_meridian"] == "W"].copy()
+Albers_SF.reset_index(drop=True, inplace=True)
 Albers_SF.shape
 
 # %%
@@ -439,13 +440,13 @@ landcover_files[0:4]
 rangeland_rap = pd.read_csv(landcover_dir + "Rangeland_rap_mean_vegcover_allpixels_1986_2023.csv")
 
 rangeland_rap.rename(columns={"MinStatsID": "fid", 
-                          "AFG" : "Annual_Forb_Grass",
-                          "BGR" : "Bare_Ground",
-                          "LTR" : "Litter",
-                          "PFG" : "Perennial_Forb_Grass",
-                          "SHR" : "Shrub",
-                          "TRE" : "Tree",
-                         }, inplace=True)
+                              "AFG" : "Annual_Forb_Grass",
+                              "BGR" : "Bare_Ground",
+                              "LTR" : "Litter",
+                              "PFG" : "Perennial_Forb_Grass",
+                              "SHR" : "Shrub",
+                              "TRE" : "Tree",
+                             }, inplace=True)
 
 rangeland_rap.rename(columns=lambda x: x.lower().replace(' ', '_'), inplace=True)
 rangeland_rap.head(2)
@@ -468,6 +469,17 @@ rangeland_rap["total_area"] = rangeland_rap[L_].sum(axis=1)
 rangeland_rap.head(2)
 
 # %%
+print (list(Albers_SF["EW_meridian"].unique()))
+Albers_SF.head(2)
+
+# %%
+# Subset to west side
+print (len(rangeland_rap))
+rangeland_rap = rangeland_rap[rangeland_rap["fid"].isin(list(Albers_SF["fid"].unique()))].copy()
+print (len(rangeland_rap))
+rangeland_rap.reset_index(drop=True, inplace=True)
+
+# %%
 filename = bio_reOrganized + "rangeland_rap.sav"
 
 export_ = {"rangeland_rap": rangeland_rap, 
@@ -477,6 +489,41 @@ export_ = {"rangeland_rap": rangeland_rap,
 
 pickle.dump(export_, open(filename, 'wb'))
 
+# %% [markdown]
+# ## New shapefile of Min
+#
+# Different from old ones?
+
 # %%
+# %%time
+new_Albers_SF_name = landcover_dir + "albersHucsGreeningBpSAtts250_For_Zonal_Stats.zip"
+new_Albers_SF = geopandas.read_file(new_Albers_SF_name)
+
+new_Albers_SF.rename(columns=lambda x: x.lower().replace(' ', '_'), inplace=True)
+new_Albers_SF.rename(columns={"minstatsid": "fid", 
+                              "satae_max": "state_majority_area"}, inplace=True)
+new_Albers_SF.head(2)
+
+# %%
+# Subset to west side
+print (len(new_Albers_SF))
+new_Albers_SF = new_Albers_SF[new_Albers_SF["fid"].isin(list(Albers_SF["fid"].unique()))].copy()
+print (len(new_Albers_SF))
+new_Albers_SF.reset_index(drop=True, inplace=True)
+
+# %%
+print (len(new_Albers_SF.fid.unique()))
+print (len(Albers_SF.fid.unique()))
+
+# %%
+Albers_SF.reset_index(drop=True, inplace=True)
+Albers_SF.head(5)
+
+# %%
+new_Albers_SF.head(5)
+
+# %%
+col_ = "bps_name"
+(new_Albers_SF[col_] == Albers_SF[col_]).sum()
 
 # %%

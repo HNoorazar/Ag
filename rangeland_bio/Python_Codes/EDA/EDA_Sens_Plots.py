@@ -5,7 +5,7 @@
 #       extension: .py
 #       format_name: percent
 #       format_version: '1.3'
-#       jupytext_version: 1.16.1
+#       jupytext_version: 1.15.2
 #   kernelspec:
 #     display_name: Python 3 (ipykernel)
 #     language: python
@@ -185,7 +185,7 @@ params = {"font.family": "Palatino",
           "ytick.left": True,
           "xtick.labelbottom": True,
           "ytick.labelleft": True,
-         'axes.linewidth' : .05}
+          'axes.linewidth' : .05}
 
 plt.rcParams.update(params)
 

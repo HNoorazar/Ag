@@ -278,6 +278,10 @@ for a_FID in median_diff["fid"].unique():
 # %%
 median_diff.head(2)
 
+# %% [markdown]
+# # WARNING: year_diff below is hard coded and is wrong
+# False warning. Regardless of missing data in between! we are correct
+
 # %%
 year_diff = bpszone_ANPP["year"].max() - bpszone_ANPP["year"].min()
 
@@ -295,7 +299,7 @@ print (median_diff["medians_diff_slope_ANPP"].max())
 median_diff[median_diff["medians_diff_slope_ANPP"] < -19]
 
 # %% [markdown]
-# ### change as percenatge of first decade
+# ### change (as %)
 
 # %%
 median_diff["median_ANPP_change_as_perc"] = (100 * median_diff["medians_diff_ANPP"]) / \
