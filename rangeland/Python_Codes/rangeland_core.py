@@ -6,10 +6,15 @@ from pprint import pprint
 import os, os.path, sys
 import scipy
 from scipy.linalg import inv
+from geopy.distance import geodesic
 
 """
 There are scipy.linalg.block_diag() and scipy.sparse.block_diag()
 """
+
+
+def calculate_geodesic_distance(point1, point2):
+    return geodesic((point1.y, point1.x), (point2.y, point2.x)).km
 
 
 def pred_via_spreg_regime(regime_col, a_model, data_df):

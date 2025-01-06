@@ -5,7 +5,7 @@
 #       extension: .py
 #       format_name: percent
 #       format_version: '1.3'
-#       jupytext_version: 1.15.2
+#       jupytext_version: 1.16.1
 #   kernelspec:
 #     display_name: Python 3 (ipykernel)
 #     language: python
@@ -42,7 +42,6 @@ import rangeland_core as rc
 def plot_SF(SF, ax_, cmap_ = "Pastel1", col="EW_meridian"):
     SF.plot(column=col, ax=ax_, alpha=1, cmap=cmap_, edgecolor='k', legend=False, linewidth=0.1)
     
-    
 dpi_, map_dpi_=300, 900
 custom_cmap_coral = ListedColormap(['lightcoral', 'black'])
 custom_cmap_BW = ListedColormap(['white', 'black'])
@@ -77,8 +76,7 @@ bio_plots = rangeland_bio_base + "plots/vegAreaChange/"
 os.makedirs(bio_plots, exist_ok=True)
 
 # %%
-county_fips_dict = pd.read_pickle(rangeland_reOrganized + "county_fips.sav")
-
+county_fips_dict = pd.read_pickle(common_data + "county_fips.sav")
 county_fips = county_fips_dict["county_fips"]
 full_2_abb = county_fips_dict["full_2_abb"]
 abb_2_full_dict = county_fips_dict["abb_2_full_dict"]
@@ -291,8 +289,6 @@ Albers_SF = pd.merge(Albers_SF, median_diff_finite[["fid", "median_tree_change_a
 Albers_SF_finite = Albers_SF[Albers_SF["fid"].isin(list(median_diff_finite["fid"].unique()))]
 
 # %%
-
-# %%
 tick_legend_FontSize = 5
 params = {"font.family": "Palatino",
           "legend.fontsize": tick_legend_FontSize,
@@ -311,6 +307,7 @@ params = {"font.family": "Palatino",
 plt.rcParams.update(params)
 
 # %%
+Albers_SF_finite.median_tree_change_as_perc
 
 # %%
 fig, ax = plt.subplots(1, 1, figsize=(2, 2), sharex=True, sharey=True, dpi=map_dpi_)
@@ -457,7 +454,11 @@ veg_abbr = {"annual_forb_grass" : "AFG",
 
 # %%
 y_var = "tree"
+a_veg = y_var
 lw_=2
+
+# %%
+veg_abbr
 
 # %%
 fig, axes = plt.subplots(2, 1, figsize=(10, 4), sharex=True, 
