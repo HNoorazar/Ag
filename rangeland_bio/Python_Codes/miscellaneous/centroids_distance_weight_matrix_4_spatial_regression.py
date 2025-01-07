@@ -5,7 +5,7 @@
 #       extension: .py
 #       format_name: percent
 #       format_version: '1.3'
-#       jupytext_version: 1.16.1
+#       jupytext_version: 1.15.2
 #   kernelspec:
 #     display_name: Python 3 (ipykernel)
 #     language: python
@@ -51,6 +51,11 @@ import rangeland_core as rc
 # Might be slightly slower than gdf.geometry.distance for local calculations. 
 
 # %%
+dpi_=300
+
+def plot_SF(SF, ax_, cmap_ = "Pastel1", col="EW_meridian"):
+    SF.plot(column=col, ax=ax_, alpha=1, cmap=cmap_, edgecolor='k', legend=False, linewidth=0.1)
+
 
 # %%
 research_data_ = "/Users/hn/Documents/01_research_data/"
@@ -85,6 +90,43 @@ state_fips = state_fips[state_fips.state != "VI"].copy()
 state_fips.head(2)
 
 # %%
+
+# %%
+# ## Supriya's columns need to change. So, read, write.
+# WGS84_4326_name = common_data + "WGS84_4326/Albers_BioRangeland_Centroid_WGS84_4326/" + \
+#                    "Albers_BioRangeland_Centroid_WGS84_4326.shp"
+# WGS84_4326 = geopandas.read_file(WGS84_4326_name)
+
+# WGS84_4326.rename(columns={"lat": "supriya_long", "lon": "supriya_lat"}, inplace=True)
+
+# Centroid_WGS84_4326 = pd.read_csv(common_data + "WGS84_4326/" + "Centroid_WGS84_4326.csv")
+# Centroid_WGS84_4326.rename(columns={"lat": "supriya_long", "lon": "supriya_lat"}, inplace=True)
+
+
+# Centroid_WGS84_4326 = Centroid_WGS84_4326[["fid", "supriya_long", "supriya_lat"]]
+# Centroid_WGS84_4326.to_csv(common_data + "WGS84_4326/" + "centroid_WGS84_4326_correctColNames.csv", index=False)
+# Centroid_WGS84_4326.head(2)
+
+# %%
+Centroid_WGS84_4326 = pd.read_csv(common_data + "WGS84_4326/" + "centroid_WGS84_4326_correctColNames.csv")
+Centroid_WGS84_4326.head(2)
+
+# %%
+from shapely.geometry import Polygon
+us_states = geopandas.read_file(common_data +'cb_2018_us_state_500k.zip')
+
+us_states.rename(columns={"STUSPS": "state"}, inplace=True)
+us_states = us_states[~us_states.state.isin(["PR", "VI", "AS", "GU", "MP"])]
+us_states = pd.merge(us_states, state_fips[["EW_meridian", "state"]], how="left", on="state")
+
+
+visframe = us_states.to_crs({'init':'epsg:5070'})
+visframe_mainLand = visframe[~visframe.state.isin(["AK", "HI"])].copy()
+
+visframe_mainLand_west = visframe[visframe.EW_meridian.isin(["W"])].copy()
+visframe_mainLand_west = visframe_mainLand_west[~visframe_mainLand_west.state.isin(["AK", "HI"])].copy()
+
+# %%
 # %%time
 Albers_SF_name = bio_reOrganized + "Albers_BioRangeland_Min_Ehsan"
 Albers_SF = geopandas.read_file(Albers_SF_name)
@@ -109,6 +151,28 @@ print (Albers_SF.shape)
 # %%
 Albers_SF["centroid"] = Albers_SF["geometry"].centroid
 Albers_SF.head(2)
+
+# %%
+tick_legend_FontSize = 5
+params = {"font.family": "Palatino",
+          "legend.fontsize": tick_legend_FontSize,
+          "axes.labelsize": tick_legend_FontSize * .71,
+          "axes.titlesize": tick_legend_FontSize * 1,
+          "xtick.labelsize": tick_legend_FontSize * .7,
+          "ytick.labelsize": tick_legend_FontSize * .7,
+          "axes.titlepad": 5,
+          "legend.handlelength": 2,
+          "xtick.bottom": False,
+          "ytick.left": False,
+          "xtick.labelbottom": False,
+          "ytick.labelleft": False,
+          'axes.linewidth' : .05}
+plt.rcParams.update(params)
+
+# %%
+fig, ax = plt.subplots(1, 1, figsize=(2, 3), sharex=True, sharey=True, dpi=dpi_)
+Albers_SF["centroid"].plot(ax=ax, color='dodgerblue', markersize=0.051);
+Albers_SF.plot(column='value', ax=ax, legend=False);
 
 # %%
 # from shapely.geometry import Point
@@ -166,11 +230,14 @@ Albers_SF.head(2)
 # gdf.geometry.distance(gdf["geometry"][0])
 
 # %%
-# %%time
-CRS_distance_matrix = Albers_SF["centroid"].apply(lambda x: Albers_SF["centroid"].distance(x))
-CRS_distance_matrix.head(2)
+# This is Euclidean distance. not good
+# p1 = np.array([Albers_SF.loc[0].centroid.x, Albers_SF.loc[0].centroid.y])
+# p2 = np.array([Albers_SF.loc[2].centroid.x, Albers_SF.loc[2].centroid.y])
+# np.linalg.norm(p1 - p2)
 
-# %%
+# # %%time
+# CRS5070_distance_matrix = Albers_SF["centroid"].apply(lambda x: Albers_SF["centroid"].distance(x))
+# CRS5070_distance_matrix.head(2)
 
 # %%
 # # Sample DataFrame
@@ -195,43 +262,161 @@ import importlib
 importlib.reload(rc)
 
 # %%
-# Create sample DataFrame
-df = pd.DataFrame({
-    'point': [Point(10, 20), Point(30, 40), Point(50, 60)]
-})
+# # Create sample DataFrame
+# from shapely.geometry import Point
+# df = pd.DataFrame({
+#     'point': [Point(10, 20), Point(30, 40), Point(50, 60)]
+# })
 
-# Define a function to calculate pairwise distance
+# # Define a function to calculate pairwise distance
 
-# Create a new DataFrame for pairwise distances
-distances = pd.DataFrame(index=df.index, columns=df.index)
+# # Create a new DataFrame for pairwise distances
+# distances = pd.DataFrame(index=df.index, columns=df.index)
 
-# Calculate distances
-for i in df.index:
-    for j in df.index:
-        distances.loc[i, j] = rc.calculate_geodesic_distance(df.loc[i, 'point'], df.loc[j, 'point'])
+# # Calculate distances
+# for i in df.index:
+#     for j in df.index:
+#         distances.loc[i, j] = rc.calculate_geodesic_distance(df.loc[i, 'point'], df.loc[j, 'point'])
 
-print(distances)
+# print(distances)
 
 # %%
 Albers_SF.set_index('fid', inplace=True)
 
 # %%
-# %%time 
-# Create a new DataFrame for pairwise distances
-Albers_geodesic_distances = pd.DataFrame(index=Albers_SF.index, columns=Albers_SF.index)
+# import pyproj
 
-# Calculate distances
-for i in Albers_SF.index:
-    for j in Albers_SF.index:
-        Albers_geodesic_distances.loc[i, j] = rc.calculate_geodesic_distance(Albers_SF.loc[i, 'centroid'], 
-                                                                             Albers_SF.loc[j, 'centroid'])
+# source_crs = pyproj.CRS("EPSG:5070")
+# target_crs = pyproj.CRS("EPSG:4326")  # WGS84 (latitude/longitude)
+# transformer = pyproj.Transformer.from_crs(source_crs, target_crs)
 
-print(Albers_geodesic_distances)
+# x = 600000  # Example X coordinate
+# y = 2000000 # Example Y coordinate
+
+# # Transform the coordinates to latitude and longitude
+# lon, lat = transformer.transform(x, y)
+# print(f"Latitude: {lat}, Longitude: {lon}")
+
+# %%
+
+# %%
+# %%time
+import pyproj
+source_crs = pyproj.CRS("EPSG:5070")
+target_crs = pyproj.CRS("EPSG:4326") # WGS84 (latitude/longitude)
+transformer = pyproj.Transformer.from_crs(source_crs, target_crs)
+
+def convert_5070Centroids_to_lat_long(row):
+    lat, long = transformer.transform(row["centroid"].coords[0][0], row["centroid"].coords[0][1])
+    return (lat, long)
+
+Albers_SF[["lat", "long"]] = Albers_SF.apply(convert_5070Centroids_to_lat_long, axis=1, result_type='expand')
+Albers_SF.head(2)
+
+# %% [markdown]
+# #### Check if centroids are in the "middle" of polygons
+
+# %%
+two_polys = Albers_SF.iloc[:3].copy()
+two_polys
+
+# %%
+fig, ax = plt.subplots(1, 1, figsize=(2, 3), sharex=True, sharey=True, dpi=dpi_)
+
+plot_SF(SF=visframe_mainLand_west[visframe_mainLand_west.state=="SD"], ax_=ax, col="EW_meridian")
+two_polys.plot(column='value', ax=ax, legend=False);
+two_polys["centroid"].plot(ax=ax, color='red', markersize=.05);
+
+# %%
+Centroid_WGS84_4326.head(2)
+
+# %%
+fig, ax = plt.subplots(figsize=(8, 4))
+xs, ys = Albers_SF.loc[1, "geometry"].exterior.xy
+ax.fill(xs, ys, alpha=0.5, fc='r', ec='none', color="dodgerblue");
+Albers_SF["centroid"].plot(ax=ax, color='red', markersize=0.051);
+# xs, ys = Albers_SF.loc[1, "centroid"].xy
+# ax.fill(xs, ys, alpha=1, fc='r', ec='none');
+# Albers_SF.loc[1, "centroid"].plot()
+
+# %%
+Albers_SF.head(2)
+
+# %%
+Albers_SF['lat_long_centroid'] = geopandas.points_from_xy(Albers_SF['long'], Albers_SF['lat'])
+Albers_SF.head(2)
+
+# %% [markdown]
+# ## Following cell takes too long. Running on Kamiak
+
+# %%
+# # %%time 
+# # Create a new DataFrame for pairwise distances
+# Albers_geodesic_dist = pd.DataFrame(index=Albers_SF.index, columns=Albers_SF.index)
+
+# # Calculate distances
+# for i in Albers_SF.index:
+#     for j in Albers_SF.index:
+#         Albers_geodesic_dist.loc[i, j] = rc.calculate_geodesic_distance(Albers_SF.loc[i, 'lat_long_centroid'], 
+#                                                                         Albers_SF.loc[j, 'lat_long_centroid'])
+
+# print(Albers_geodesic_distances)
 
 # %%
 Albers_SF.head(2)
 
 # %%
 Albers_SF.crs
+
+# %%
+import libpysal as ps
+
+# Create a simple GeoDataFrame
+gdf = geopandas.GeoDataFrame({
+    'id': [1, 2, 3],
+    'geometry': [
+        Polygon([(0, 0), (1, 0), (1, 1), (0, 1)]),
+        Polygon([(1, 0), (2, 0), (2, 1), (1, 1)]),
+        Polygon([(2, 0), (3, 0), (3, 1), (2, 1)])
+    ]
+})
+
+# Create the binary matrix
+w = ps.weights.contiguity.Queen.from_dataframe(two_polys)
+binary_matrix = w.full()[0]
+
+print(binary_matrix)
+
+# %%
+# two_polys.iloc[[1, 2]].plot();
+two_polys.plot();
+
+# %%
+pd.DataFrame(binary_matrix, index=)
+
+# %%
+# %%time
+import libpysal as ps
+
+# Assuming you have a GeoDataFrame named 'gdf' with your polygon data
+w = ps.weights.contiguity.Queen.from_dataframe(Albers_SF)
+fid_contiguity_Queen_neighbors = w.full()[0]
+
+print(fid_contiguity_Queen_neighbors)
+
+# %%
+fid_contiguity_Queen_neighbors = pd.DataFrame(binary_neighbors, index=Albers_SF.index, columns=Albers_SF.index)
+fid_contiguity_Queen_neighbors.head(2)
+
+# %%
+filename = bio_reOrganized + "fid_contiguity_Queen_neighbors.sav"
+export_ = {
+    "fid_contiguity_Queen_neighbors": fid_contiguity_Queen_neighbors,
+    "source_code": "centroids_distance_weight_matrix_4_spatial_regression",
+    "Author": "HN",
+    "Date": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+}
+
+pickle.dump(export_, open(filename, "wb"))
 
 # %%

@@ -61,11 +61,15 @@ print (list(colormaps)[:4])
 # %%
 
 # %%
-rangeland_bio_base = "/Users/hn/Documents/01_research_data/RangeLand_bio/"
+research_data_ = "/Users/hn/Documents/01_research_data/"
+common_data = research_data_ + "common_data/"
+
+
+rangeland_bio_base = research_data_ + "/RangeLand_bio/"
 rangeland_bio_data = rangeland_bio_base + "Data/"
 min_bio_dir = rangeland_bio_data + "Min_Data/"
 
-rangeland_base = "/Users/hn/Documents/01_research_data/RangeLand/Data/"
+rangeland_base = research_data_ + "/RangeLand/Data/"
 rangeland_reOrganized = rangeland_base + "reOrganized/"
 
 bio_reOrganized = rangeland_bio_data + "reOrganized/"
@@ -96,7 +100,7 @@ ANPP_MK_df.head(2)
 # %%
 f_name = bio_reOrganized + 'Albers_SF_west_ANPP_MK_Spearman_no2012.shp.zip'
 Albers_SF_west = geopandas.read_file(f_name)
-Albers_SF_west["centroid"] = Albers_SF_west["geometry"].centroid
+# Albers_SF_west["centroid"] = Albers_SF_west["geometry"].centroid
 Albers_SF_west.head(2)
 
 # %%
@@ -115,7 +119,7 @@ Albers_SF_west.rename(columns={"EW_meridia": "EW_meridian",
 # Albers_SF_west.plot(column='EW_meridian', categorical=True, legend=True);
 
 # %%
-county_fips_dict = pd.read_pickle(rangeland_reOrganized + "county_fips.sav")
+county_fips_dict = pd.read_pickle(common_data + "county_fips.sav")
 
 county_fips = county_fips_dict["county_fips"]
 full_2_abb = county_fips_dict["full_2_abb"]
@@ -130,8 +134,8 @@ state_fips.head(2)
 
 # %%
 from shapely.geometry import Polygon
-# gdf = geopandas.read_file(rangeland_base +'cb_2018_us_state_500k.zip')
-gdf = geopandas.read_file(rangeland_bio_data +'cb_2018_us_state_500k')
+gdf = geopandas.read_file(common_data +'cb_2018_us_state_500k.zip')
+
 
 gdf.rename(columns={"STUSPS": "state"}, inplace=True)
 gdf = gdf[~gdf.state.isin(["PR", "VI", "AS", "GU", "MP"])]
@@ -147,17 +151,17 @@ visframe_mainLand_west = visframe_mainLand_west[~visframe_mainLand_west.state.is
 # %%
 
 # %%
-# from mpl_toolkits.axes_grid1 import make_axes_locatable
-# fig, ax = plt.subplots(1, 1, figsize=(2, 3), sharex=True, sharey=True, dpi=dpi_)
-# plt.title('rangeland polygons on western meridian')
-# # divider = make_axes_locatable(ax)
-# # cax = divider.append_axes("right", size="1%", pad=0, alpha=1)
-# plot_SF(SF=visframe_mainLand_west, ax_=ax, cmap_ = "Pastel1", col="EW_meridian")
-# Albers_SF_west["geometry"].centroid.plot(ax=ax, color='dodgerblue', markersize=0.051)
+from mpl_toolkits.axes_grid1 import make_axes_locatable
+fig, ax = plt.subplots(1, 1, figsize=(2, 3), sharex=True, sharey=True, dpi=dpi_)
+plt.title('rangeland polygons on western meridian')
+# divider = make_axes_locatable(ax)
+# cax = divider.append_axes("right", size="1%", pad=0, alpha=1)
+plot_SF(SF=visframe_mainLand_west, ax_=ax, cmap_ = "Pastel1", col="EW_meridian")
+Albers_SF_west["geometry"].centroid.plot(ax=ax, color='dodgerblue', markersize=0.051)
 
-# plt.rcParams['axes.linewidth'] = .051
-# # plt.legend(fontsize=10) # ax.axis('off')
-# plt.show();
+plt.rcParams['axes.linewidth'] = .051
+# plt.legend(fontsize=10) # ax.axis('off')
+plt.show();
 
 # %% [markdown]
 # ### Plot a couple of examples
