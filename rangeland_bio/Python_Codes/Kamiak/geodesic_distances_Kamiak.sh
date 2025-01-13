@@ -5,7 +5,7 @@
 #SBATCH --requeue
 #SBATCH --job-name=fid_geodesic_distances
 #SBATCH --time=01-00:00:00    # Wall clock time limit in Days-HH:MM:SS
-#SBATCH --mem=8GB 
+#SBATCH --mem=200GB 
 #SBATCH --nodes=1            # Node count required for the job
 #SBATCH --ntasks-per-node=1  # Number of tasks to be launched per Node
 #SBATCH --ntasks=1           # Number of tasks per array job

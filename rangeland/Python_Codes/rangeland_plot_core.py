@@ -13,6 +13,18 @@ import matplotlib.colors as mcolors
 import seaborn as sb
 
 
+def plot_SF(SF, ax_, cmap_="Pastel1", col="EW_meridian"):
+    SF.plot(
+        column=col,
+        ax=ax_,
+        alpha=1,
+        cmap=cmap_,
+        edgecolor="k",
+        legend=False,
+        linewidth=0.1,
+    )
+
+
 def makeColorColumn(gdf, variable, vmin, vmax):
     # apply a function to a column to create a new column of assigned colors & return full frame
     norm = mcolors.Normalize(vmin=vmin, vmax=vmax, clip=True)

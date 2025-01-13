@@ -41,12 +41,6 @@ from matplotlib import cm
 sys.path.append("/Users/hn/Documents/00_GitHub/Ag/rangeland/Python_Codes/")
 import rangeland_core as rc
 
-
-# %%
-def plot_SF(SF, ax_, cmap_ = "Pastel1", col="EW_meridian"):
-    SF.plot(column=col, ax=ax_, alpha=1, cmap=cmap_, edgecolor='k', legend=False, linewidth=0.1)
-
-
 # %%
 dpi_, map_dpi_=300, 900
 custom_cmap_coral = ListedColormap(['lightcoral', 'black'])
@@ -156,7 +150,7 @@ fig, ax = plt.subplots(1, 1, figsize=(2, 3), sharex=True, sharey=True, dpi=dpi_)
 plt.title('rangeland polygons on western meridian')
 # divider = make_axes_locatable(ax)
 # cax = divider.append_axes("right", size="1%", pad=0, alpha=1)
-plot_SF(SF=visframe_mainLand_west, ax_=ax, cmap_ = "Pastel1", col="EW_meridian")
+rcp.plot_SF(SF=visframe_mainLand_west, ax_=ax, cmap_ = "Pastel1", col="EW_meridian")
 Albers_SF_west["geometry"].centroid.plot(ax=ax, color='dodgerblue', markersize=0.051)
 
 plt.rcParams['axes.linewidth'] = .051
@@ -409,7 +403,7 @@ Albers_SF_west.head(2)
 # fig, ax = plt.subplots(1,1, figsize=(3, 3), sharex=True, sharey=True, dpi=map_dpi_)
 # ax.set_xticks([]); ax.set_yticks([])
 
-# plot_SF(SF=visframe_mainLand_west, ax_=ax, col="EW_meridian", cmap_=ListedColormap(['dodgerblue', 'white']))
+# rcp.plot_SF(SF=visframe_mainLand_west, ax_=ax, col="EW_meridian", cmap_=ListedColormap(['dodgerblue', 'white']))
 # cent_plt = Albers_SF_west.plot(column='sens_slope', legend=False, ax=ax, cmap = cm.get_cmap('RdYlGn'))
 # cbar1 = fig.colorbar(cent_plt.collections[1], ax=ax, orientation='vertical', shrink=0.3, 
 #                      cmap = cm.get_cmap('RdYlGn'))
@@ -435,7 +429,7 @@ Albers_SF_west.head(2)
 # min_max = max(np.abs(Albers_SF_west['sens_slope'].min()), np.abs(Albers_SF_west['sens_slope'].max()))
 # norm1 = Normalize(vmin = -min_max, vmax = min_max, clip=True)
 
-# plot_SF(SF=visframe_mainLand_west, ax_=ax, col="EW_meridian", cmap_=ListedColormap(['dodgerblue', 'white']))
+# rcp.plot_SF(SF=visframe_mainLand_west, ax_=ax, col="EW_meridian", cmap_=ListedColormap(['dodgerblue', 'white']))
 
 # cent_plt = Albers_SF_west.plot(column='sens_slope', ax=ax, legend=False,
 #                                cmap = cm.get_cmap('RdYlGn'), norm=norm1)
@@ -459,7 +453,7 @@ ax.set_xticks([]); ax.set_yticks([])
 min_max = max(np.abs(Albers_SF_west['sens_slope'].min()), np.abs(Albers_SF_west['sens_slope'].max()))
 norm1 = Normalize(vmin = -min_max, vmax = min_max, clip=True)
 
-plot_SF(SF=visframe_mainLand_west, ax_=ax, col="EW_meridian", cmap_=ListedColormap(['dodgerblue', 'white']))
+rcp.plot_SF(SF=visframe_mainLand_west, ax_=ax, col="EW_meridian", cmap_=ListedColormap(['dodgerblue', 'white']))
 
 cent_plt = Albers_SF_west.plot(column='sens_slope', ax=ax, legend=False,
                                cmap = cm.get_cmap('RdYlGn'), norm=norm1)
@@ -494,7 +488,7 @@ ax.set_xticks([]); ax.set_yticks([])
 min_max = max(np.abs(Matt_df['sens_slope'].min()), np.abs(Matt_df['sens_slope'].max()))
 norm1 = Normalize(vmin = -min_max, vmax = min_max, clip=True)
 
-plot_SF(SF=visframe_mainLand_west, ax_=ax, col="EW_meridian", cmap_=ListedColormap(['dodgerblue', 'white']))
+rcp.plot_SF(SF=visframe_mainLand_west, ax_=ax, col="EW_meridian", cmap_=ListedColormap(['dodgerblue', 'white']))
 
 cent_plt = Matt_df.plot(column='sens_slope', ax=ax, legend=False,
                                cmap = cm.get_cmap('RdYlGn'), norm=norm1)
@@ -540,7 +534,7 @@ Albers_SF_west_increase.shape
 fig, ax = plt.subplots(1, 1, figsize=(2, 2), sharex=True, sharey=True, dpi=map_dpi_)
 ax.set_xticks([]); ax.set_yticks([])
 
-plot_SF(SF=visframe_mainLand_west, ax_=ax, col="EW_meridian", cmap_="Pastel1")
+rcp.plot_SF(SF=visframe_mainLand_west, ax_=ax, col="EW_meridian", cmap_="Pastel1")
 cent_plt = Albers_SF_west_increase.plot(column='sens_slope', ax=ax)
 
 cax = ax.inset_axes([0.03, 0.18, 0.5, 0.03])
@@ -561,7 +555,7 @@ del(cent_plt, cax, cbar1)
 fig, ax = plt.subplots(1,1, figsize=(2, 2), sharex=True, sharey=True, dpi=map_dpi_)
 ax.set_xticks([]); ax.set_yticks([])
 
-plot_SF(SF=visframe_mainLand_west, ax_=ax, col="EW_meridian", cmap_=ListedColormap(['white', 'black']))
+rcp.plot_SF(SF=visframe_mainLand_west, ax_=ax, col="EW_meridian", cmap_=ListedColormap(['white', 'black']))
 cent_plt = Albers_SF_west_increase.plot(column='Tau', ax=ax, cmap=cm.get_cmap('RdYlGn'))
 
 cax = ax.inset_axes([0.03, 0.18, 0.5, 0.03])
@@ -592,7 +586,7 @@ Albers_SF_west_spearmanP5 = Albers_SF_west[(Albers_SF_west["Spearman"] > 0) &
 fig, axes = plt.subplots(1, 1, figsize=(2, 2), sharex=True, sharey=True, dpi=map_dpi_)
 axes.set_xticks([]); axes.set_yticks([])
 
-plot_SF(SF=visframe_mainLand_west, ax_=axes, cmap_ = "Pastel1", col="EW_meridian")
+rcp.plot_SF(SF=visframe_mainLand_west, ax_=axes, cmap_ = "Pastel1", col="EW_meridian")
 spearman_plot_s = Albers_SF_west_spearmanP5.plot(column='Spearman', ax=axes)
 
 # Add colorbar for Spearman's plot
@@ -617,7 +611,7 @@ Albers_SF_west.head(2)
 fig, axes = plt.subplots(1, 1, figsize=(2, 2), sharex=True, sharey=True, dpi=map_dpi_)
 axes.set_xticks([]); axes.set_yticks([])
 
-plot_SF(SF=visframe_mainLand_west, ax_=axes, cmap_ = "Pastel1", col="EW_meridian")
+rcp.plot_SF(SF=visframe_mainLand_west, ax_=axes, cmap_ = "Pastel1", col="EW_meridian")
 
 Albers_SF_west_median_diff_increase = Albers_SF_west[Albers_SF_west["median_ANPP_change_as_perc"] > 0].copy()
 plot_s = Albers_SF_west_median_diff_increase.plot(column='median_ANPP_change_as_perc', ax=axes)
@@ -642,7 +636,7 @@ del(plot_s, cax, cbar1)
 fig, axes = plt.subplots(1, 1, figsize=(2, 2), sharex=True, sharey=True, dpi=map_dpi_)
 axes.set_xticks([]); axes.set_yticks([])
 
-plot_SF(SF=visframe_mainLand_west, ax_=axes, cmap_ = "Pastel1", col="EW_meridian")
+rcp.plot_SF(SF=visframe_mainLand_west, ax_=axes, cmap_ = "Pastel1", col="EW_meridian")
 
 Albers_SF_west_median_diff_increase = Albers_SF_west[Albers_SF_west["median_ANPP_change_as_perc"] > 0].copy()
 plot_s = Albers_SF_west_median_diff_increase.plot(column='median_ANPP_change_as_perc', ax=axes, cmap=cmap_G)
@@ -688,8 +682,8 @@ fig, axes = plt.subplots(1, 2, figsize=(8, 4), sharex=True, sharey=True, dpi=map
 ax1.set_xticks([]); ax1.set_yticks([])
 ax2.set_xticks([]); ax2.set_yticks([])
 ###############################################################
-plot_SF(SF=visframe_mainLand_west, ax_=ax1, col="EW_meridian", cmap_=ListedColormap(['dodgerblue', 'white']))
-plot_SF(SF=visframe_mainLand_west, ax_=ax2, col="EW_meridian", cmap_=ListedColormap(['dodgerblue', 'white']))
+rcp.plot_SF(SF=visframe_mainLand_west, ax_=ax1, col="EW_meridian", cmap_=ListedColormap(['dodgerblue', 'white']))
+rcp.plot_SF(SF=visframe_mainLand_west, ax_=ax2, col="EW_meridian", cmap_=ListedColormap(['dodgerblue', 'white']))
 ###############################################################
 p1 = Albers_SF_west.plot(column='sens_slope', legend=False, ax=ax1, cmap = cm.get_cmap('RdYlGn'))
 
@@ -731,8 +725,8 @@ min_col_ = min(Albers_SF_west_spearmanP5['Spearman'].min(), Albers_SF_west_incre
 max_col_ = max(Albers_SF_west_increase['Tau'].max(), Albers_SF_west_spearmanP5['Spearman'].max())
 norm_col = Normalize(vmin= min_col_, vmax = max_col_);
 
-plot_SF(SF = visframe_mainLand_west, cmap_=custom_cmap_coral, ax_ = ax1, col="EW_meridian")
-plot_SF(SF = visframe_mainLand_west, cmap_=custom_cmap_coral, ax_ = ax2, col="EW_meridian")
+rcp.plot_SF(SF = visframe_mainLand_west, cmap_=custom_cmap_coral, ax_ = ax1, col="EW_meridian")
+rcp.plot_SF(SF = visframe_mainLand_west, cmap_=custom_cmap_coral, ax_ = ax2, col="EW_meridian")
 
 ####### Spearman's rank plot
 p1 = Albers_SF_west_spearmanP5.plot(column='Spearman', ax=ax1, cmap=cmap_G, norm=norm_col)
@@ -770,8 +764,8 @@ del(p1, p2, cax, norm_col, min_col_, max_col_)
 # fig, axes = plt.subplots(1, 2, figsize=(8, 4), sharex=True, sharey=True, dpi=map_dpi_)
 # (ax1, ax2) = axes
 # #############
-# plot_SF(SF=visframe_mainLand_west, ax_=ax1, cmap_="Pastel1", col="EW_meridian")
-# plot_SF(SF=visframe_mainLand_west, ax_=ax2, cmap_="Pastel1", col="EW_meridian")
+# rcp.plot_SF(SF=visframe_mainLand_west, ax_=ax1, cmap_="Pastel1", col="EW_meridian")
+# rcp.plot_SF(SF=visframe_mainLand_west, ax_=ax2, cmap_="Pastel1", col="EW_meridian")
 # #############
 # p1 = Albers_SF_west_increase.plot(column='sens_slope', ax=ax1, norm=norm_col)
 # ax1.set_title(r"greening trends (Sen's slope)")
@@ -809,8 +803,8 @@ ax1.set_xticks([]); ax1.set_yticks([])
 ax2.set_xticks([]); ax2.set_yticks([])
 
 #############
-plot_SF(SF=visframe_mainLand_west, ax_=ax1, cmap_="Pastel1", col="EW_meridian")
-plot_SF(SF=visframe_mainLand_west, ax_=ax2, cmap_="Pastel1", col="EW_meridian")
+rcp.plot_SF(SF=visframe_mainLand_west, ax_=ax1, cmap_="Pastel1", col="EW_meridian")
+rcp.plot_SF(SF=visframe_mainLand_west, ax_=ax2, cmap_="Pastel1", col="EW_meridian")
 #############
 p1 = Albers_SF_west_increase.plot(column='sens_slope', ax=ax1, cmap=cmap_G, norm=norm_col)
 ax1.set_title(r"greening trends (Sen's slope)")
@@ -1113,8 +1107,8 @@ fig, axes = plt.subplots(1, 2, figsize=(8, 4), sharex=True, sharey=True, dpi=map
 ax1.set_xticks([]); ax1.set_yticks([])
 ax2.set_xticks([]); ax2.set_yticks([])
 ####### Spearman's rank plot
-plot_SF(SF = visframe_mainLand_west, cmap_="Pastel1", ax_=ax1, col="EW_meridian")
-plot_SF(SF = visframe_mainLand_west, cmap_="Pastel1", ax_=ax2, col="EW_meridian")
+rcp.plot_SF(SF = visframe_mainLand_west, cmap_="Pastel1", ax_=ax1, col="EW_meridian")
+rcp.plot_SF(SF = visframe_mainLand_west, cmap_="Pastel1", ax_=ax2, col="EW_meridian")
 
 p1 = no_trend_df.plot(column='Spearman', ax=ax1, cmap=cmap_G, norm=norm1)
 ax1.set_title("no trend locations (Spearman's rank - MK based)")
@@ -1145,8 +1139,8 @@ ax1.set_xticks([]); ax1.set_yticks([])
 ax2.set_xticks([]); ax2.set_yticks([])
 
 ####### States
-plot_SF(SF = visframe_mainLand_west, cmap_="Pastel1", ax_ = ax1, col="EW_meridian")
-plot_SF(SF = visframe_mainLand_west, cmap_="Pastel1", ax_ = ax2, col="EW_meridian")
+rcp.plot_SF(SF = visframe_mainLand_west, cmap_="Pastel1", ax_ = ax1, col="EW_meridian")
+rcp.plot_SF(SF = visframe_mainLand_west, cmap_="Pastel1", ax_ = ax2, col="EW_meridian")
 ####################################################################################
 p1 = no_trend_df.plot(column='sens_slope', ax = ax1, cmap=cmap_G, norm=norm_colorB, legend=False)
 ax1.set_title(r"no trend locations (Sen's slope)")
@@ -1175,8 +1169,8 @@ fig, axes = plt.subplots(1, 2, figsize=(8, 4), sharex=True, sharey=True, dpi=map
 ax1.set_xticks([]); ax1.set_yticks([])
 ax2.set_xticks([]); ax2.set_yticks([])
 ####### States
-plot_SF(SF = visframe_mainLand_west, cmap_="Pastel1", ax_ = ax1, col="EW_meridian")
-plot_SF(SF = visframe_mainLand_west, cmap_="Pastel1", ax_ = ax2, col="EW_meridian")
+rcp.plot_SF(SF = visframe_mainLand_west, cmap_="Pastel1", ax_ = ax1, col="EW_meridian")
+rcp.plot_SF(SF = visframe_mainLand_west, cmap_="Pastel1", ax_ = ax2, col="EW_meridian")
 
 ####################################################################################
 p1 = no_trend_df.plot(column='Spearman', ax=ax1, cmap=cmap_G, norm=norm_colorB, legend=False)
@@ -1207,9 +1201,8 @@ ax1.set_xticks([]); ax1.set_yticks([])
 ax2.set_xticks([]); ax2.set_yticks([])
 
 ####### States
-plot_SF(SF = visframe_mainLand_west, cmap_="Pastel1", ax_ = ax1, col="EW_meridian")
-plot_SF(SF = visframe_mainLand_west, cmap_="Pastel1", ax_ = ax2, col="EW_meridian")
-
+rcp.plot_SF(SF = visframe_mainLand_west, cmap_="Pastel1", ax_ = ax1, col="EW_meridian")
+rcp.plot_SF(SF = visframe_mainLand_west, cmap_="Pastel1", ax_ = ax2, col="EW_meridian")
 ####################################################################################
 p1 = no_trend_df.plot(column='Tau', ax=ax1, cmap=cmap_G, norm=norm_colorB, legend=False)
 ax1.set_title(r"no trend locations (Kenda's $\tau$ - MK based)")
@@ -1248,7 +1241,7 @@ plt.rcParams.update(params)
 fig, axes = plt.subplots(1, 1, figsize=(2, 2), sharex=True, sharey=True, dpi=map_dpi_)
 axes.set_xticks([]); axes.set_yticks([])
 ####### States
-plot_SF(SF = visframe_mainLand_west, cmap_="Pastel1", ax_=axes, col="EW_meridian")
+rcp.plot_SF(SF = visframe_mainLand_west, cmap_="Pastel1", ax_=axes, col="EW_meridian")
 ####################################################################################
 p1 = no_trend_df.plot(column='Tau', ax=axes, cmap=cmap_R, legend=False)
 p2 = green_df_MK_based.plot(column='Tau', ax = axes, cmap=cmap_G, legend=False)

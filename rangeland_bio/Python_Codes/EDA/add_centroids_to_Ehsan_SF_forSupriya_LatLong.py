@@ -87,10 +87,16 @@ Albers_SF["centroid"] = Albers_SF["centroid"].astype(str)
 Albers_SF.head(2)
 
 # %%
-
-# %%
 f_name = rangeland_bio_data + 'Albers_BioRangeland_Min_Ehsan_withCentroids.shp.zip'
 # Albers_SF.drop(columns=["centroid"], inplace=True) # it does not let to have geometry and point ()2 geometries!
 Albers_SF.to_file(filename=f_name, driver='ESRI Shapefile')
+
+# %%
+
+# %%
+
+# %%
+
+# %%
 
 # %%

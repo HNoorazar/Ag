@@ -19,9 +19,6 @@ warnings.filterwarnings("ignore")
 import pandas as pd
 import numpy as np
 import os, os.path, pickle, sys
-import pymannkendall as mk
-from scipy.stats import variation
-from scipy import stats
 
 import seaborn as sns
 import matplotlib
@@ -37,12 +34,16 @@ from datetime import datetime
 
 sys.path.append("/Users/hn/Documents/00_GitHub/Ag/rangeland/Python_Codes/")
 import rangeland_core as rc
+import rangeland_plot_core as rcp
+
+import importlib
+importlib.reload(rc)
 
 # %% [markdown]
 # <font color='red'>**GeoPandas distance:**</font>
 # Uses the CRS of your GeoDataFrame to calculate distances.
 # May not be ideal for long distances or when high precision is needed, especially if your CRS is not a true spherical model.
-# Can be faster for calculations within a local area with a suitable CRS.
+# Can be faster for calculations within a local area with a suitable CRS. (This is just Euclidean distance)
 #
 #
 # <font color='red'>**Geopy geodesic:**</font>
@@ -52,10 +53,6 @@ import rangeland_core as rc
 
 # %%
 dpi_=300
-
-def plot_SF(SF, ax_, cmap_ = "Pastel1", col="EW_meridian"):
-    SF.plot(column=col, ax=ax_, alpha=1, cmap=cmap_, edgecolor='k', legend=False, linewidth=0.1)
-
 
 # %%
 research_data_ = "/Users/hn/Documents/01_research_data/"
@@ -145,7 +142,7 @@ Albers_SF.head(2)
 # %%
 print (Albers_SF.shape)
 Albers_SF = Albers_SF[Albers_SF["EW_meridian"] == "W"].copy()
-Albers_SF.reset_index(drop=True, inplace=True)
+
 print (Albers_SF.shape)
 
 # %%
@@ -258,8 +255,6 @@ Albers_SF.plot(column='value', ax=ax, legend=False);
 # print(df)
 
 # %%
-import importlib
-importlib.reload(rc)
 
 # %%
 # # Create sample DataFrame
@@ -323,7 +318,7 @@ two_polys
 # %%
 fig, ax = plt.subplots(1, 1, figsize=(2, 3), sharex=True, sharey=True, dpi=dpi_)
 
-plot_SF(SF=visframe_mainLand_west[visframe_mainLand_west.state=="SD"], ax_=ax, col="EW_meridian")
+rcp.plot_SF(SF=visframe_mainLand_west[visframe_mainLand_west.state=="SD"], ax_=ax, col="EW_meridian")
 two_polys.plot(column='value', ax=ax, legend=False);
 two_polys["centroid"].plot(ax=ax, color='red', markersize=.05);
 
@@ -392,12 +387,7 @@ print(binary_matrix)
 two_polys.plot();
 
 # %%
-pd.DataFrame(binary_matrix, index=)
-
-# %%
 # %%time
-import libpysal as ps
-
 # Assuming you have a GeoDataFrame named 'gdf' with your polygon data
 w = ps.weights.contiguity.Queen.from_dataframe(Albers_SF)
 fid_contiguity_Queen_neighbors = w.full()[0]
@@ -405,18 +395,24 @@ fid_contiguity_Queen_neighbors = w.full()[0]
 print(fid_contiguity_Queen_neighbors)
 
 # %%
-fid_contiguity_Queen_neighbors = pd.DataFrame(binary_neighbors, index=Albers_SF.index, columns=Albers_SF.index)
+fid_contiguity_Queen_neighbors = pd.DataFrame(fid_contiguity_Queen_neighbors, 
+                                              index=Albers_SF.index, columns=list(Albers_SF.index))
+fid_contiguity_Queen_neighbors = fid_contiguity_Queen_neighbors.astype(int)
 fid_contiguity_Queen_neighbors.head(2)
 
 # %%
 filename = bio_reOrganized + "fid_contiguity_Queen_neighbors.sav"
-export_ = {
-    "fid_contiguity_Queen_neighbors": fid_contiguity_Queen_neighbors,
-    "source_code": "centroids_distance_weight_matrix_4_spatial_regression",
-    "Author": "HN",
-    "Date": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
-}
+export_ = {"fid_contiguity_Queen_neighbors": fid_contiguity_Queen_neighbors,
+           "source_code": "centroids_distance_weight_matrix_4_spatial_regression",
+           "Author": "HN",
+           "Date": datetime.now().strftime("%Y-%m-%d %H:%M:%S")}
 
 pickle.dump(export_, open(filename, "wb"))
+
+# %%
+import calendar
+calendar.isleap(2016)
+
+# %%
 
 # %%
