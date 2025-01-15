@@ -1,0 +1,327 @@
+\documentclass[serif, xcolor={dvipsnames}]{beamer} % serif, mathserif
+\graphicspath{ {/Users/hn/Documents/01_research_data/RangeLand_bio/plots/} }
+\usepackage[scaled=.9]{helvet} % platino activation
+\usepackage{tabularx,multirow}
+\usepackage{colortbl}
+\RequirePackage{booktabs}
+\colorlet{shadecolor}{gray!40}
+\usepackage{chngcntr}
+\usepackage{tcolorbox}
+\setbeamertemplate{footline}[text line]{}
+\setbeamertemplate{navigation symbols}{}
+\usepackage{subcaption}
+\usepackage{amsmath}
+\usepackage{amsthm}
+\usepackage{amsfonts}
+\usepackage{amssymb}
+\usepackage{calrsfs}
+\usepackage{multicol}
+%\captionsetup{font={small,stretch=0.80}}
+\DeclareCaptionLabelFormat{andtable}{#1~#2  \&  \tablename~\thetable}
+\usetheme{Berlin}
+%\usetheme{Boadilla}
+%\usetheme{Copenhagen}
+%\usetheme{Ilmenau}
+\usepackage{textpos}
+\usepackage{etoolbox}
+% \usepackage{mathptmx}
+\usepackage{graphicx}
+\usecolortheme{beaver}
+\definecolor{mygreen}{cmyk}{0.82,0.11,1,0.25}
+\definecolor{aliceblue}{rgb}{0.94, 0.97, 1.0}
+\definecolor{azureWeb}{rgb}{0.94, 1.0, 1.0}
+\definecolor{codegreen}{rgb}{0,0.6,0}
+\definecolor{codegray}{rgb}{0.5,0.5,0.5}
+\definecolor{codepurple}{rgb}{0.58,0,0.82}
+\definecolor{backcolour}{rgb}{0.95,0.95,0.92}
+\definecolor{aliceblue}{rgb}{0.94, 0.97, 1.0}
+\definecolor{bittersweet}{rgb}{1.0, 0.44, 0.37}
+\definecolor{Gray}{gray}{0.85}
+% \definecolor{LCyan}{rgb}{0.88,1,1}
+\definecolor{mgreen}{rgb}{0.0,0.5,0.0}
+%% \definecolor{mgreen}{rgb}{0.2, 0.8, 1}
+\definecolor{brickred}{rgb}{0.8, 0.25, 0.33}
+\definecolor{bleudefrance}{rgb}{0.19, 0.55, 0.91}
+\definecolor{AB}{rgb}{0.94, 0.97, 1.0}
+\definecolor{AB}{rgb}{0.9,.81,.68}
+\definecolor{azureWeb}{rgb}{0.94, 1.0, 1.0}
+\definecolor{beaublue}{rgb}{0.74, 0.83, 0.9}
+\definecolor{linen}{rgb}{0.98, 0.94, 0.9}
+\definecolor{magnolia}{rgb}{0.97, 0.96, 1.0}
+\definecolor{moccasin}{rgb}{0.98, 0.92, 0.84}
+\definecolor{navajowhite}{rgb}{1.0, 0.87, 0.68}
+\definecolor{palecornflowerblue}{rgb}{0.67, 0.8, 0.94}
+\setbeamertemplate{blocks}[rounded][shadow=false]
+\addtobeamertemplate{block begin}{\pgfsetfillopacity{0.8}}{\pgfsetfillopacity{1}}
+\setbeamercolor{structure}{fg=mygreen}
+\setbeamercolor*{block title example}{fg=blue!50,
+bg= blue!10}
+\setbeamercolor*{block body example}{fg= blue,
+bg= blue!5}
+\usepackage{ulem}
+\usepackage{cancel}
+\usefonttheme{professionalfonts}
+{\vspace*{.10mm}}
+\usetheme[height=10mm]{Rochester}
+\title{Rangeland Biology}
+\author{Hossein Noorazar}
+\institute[WSU]{Washington State University}
+\date{\today}
+\titlegraphic{\includegraphics[width=1cm]{cat}}
+\begin{document}
+\maketitle
+%\addtobeamertemplate{frametitle}{}{%}
+%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%
+\iffalse
+\begin{frame}
+\frametitle{Curious}
+\begin{minipage}{.7\textwidth}
+\centering
+\includegraphics[width=.9\linewidth]{area_TS}~%
+\end{minipage}%
+\hspace{-0.5cm}
+\begin{minipage}{.3\textwidth}
+\resizebox{\columnwidth}{!}{
+\begin{tabular}{ll}
+\bottomrule
+\rowcolor{shadecolor}\multicolumn{2}{c}{\bf 2012} \\
+\hline
+{\bf Vegetation} & {\bf Area (Km$^2$)} \\
+\bottomrule
+\rowcolor{blue}{\small \textcolor{white}{Barren-Rock}} & \textcolor{white}{1,133} \\
+\rowcolor{Green} \textcolor{white}{Conifer} & \textcolor{white}{118} \\
+\rowcolor{red} \textcolor{white}{Grassland} & \textcolor{white}{165,181}\\
+\rowcolor{Cyan}\textcolor{white}{Hardwood} & \textcolor{white}{137}\\
+\rowcolor{magenta}\textcolor{white}{Riparian} & \textcolor{white}{128}\\
+\rowcolor{yellow}\textcolor{black}{Shrubland} & \textcolor{black}{82,872}\\
+\rowcolor{black}\textcolor{white}{Sparse} & \textcolor{white}{64}\\
+\toprule
+\end{tabular}
+}
+\end{minipage}
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%
+\begin{frame}
+ \frametitle{Curious}
+\includegraphics[width=1\linewidth]{area_TS_allVegs}~%
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%
+\begin{frame}
+ \frametitle{Curious}
+{\hspace*{-5mm}}
+\begin{minipage}{.5\textwidth}
+\includegraphics[width=1\linewidth]{area_TS_no_2012}~%
+\end{minipage}%
+\hspace{.21cm}
+\begin{minipage}{.5\textwidth}
+\includegraphics[width=1\linewidth]{area_TS_no_1984_2012}~%
+\end{minipage}
+\end{frame}
+\fi
+%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%
+\begin{frame}
+\frametitle{Trend Statistics}
+% \begin{itemize}[<+->]
+% \end{itemize}
+{\bf Using MK test (Sen's slope)}
+\begin{table}[!ht]
+\centering
+\captionsetup{singlelinecheck=false, format=hang}
+\label{tab:Trendcounts}
+% \vspace{-.15in}
+\begin{tabular}{lllll}
+\bottomrule
+\rowcolor{shadecolor} \textbf{Trend} & 
+ greening & browning & no trend \\ 
+\textbf{original MK}  & 21,014 & 24 & 6,188 \\
+\rowcolor{shadecolor} \textbf{MK Rao}  & 20,231 & 24 & 6,971 \\
+\textbf{MK Yue}  &  25,115 & 91 & 2,020 \\
+\rowcolor{aliceblue}\textbf{Spearman}  & 21,703 & 27 & 5,496\\
+\toprule
+\end{tabular}
+\end{table}
+\begin{tcolorbox}
+{\scriptsize{\bf Note.} Spearman does not provide a label for trend. The numbers
+in this table based on whether $p$-value$<$0.05 or not and whether $\rho$'s are positive or negative.}
+\end{tcolorbox}
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}
+\begin{center}
+\includegraphics[height=1\textheight]{noTrend_green_locs}
+\end{center}
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}
+ \frametitle{Three examples (two extremes)}
+\begin{center}
+\includegraphics[height=0.8\textheight]{three_trends}
+\end{center}
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}
+ \frametitle{Sen's Slope and Outliers}
+\begin{center}
+\includegraphics[height=0.6\textheight]{robustSensSlope}
+\end{center}
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}
+\frametitle{Trends by Sen's Slope}
+\begin{center}
+\includegraphics[height=1\textheight]{sensSlopes_centerColorBar}
+\end{center}
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%
+\begin{frame}
+\frametitle{Greening FIDs by Yue, missed by original MK-test}
+\begin{center}
+\includegraphics[height=.9\textheight]{yue/greenYue_missedOriginal}
+\end{center}
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%
+\begin{frame}
+\frametitle{Spearman and Kendall's}
+Trends based on Spearman's rank and Kendall's $\tau$
+\centering
+\includegraphics[height=0.75\textheight]{Spearman_tau}
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}
+\frametitle{Sen's Slope and Median Differences Slope}
+Sen's Slope and Median Differences Slope.
+\begin{center}
+\includegraphics[height=0.75\textheight]{Sens_MedianDiffSlope}
+\end{center}
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%
+\begin{frame}
+\frametitle{Median ANPP Percentage Change}
+Median ANPP percentage change
+\begin{center}
+\includegraphics[height=0.9\textheight]{medianNPP_percChange}
+\end{center}
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%
+\begin{frame}
+\frametitle{Trends Distribution}
+\begin{center}
+\includegraphics[height=1\textheight]{trend_distributions}
+\end{center}
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%
+\begin{frame}
+\frametitle{Regression - preamble}
+\begin{itemize}[<+->]
+\item We do regression on Greening locations
+\item Temporal coverage
+\begin{table}[!ht]
+\centering
+\captionsetup{singlelinecheck=false, format=hang}
+\label{tab:NPPWeatherYears}
+% \caption{The years for which we have data.}
+\begin{tabular}{lll}
+\bottomrule
+\rowcolor{shadecolor} \textbf{ANPP years} &  1984 - 2023   \\ 
+\textbf{Weather years}  & 1979 - 2022 \\
+\toprule
+\end{tabular}
+\end{table}
+\end{itemize}
+\end{frame}
+\begin{frame}
+\frametitle{Feature Importance - Monthly variables}
+\begin{itemize}
+\item Metrics
+\begin{table}[!ht]
+\hspace{-.5in}
+\captionsetup{singlelinecheck=false, format=hang}
+\label{tab:Metrics}
+% \caption{NPP = $f(T, P)$}
+\begin{tabular}{lll}
+\bottomrule
+\cellcolor{palecornflowerblue}{\small f(T, P)} & \small{ $\mathbf{R^2}$}  & \small{ $\mathbf{RMSE}$} \\ 
+\rowcolor{shadecolor} 
+{\bf train} & 0.6746  &  543\\ 
+{\bf test}  & 0.6744  & 543\\
+\toprule
+\end{tabular}\quad
+%%%%%%%%%%%%%%%%%%%%%
+\begin{tabular}{lll}
+\bottomrule
+\cellcolor{palecornflowerblue}{\small f(T, P, RH)} & $\mathbf{R^2}$  & \small{$\mathbf{RMSE}$} \\ 
+\rowcolor{shadecolor} 
+{\bf train} &  0.707  &  515\\ 
+{\bf test}  & 0.706  & 516\\
+\toprule
+\end{tabular}
+\end{table}
+\item Coefficients of variables for Grasslands 
+\begin{table}[!ht]
+\captionsetup{singlelinecheck=false, format=hang}
+\label{tab:regressionCoeffs}
+\hspace{-.53in}
+\begin{tabular}{lllllllllllll}
+\bottomrule
+\rowcolor{shadecolor} &  1 & 2 & 3 & 4 & 5 & 6 & 7 & 8 & 9 & 10 & 11 & 12  \\ 
+{\bf T} & \tiny{-174} &  \tiny{-157} &  \tiny{-213} &  \tiny{-136} &  \tiny{83} &  \tiny{201} &  \tiny{-103} &  \tiny{55} &  \tiny{104} &  \tiny{54} &  \tiny{119} & \tiny{-73} \\
+{\bf P} &   \tiny{125} &  \tiny{98} &  \tiny{105} &  \tiny{144} &  \tiny{204} &  \tiny{181} &  \tiny{110} &  \tiny{131} &  \tiny{86} &  \tiny{40} & \tiny{ 69} &  \tiny{141} \\
+\toprule
+\end{tabular}\\
+%%%%%%%%%%%%%%%%%%%%%
+\hspace*{-.5in}
+\begin{tabular}{lllllllllllll}
+\bottomrule
+\rowcolor{shadecolor} &  1 & 2 & 3 & 4 & 5 & 6 & 7 & 8 & 9 & 10 & 11 & 12  \\ 
+{\bf T}    & \tiny{-61} & \tiny{-142} & \tiny{-137} & \tiny{-214} & \tiny{-67} & \tiny{324} & \tiny{6} & \tiny{-30} & \tiny{62} & \tiny{60} & \tiny{156} & \tiny{-11}\\
+{\bf P}    & \tiny{74} & \tiny{72} & \tiny{87} & \tiny{116} & \tiny{162} & \tiny{121} & \tiny{82} & \tiny{134} & \tiny{72} & \tiny{53} & \tiny{18} & \tiny{90} \\ 
+{\bf RH} &  \tiny{5} & \tiny{3} & \tiny{72} & \tiny{-8} & \tiny{-50} & \tiny{169} & \tiny{148} & \tiny{0} & \tiny{44} & \tiny{-90} & \tiny{106}  & \tiny{138} \\ 
+\toprule
+\end{tabular}
+\end{table}
+\end{itemize}
+\end{frame}
+\begin{frame}
+\frametitle{Feature Importance - XGBoost and SHAP}
+\hspace{.2in}
+\includegraphics[height=.75\textheight]{XGBoost_feature_importance}
+\includegraphics[height=.75\textheight]{SHAP_XGBoost_train}
+\begin{table}[!ht]
+\label{tab:XGBErrMetrics}
+\begin{tabular}{lll}
+\bottomrule
+\cellcolor{palecornflowerblue}{\tiny f(T, P)} &  \tiny{$\mathbf{R^2}$} & \tiny{$\mathbf{RMSE}$}  \\ 
+\rowcolor{shadecolor} 
+\tiny{\bf train}   &  \tiny{0.94}  &  \tiny{239}\\ 
+ \tiny{\bf test}  & \tiny{0.91}  & \tiny{284}\\
+\toprule
+\end{tabular}\qquad
+\end{table}
+\end{frame}
+\end{document}
