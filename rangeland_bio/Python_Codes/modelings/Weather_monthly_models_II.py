@@ -5,7 +5,7 @@
 #       extension: .py
 #       format_name: percent
 #       format_version: '1.3'
-#       jupytext_version: 1.16.1
+#       jupytext_version: 1.15.2
 #   kernelspec:
 #     display_name: Python 3 (ipykernel)
 #     language: python
@@ -35,12 +35,7 @@ from sklearn.metrics import r2_score
 import statsmodels.api as sm
 
 from scipy import stats
-
-import seaborn as sns
-import matplotlib
-import matplotlib.pyplot as plt
-plt.rc("font", family="Palatino")
-
+from sklearn.model_selection import train_test_split
 from pysal.lib import weights
 from pysal.model import spreg
 from pysal.explore import esda
@@ -49,12 +44,16 @@ from scipy.stats import ttest_ind
 
 # font = {"size": 10}
 # matplotlib.rc("font", **font)
+import seaborn as sns
+import matplotlib
+import matplotlib.pyplot as plt
+plt.rc("font", family="Palatino")
 
 import matplotlib.colors as colors
 from matplotlib.colors import ListedColormap, Normalize
 from matplotlib import cm
 
-from sklearn.model_selection import train_test_split
+
 sys.path.append("/Users/hn/Documents/00_GitHub/Ag/rangeland/Python_Codes/")
 import rangeland_core as rc
 
