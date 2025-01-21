@@ -5,7 +5,7 @@
 #       extension: .py
 #       format_name: percent
 #       format_version: '1.3'
-#       jupytext_version: 1.15.2
+#       jupytext_version: 1.16.1
 #   kernelspec:
 #     display_name: Python 3 (ipykernel)
 #     language: python
@@ -59,10 +59,10 @@ common_data = research_data_ + "common_data/"
 rangeland_bio_data
 
 # %%
-# %%time
+# # %%time
                                
-f_name = bio_reOrganized + 'Albers_SF_west_ANPP_MK_Spearman_no2012.shp.zip'
-SF_west = geopandas.read_file(f_name)
+# f_name = bio_reOrganized + 'Albers_SF_west_ANPP_MK_Spearman_no2012.shp.zip'
+# SF_west = geopandas.read_file(f_name)
 
 # %%
 
@@ -70,37 +70,30 @@ SF_west = geopandas.read_file(f_name)
 r_data_dir = "/Users/hn/Documents/01_research_data/RangeLand_bio/data_from_R/"
 
 # %%
-p = pd.read_csv(r_data_dir + "p_from_Scott_link.csv")
-p.head(2)
+# p = pd.read_csv(r_data_dir + "p_from_Scott_link.csv")
+# p["pan"] = p.iloc[:, np.arange(5, 17)].sum(axis=1)
+# p.head(2)
 
-# %%
-p["pan"] = p.iloc[:, np.arange(5, 17)].sum(axis=1)
-p.head(2)
-
-# %%
-indp_vars = ["ALT"]
-y_var = "pan"
-X = p[indp_vars]
-X = sm.add_constant(X)
-Y = p[y_var].astype(float)
-model_ = sm.OLS(Y, X)
-model_result = model_.fit()
-model_result.summary()
-
-# %%
-p.head(2)
+# indp_vars = ["ALT"]
+# y_var = "pan"
+# X = p[indp_vars]
+# X = sm.add_constant(X)
+# Y = p[y_var].astype(float)
+# model_ = sm.OLS(Y, X)
+# model_result = model_.fit()
+# model_result.summary()
 
 # %% [markdown]
 # ### Convert to Geopanda dataframe
 
 # %%
-# Create a geometry column from the latitude and longitude
-gdf = geopandas.GeoDataFrame(p, geometry=geopandas.points_from_xy(p.LONG, p.LAT))
+# # Create a geometry column from the latitude and longitude
+# gdf = geopandas.GeoDataFrame(p, geometry=geopandas.points_from_xy(p.LONG, p.LAT))
 
-# Set the coordinate reference system (CRS) if you know it
-gdf.crs = 'EPSG:4326' # 'EPSG:4326' # WGS84
+# # Set the coordinate reference system (CRS) if you know it
+# gdf.crs = 'EPSG:4326' # 'EPSG:4326' # WGS84
 
-gdf.head(2)
+# gdf.head(2)
 
 # %% [markdown]
 # **Create a SpatVector objects with a planar crs.**
@@ -172,9 +165,8 @@ gwr_results = gwr_model.fit()
 # Print model summary
 print(gwr_results.summary())
 
-# %%
 
-# %%
+
 # Extract coordinates (spatial locations)
 coords = np.array(list(zip(gdf.albers_long, gdf.albers_lat)))
 
@@ -197,6 +189,10 @@ gwr_results = gwr_model.fit()
 
 # Print model summary
 print(gwr_results.summary())
+
+# %%
+
+# %%
 
 # %%
 

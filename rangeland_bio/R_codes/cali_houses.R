@@ -1,3 +1,9 @@
+
+
+r_data_dir = "/Users/hn/Documents/01_research_data/RangeLand_bio/data_from_R/"
+library(sf)
+
+# First install.packages("remotes") then the following line
 if (!require("rspat")) remotes::install_github('rspatial/rspat')
 library(rspat)
 counties <- spat_data("counties")
@@ -8,33 +14,37 @@ hvect <- vect(houses, c("longitude", "latitude"))
 plot(hvect, cex=0.5, pch=1, axes=TRUE)
 crs(hvect) <- crs(counties)
 
+write.csv(houses, paste0(r_data_dir, "houses_R.csv"), row.names=FALSE)
+writeVector(x = hvect, 
+            filename = paste0(r_data_dir, "/hvect/"), 
+            filetype="ESRI Shapefile", layer="hvect", insert=FALSE,
+            overwrite=FALSE, options="ENCODING=UTF-8")
 
+# Figure out the county associated with each location:
+# and add it to the original dataframe:
 cnty <- extract(counties, hvect)
-head(cnty)
+head(cnty, 2)
 
+hd <- cbind(data.frame(houses), cnty)
+hd2 <- hd[!is.na(hd$NAME), ]
 
 # Summarize
-hd <- cbind(data.frame(houses), cnty)
-
-
-hd <- cbind(data.frame(houses), cnty)
-
-
-
 totpop <- tapply(hd$population, hd$NAME, sum)
 totpop
+totpop <- as.data.frame.table(totpop)
+write.csv(totpop, paste0(r_data_dir, "totpop_R.csv"), row.names=FALSE)
 
 # total income
 hd$suminc <- hd$income * hd$households
+write.csv(hd, paste0(r_data_dir, "hd_R.csv"), row.names=FALSE)
+write.csv(hd, paste0(r_data_dir, "hd2_noNA_R.csv"), row.names=FALSE)
 
 # now use aggregate (similar to tapply)
 csum <- aggregate(hd[, c('suminc', 'households')], list(hd$NAME), sum)
 
 # divide total income by number of housefholds
 csum$income <- 10000 * csum$suminc / csum$households
-
-# sort
-csum <- csum[order(csum$income), ]
+csum <- csum[order(csum$income), ] # sort
 head(csum)
 tail(csum)
 
@@ -44,23 +54,23 @@ hd$roomhead <- hd$rooms / hd$population
 hd$bedroomhead <- hd$bedrooms / hd$population
 hd$hhsize <- hd$population / hd$households
 
+Ordinary least squares regression:
 m <- glm( houseValue ~ income + houseAge + roomhead + bedroomhead + population, data=hd)
 summary(m)
-
 coefficients(m)
 
 
 
-# Geographicaly Weighted Regression
+# Geographicaly Weighted Regression: Well, this is not weighted!!! just run 
+# it differently/separately for each county
 # By county
 hd2 <- hd[!is.na(hd$NAME), ]
 
-regfun <- function(x)  {
+regfun <- function(x){
   dat <- hd2[hd2$NAME == x, ]
   m <- glm(houseValue~income+houseAge+roomhead+bedroomhead+population, data=dat)
   coefficients(m)
 }
-
 
 countynames <- unique(hd2$NAME)
 res <- sapply(countynames, regfun)
