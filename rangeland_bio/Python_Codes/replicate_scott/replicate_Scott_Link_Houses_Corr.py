@@ -5,7 +5,7 @@
 #       extension: .py
 #       format_name: percent
 #       format_version: '1.3'
-#       jupytext_version: 1.16.1
+#       jupytext_version: 1.15.2
 #   kernelspec:
 #     display_name: Python 3 (ipykernel)
 #     language: python
@@ -32,7 +32,6 @@ import statistics
 from sklearn.metrics import r2_score
 import statsmodels.api as sm
 
-import geopandas
 from pyproj import CRS, Transformer
 
 from mgwr.gwr import GWR
@@ -64,9 +63,6 @@ rangeland_reOrganized = rangeland_base + "reOrganized/"
 bio_reOrganized = rangeland_bio_data + "reOrganized/"
 
 common_data = research_data_ + "common_data/"
-
-# %%
-rangeland_bio_data
 
 # %%
 # # %%time
@@ -105,42 +101,6 @@ state_fips[state_fips["state_full"] == "California"]
 # %%
 
 # %%
-houses = pd.read_csv(r_data_dir + "california_houses.csv")
-houses.head(2)
-
-# %%
-houses_gdf = geopandas.GeoDataFrame(houses, geometry=geopandas.points_from_xy(houses.longitude, houses.latitude))
-
-# Set the coordinate reference system (CRS) if you know it
-houses_gdf.crs = 'EPSG:4326' # 'EPSG:4326' # WGS84
-houses_gdf.head(2)
-
-# %%
-tick_legend_FontSize = 5
-params = {"font.family": "Palatino",
-          "legend.fontsize": tick_legend_FontSize,
-          "axes.labelsize": tick_legend_FontSize * 2,
-          "axes.titlesize": tick_legend_FontSize * 1,
-          "xtick.labelsize": tick_legend_FontSize * 1,
-          "ytick.labelsize": tick_legend_FontSize * 1,
-          "axes.titlepad": 5,
-          "legend.handlelength": 2,
-          "xtick.bottom": True,
-          "ytick.left": True,
-          "xtick.labelbottom": True,
-          "ytick.labelleft": True,
-          'axes.linewidth' : .05,
-          "xtick.major.width" : .51,
-          "ytick.major.width" : .51,
-          "xtick.major.size" : 2,
-          "ytick.major.size" : 2}
-plt.rcParams.update(params)
-
-fig, ax = plt.subplots(1, 1, figsize=(2, 3), sharex=True, sharey=True, dpi=dpi_)
-houses_gdf["geometry"].plot(ax=ax, color='dodgerblue', markersize=0.051);
-# houses_gdf.plot(column='value', ax=ax, legend=False);
-
-# %%
 SF_dir = "/Users/hn/Documents/01_research_data/shapefiles/"
 US_counties_SF = geopandas.read_file(SF_dir + "cb_2018_us_county_500k")
 
@@ -155,131 +115,260 @@ US_counties_SF.head(2)
 
 # %%
 CA_counties_SF = US_counties_SF[US_counties_SF["state_fips"] == '06'].copy()
+CA_counties_SF.reset_index(inplace=True, drop=True)
 print (CA_counties_SF.shape)
 CA_counties_SF.head(2)
 
+# %% [markdown]
+# # Spatial lag model
+
+# %%
+hh_R = pd.read_csv(r_data_dir + "hh_cali_corr_4spatialLagModel.csv")
+weights_R = pd.read_csv(r_data_dir + "weight_matrix_Cali_houses_corr.csv")
+
+# %%
+print (hh_R.shape)
+hh_R.head(2)
+
+# %%
+print (weights_R.shape)
+weights_R.columns = list(hh_R["County"])
+weights_R["County"] = list(hh_R["County"])
+weights_R.set_index('County', inplace=True)
+
+weights_R.head(2)
+
+# %%
+weights_R.columns[np.where(weights_R.loc["Yuba"]!=0)[0]]
+
+# %%
+from spreg import ML_Lag, ML_Error
+from libpysal.weights.util import full2W
+
+
+pysal_weights = full2W(weights_R.values)
+print (f"{type(pysal_weights) = }")
+print ("------------------------------")
+
+y = hh_R['houseValue'].values.reshape(-1, 1)  # Dependent variable
+X = hh_R[['age', 'nBedrooms']].values
+X_with_intercept = np.hstack((np.ones((X.shape[0], 1)), X))  # Adding a constant term
+
+model = ML_Lag(y, X_with_intercept, w=pysal_weights, epsilon=1.0e-30);
+
+# Print model summary
+print(model.summary)
+
+
+# %% [markdown]
+# # Spatial error model
+
+# %%
+error_model = ML_Error(y, X_with_intercept, w=pysal_weights, epsilon=1.0e-30)
+# Print model summary
+print(error_model.summary)
+
 # %%
 
 # %%
-houses_gdf.head(2)
-
-# %%
-houses_gdf.crs
-
-# %%
-CA_counties_SF.crs
-
-# %%
-houses_gdf = houses_gdf.to_crs(CA_counties_SF.crs)
-houses_gdf.crs
-
-# %%
-
-# %%
-cnty = geopandas.sjoin(houses_gdf, CA_counties_SF, how="left", op="intersects");
-
-# %%
-cnty.head(3)
-
-# %%
-totpop = cnty[["name", "population"]].groupby(["name"]).sum().reset_index()
-totpop.head(2)
-
-# %%
-hd = cnty.copy()
-
-# %%
-hd["suminc"] = hd["income"] * hd["households"]
-hd.head(2)
-
-# %%
-csum = hd[["name", 'suminc', 'households']].groupby(["name"]).sum().reset_index()
-print (csum.shape)
-csum.head(2)
-
-# %%
-csum_R = pd.read_csv(r_data_dir + "csum.csv")
-csum_R.rename(columns={"Group.1": "name"}, inplace=True)
-
-print (csum_R.shape)
-csum_R.head(2)
-
-# %%
-print ((csum["name"] == csum_R["name"]).sum())
-print ((csum["suminc"] - csum_R["suminc"]).sum())
-
-# %%
-print (hd.shape)
-hd.head(2)
-
-# %%
-hd_R = pd.read_csv(r_data_dir + "hd.csv")
-hd_R.rename(columns={"NAME": "county_name"}, inplace=True)
-hd_R.drop('LSAD_TRANS', axis=1, inplace=True)
-print (hd_R.shape)
-hd_R.head(2)
-
-# %%
-hd_hd_R = pd.concat([hd, hd_R["county_name"]], axis=1)
-hd_hd_R.head(2)
-
-# %%
-np.where(hd_hd_R["name"] != hd_hd_R["county_name"])
-
-# %%
-hd.iloc[394]
-
-# %%
-hd_hd_R.iloc[394]
-
-# %%
-hd_R.iloc[394]
-
-# %%
-hd_noNACounty_R = pd.read_csv(r_data_dir + "hd_noNACounty.csv")
-hd_noNACounty_R.rename(columns={"NAME": "county_name"}, inplace=True)
-hd_noNACounty_R.drop('LSAD_TRANS', axis=1, inplace=True)
-print (hd_noNACounty_R.shape)
-hd_noNACounty_R.head(2)
-
-# %%
-hd_noNACounty = hd.copy()
-hd_noNACounty.dropna(subset=['name'], inplace=True)
-
-# %%
-hd_noNACounty.shape
-
-# %%
-hd_noNACounty.head(2)
-
-# %%
-hd_noNACounty_R.head(2)
-
-# %%
-hd_noNACounty_R.head(2)
-
-# %%
-A = hd_noNACounty.copy()
-A = A[["houseValue", "income", "houseAge", "rooms", "bedrooms", "latitude", "longitude", "name"]]
-
-A_R = hd_noNACounty_R.copy()
-A_R = A_R[["houseValue", "income", "houseAge", "rooms", "bedrooms", "latitude", "longitude", "county_name"]]
-
-
-# %%
-v = ["houseValue", "income", "houseAge", "rooms", "bedrooms", "latitude", "longitude"]
-hd_noNACounty_merged = pd.merge(A, A_R, how="left", on=v)
-hd_noNACounty_merged.head(2)
-
-# %%
-mismatch_locs = (np.where(hd_noNACounty_merged["name"] != hd_noNACounty_merged["county_name"])[0])
-hd_noNACounty_merged.loc[mismatch_locs]
+f_name = r_data_dir + 'hh_corr/hh_corr.shp'
+hh_corr_SF = geopandas.read_file(f_name)
+hh_corr_SF["error_model_residuals"] = error_model.u
+# sorted(hh_corr_SF.columns)
 
 # %%
 
 # %%
 
 # %%
+col = "fWhite"
+sum(hh_corr_SF_2[col] - hh_corr_SF[col])
+
+# %%
+
+# %%
+# Define the number of groups
+grps = 5
+
+# Calculate quantiles
+brks = np.quantile(hh_corr_SF['error_model_residuals'].dropna(), np.linspace(0, 1, grps))
+
+# Create a color palette similar to 'RdBu'
+palette = sns.color_palette("RdBu", grps)
+cmap = ListedColormap(palette[::-1])  # Reverse the palette
+
+# Assign colors based on quantiles
+# Ensure to use the right number of labels
+hh_corr_SF['color'] = pd.cut(hh_corr_SF['error_model_residuals'], 
+                             bins=brks, 
+                             labels=palette[:-1], include_lowest=True)
+
+# Convert color assignments to categorical, ensuring proper dtype
+hh_corr_SF['color'] = hh_corr_SF['color'].astype('category')
+
+
+hh_corr_SF.plot(color=hh_corr_SF["color"]);
+
+# %%
+
+# %%
+hh_corr_SF.loc[20]
+
+# %%
+
+# %%
+
+# %%
+
+# %%
+import numpy as np
+import pandas as pd
+import matplotlib.pyplot as plt
+import geopandas as gpd
+from matplotlib.colors import Normalize
+from matplotlib.colors import ListedColormap
+import seaborn as sns
+
+# Create a sample GeoDataFrame (replace this with your actual GeoDataFrame)
+# Sample data
+data = {
+    'geometry': [None] * 5,  # Placeholder for geometries
+    'residuals': [0.5, 1.5, -0.5, -1.5, 0.0]  # Example residuals
+}
+hh = gpd.GeoDataFrame(data)
+
+# Define the number of groups
+grps = 5
+
+# Calculate quantiles
+brks = np.quantile(hh['residuals'].dropna(), np.linspace(0, 1, grps))
+
+# Create a color palette similar to 'RdBu'
+palette = sns.color_palette("RdBu", grps)
+cmap = ListedColormap(palette[::-1])  # Reverse the palette
+
+# Assign colors based on quantiles
+# Ensure to use the right number of labels
+hh['color'] = pd.cut(hh['residuals'], bins=brks, labels=palette[:-1], include_lowest=True)
+
+# Convert color assignments to categorical, ensuring proper dtype
+hh['color'] = hh['color'].astype('category')
+
+# Plotting
+fig, ax = plt.subplots(1, 1, figsize=(10, 6))
+
+# Create dummy geometries for visualization if none are provided
+# Here we simply create random points for demonstration; replace with actual geometries
+hh['geometry'] = gpd.points_from_xy(np.random.rand(len(hh)), np.random.rand(len(hh)))
+
+# If geometries exist, plot them
+hh.boundary.plot(ax=ax, color='k')  # Plot boundaries if geometries exist
+hh.plot(column='color', ax=ax, legend=True, edgecolor='k', cmap=cmap)
+
+# Adjust legend
+norm = Normalize(vmin=brks.min(), vmax=brks.max())
+sm = plt.cm.ScalarMappable(cmap=cmap, norm=norm)
+sm.set_array([])  # Only needed for older versions of matplotlib
+plt.colorbar(sm, ax=ax, orientation='vertical', label='Residuals')
+
+plt.title('Residuals Plot with Quantile Breaks')
+plt.show()
+
+
+# %%
+
+# %%
+
+# %%
+
+# %%
+
+# %%
+import numpy as np
+from spreg import ML_Lag
+from libpysal.weights.util import full2W
+
+# Example data
+np.random.seed(42)
+y = np.random.rand(10).reshape(-1, 1)  # Dependent variable (10 observations)
+
+# Create a NumPy-based weight matrix (10x10)
+W_numpy = np.array([
+    [0, 1, 0, 0, 0, 0, 0, 1, 0, 0],
+    [1, 0, 1, 0, 0, 0, 0, 0, 0, 0],
+    [0, 1, 0, 1, 0, 0, 0, 0, 0, 0],
+    [0, 0, 1, 0, 1, 0, 0, 0, 0, 0],
+    [0, 0, 0, 1, 0, 1, 0, 0, 0, 0],
+    [0, 0, 0, 0, 1, 0, 1, 0, 0, 0],
+    [0, 0, 0, 0, 0, 1, 0, 1, 0, 0],
+    [1, 0, 0, 0, 0, 0, 1, 0, 1, 0],
+    [0, 0, 0, 0, 0, 0, 0, 1, 0, 1],
+    [0, 0, 0, 0, 0, 0, 0, 0, 1, 0],
+])
+
+# Row-standardize the weight matrix
+W_standardized = W_numpy / W_numpy.sum(axis=1, keepdims=True)
+
+# Convert to a PySAL weights object
+pysal_weights = full2W(W_standardized)
+
+# Create independent variables (adding an intercept term)
+X = np.random.rand(10, 3)  # Three independent variables (10 observations)
+X_with_intercept = np.hstack((np.ones((X.shape[0], 1)), X))  # Adding a constant term
+
+# Fit the spatial lag model
+model = ML_Lag(y, X_with_intercept, pysal_weights)
+
+# Print model summary
+print(model.summary)
+
+
+# %%
+X
+
+# %%
+
+# %%
+# Example NumPy weight matrix
+W_numpy = np.array([
+    [0, 1, 0, 0, 0, 0, 0, 1, 0, 0],
+    [1, 0, 1, 0, 0, 0, 0, 0, 0, 0],
+    [0, 1, 0, 1, 0, 0, 0, 0, 0, 0],
+    [0, 0, 1, 0, 1, 0, 0, 0, 0, 0],
+    [0, 0, 0, 1, 0, 1, 0, 0, 0, 0],
+    [0, 0, 0, 0, 1, 0, 1, 0, 0, 0],
+    [0, 0, 0, 0, 0, 1, 0, 1, 0, 0],
+    [1, 0, 0, 0, 0, 0, 1, 0, 1, 0],
+    [0, 0, 0, 0, 0, 0, 0, 1, 0, 1],
+    [0, 0, 0, 0, 0, 0, 0, 0, 1, 0],
+])
+
+# Row-standardize the weight matrix
+W_standardized = W_numpy / W_numpy.sum(axis=1, keepdims=True)
+
+# Convert the NumPy array to a PySAL W object
+pysal_weights = full2W(W_standardized)
+
+# Print information about the created PySAL weights object
+print(f"Number of observations: {pysal_weights.n}")
+
+
+# %%
+
+# %%
+
+# %%
+
+# %%
+import libpysal as ps
+
+# Example contiguity matrix
+contiguity_matrix = np.array([[0, 1, 1], [1, 0, 0], [1, 0, 0]])
+
+# Convert to tuple 
+contiguity_tuple = tuple(map(tuple, contiguity_matrix))
+
+W = ps.weights.W(contiguity_tuple) 
 
 # %%
 
