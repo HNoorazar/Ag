@@ -258,7 +258,6 @@ Albers_SF.plot(column='value', ax=ax, legend=False);
 
 # %%
 # # Create sample DataFrame
-# from shapely.geometry import Point
 # df = pd.DataFrame({
 #     'point': [Point(10, 20), Point(30, 40), Point(50, 60)]
 # })

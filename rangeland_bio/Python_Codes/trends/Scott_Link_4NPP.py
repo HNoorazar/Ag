@@ -76,9 +76,6 @@ common_data = research_data_ + "common_data/"
 # %%
 r_data_dir = "/Users/hn/Documents/01_research_data/RangeLand_bio/data_from_R/"
 
-# %% [markdown]
-#
-
 # %%
 county_fips_dict = pd.read_pickle(common_data + "county_fips.sav")
 
@@ -98,25 +95,22 @@ state_fips[state_fips["state_full"] == "California"]
 
 # %%
 
-US_counties_SF = geopandas.read_file(SF_dir + "cb_2018_us_county_500k")
-
-US_counties_SF.rename(columns=lambda x: x.lower().replace(' ', '_'), inplace=True)
-
-US_counties_SF.rename(columns={"statefp": "state_fips", 
-                               "countyfp": "county_fip",
-                               "geoid" : "county_fips"}, inplace=True)
-
-US_counties_SF = US_counties_SF[["state_fips", "county_fip", "county_fips", "name", "geometry"]]
-US_counties_SF.head(2)
-
-# %% [markdown]
-# # California House Price Data
-
 # %%
-CA_counties_SF = US_counties_SF[US_counties_SF["state_fips"] == '06'].copy()
-CA_counties_SF.reset_index(inplace=True, drop=True)
-print (CA_counties_SF.shape)
-CA_counties_SF.head(2)
+# US_counties_SF = geopandas.read_file(SF_dir + "cb_2018_us_county_500k")
+
+# US_counties_SF.rename(columns=lambda x: x.lower().replace(' ', '_'), inplace=True)
+
+# US_counties_SF.rename(columns={"statefp": "state_fips", 
+#                                "countyfp": "county_fip",
+#                                "geoid" : "county_fips"}, inplace=True)
+
+# US_counties_SF = US_counties_SF[["state_fips", "county_fip", "county_fips", "name", "geometry"]]
+# US_counties_SF.head(2)
+
+# CA_counties_SF = US_counties_SF[US_counties_SF["state_fips"] == '06'].copy()
+# CA_counties_SF.reset_index(inplace=True, drop=True)
+# print (CA_counties_SF.shape)
+# CA_counties_SF.head(2)
 
 # %% [markdown]
 # # Spatial lag model

@@ -151,8 +151,6 @@ for (ii in 1:length(lw$neighbours)){
 write.csv(as.data.frame(weight_matrix_), paste0(r_data_dir, "weight_matrix_Cali_houses_corr.csv"), row.names=FALSE)
 
 
-
-
 ### The following was also created in Python. Successfully
 m1e <- errorsarlm(f1, data=as.data.frame(hh), lw, tol.solve=1.0e-30)
 summary(m1e)
