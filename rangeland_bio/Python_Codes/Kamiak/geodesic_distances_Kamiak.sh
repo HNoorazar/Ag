@@ -63,4 +63,5 @@ echo
 echo "----- DONE -----"
 echo
 
+echo Time is `date`
 exit 0

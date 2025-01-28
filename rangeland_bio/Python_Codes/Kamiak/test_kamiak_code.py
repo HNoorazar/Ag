@@ -1,6 +1,36 @@
-import warnings
+# ---
+# jupyter:
+#   jupytext:
+#     text_representation:
+#       extension: .py
+#       format_name: percent
+#       format_version: '1.3'
+#       jupytext_version: 1.15.2
+#   kernelspec:
+#     display_name: Python 3 (ipykernel)
+#     language: python
+#     name: python3
+# ---
 
-warnings.filterwarnings("ignore")
+# %%
+import pandas as pd
+import numpy as np
+
+from pysal.lib import weights
+from pysal.model import spreg
+from pysal.explore import esda
+import geopandas, contextily
+from scipy.stats import ttest_ind
+import statistics
+from sklearn.metrics import r2_score
+import statsmodels.api as sm
+
+from pyproj import CRS, Transformer
+
+from mgwr.gwr import GWR
+from mgwr.sel_bw import Sel_BW, Gaussian, Poisson
+import spglm
+
 
 import pandas as pd
 import numpy as np
@@ -11,19 +41,30 @@ import geopandas
 from geopy.distance import geodesic
 from datetime import datetime
 
-sys.path.append("/home/h.noorazar/rangeland/")
-import rangeland_core as rc
+import seaborn as sns
+import matplotlib
+import matplotlib.pyplot as plt
+plt.rc("font", family="Palatino")
 
-#####################################################################################
-#####################################################################################
+import matplotlib.colors as colors
+from matplotlib.colors import ListedColormap, Normalize
+from matplotlib import cm
 
-research_data_ = "/data/project/agaid/h.noorazar/"
-rangeland_bio_base = research_data_ + "rangeland_bio/"
+# %%
+research_data_ = "/Users/hn/Documents/01_research_data/"
+SF_dir = research_data_ + "shapefiles/"
+rangeland_bio_base = research_data_ + "/RangeLand_bio/"
 rangeland_bio_data = rangeland_bio_base + "Data/"
-bio_reOrganized = rangeland_bio_data + "reOrganized/"
-common_data = research_data_ + "common_data/"
-#####################################################################################
+min_bio_dir = rangeland_bio_data + "Min_Data/"
 
+rangeland_base = "/Users/hn/Documents/01_research_data/RangeLand/Data/"
+rangeland_reOrganized = rangeland_base + "reOrganized/"
+
+bio_reOrganized = rangeland_bio_data + "reOrganized/"
+
+common_data = research_data_ + "common_data/"
+
+# %%
 county_fips_dict = pd.read_pickle(common_data + "county_fips.sav")
 
 county_fips = county_fips_dict["county_fips"]
@@ -37,7 +78,9 @@ state_fips = county_fips_dict["state_fips"]
 state_fips = state_fips[state_fips.state != "VI"].copy()
 state_fips.head(2)
 
-#####################################################################################
+# %%
+
+# %%
 Albers_SF_name = bio_reOrganized + "Albers_BioRangeland_Min_Ehsan"
 Albers_SF = geopandas.read_file(Albers_SF_name)
 Albers_SF.rename(columns=lambda x: x.lower().replace(" ", "_"), inplace=True)
@@ -72,6 +115,7 @@ target_crs = pyproj.CRS("EPSG:4326")  # WGS84 (latitude/longitude)
 transformer = pyproj.Transformer.from_crs(source_crs, target_crs)
 
 
+# %%
 def convert_5070Centroids_to_lat_long(row):
     lat, long = transformer.transform(
         row["centroid"].coords[0][0], row["centroid"].coords[0][1]
@@ -79,23 +123,31 @@ def convert_5070Centroids_to_lat_long(row):
     return (lat, long)
 
 
-Albers_SF[["lat", "long"]] = Albers_SF.apply(
-    convert_5070Centroids_to_lat_long, axis=1, result_type="expand"
-)
+Albers_SF[["lat", "long"]] = Albers_SF.apply(convert_5070Centroids_to_lat_long, axis=1, result_type="expand")
 Albers_SF.head(2)
-
 
 Albers_SF["lat_long_centroid"] = geopandas.points_from_xy(
     Albers_SF["long"], Albers_SF["lat"]
 )
 Albers_SF.head(2)
 
+
+# %%
+
+# %%
 Albers_SF.set_index("fid", inplace=True)
 # Create a new DataFrame for pairwise distances
 Albers_geodesic_dist = pd.DataFrame(index=Albers_SF.index, columns=Albers_SF.index)
 
-print("line 97")
-print(Albers_geodesic_dist)
+Albers_geodesic_dist
+
+# %%
+sys.path.append("/Users/hn/Documents/00_GitHub/Ag/rangeland/Python_Codes/")
+import rangeland_core as rc
+import rangeland_plot_core as rcp
+
+
+# %%
 # Calculate distances
 for i in Albers_SF.index:
     for j in Albers_SF.index:
@@ -103,14 +155,7 @@ for i in Albers_SF.index:
             Albers_SF.loc[i, "lat_long_centroid"], Albers_SF.loc[j, "lat_long_centroid"]
         )
 
-print(Albers_geodesic_dist)
+# %%
+Albers_geodesic_dist
 
-filename = bio_reOrganized + "Albers_geodesic_dist.sav"
-export_ = {
-    "Albers_geodesic_dist": Albers_geodesic_dist,
-    "source_code": "geodesic_distances_Kamiak",
-    "Author": "HN",
-    "Date": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
-}
-
-pickle.dump(export_, open(filename, "wb"))
+# %%

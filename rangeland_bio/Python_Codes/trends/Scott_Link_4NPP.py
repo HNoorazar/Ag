@@ -22,7 +22,6 @@
 import pandas as pd
 import numpy as np
 
-
 from pysal.lib import weights
 from pysal.model import spreg
 from pysal.explore import esda
@@ -94,6 +93,26 @@ state_fips.head(2)
 state_fips[state_fips["state_full"] == "California"]
 
 # %%
+Albers_SF_name = bio_reOrganized + "Albers_BioRangeland_Min_Ehsan"
+Albers_SF = geopandas.read_file(Albers_SF_name)
+Albers_SF.rename(columns=lambda x: x.lower().replace(' ', '_'), inplace=True)
+Albers_SF.rename(columns={"minstatsid": "fid", 
+                          "satae_max": "state_majority_area"}, inplace=True)
+Albers_SF.head(2)
+
+# %%
+Albers_SF = pd.merge(Albers_SF, state_fips[["EW_meridian", "state_full"]], 
+                     how="left", left_on="state_majority_area", right_on="state_full")
+
+Albers_SF.drop(columns=["state_full"], inplace=True)
+Albers_SF.head(2)
+
+# %%
+Albers_SF_west = Albers_SF[Albers_SF['EW_meridian'] == "W"].copy()
+print (Albers_SF_west.shape)
+Albers_SF_west.head(2)
+
+# %%
 
 # %%
 # US_counties_SF = geopandas.read_file(SF_dir + "cb_2018_us_county_500k")
@@ -116,8 +135,31 @@ state_fips[state_fips["state_full"] == "California"]
 # # Spatial lag model
 
 # %%
-hh_R = pd.read_csv(r_data_dir + "hh_cali_corr_4spatialLagModel.csv")
-weights_R = pd.read_csv(r_data_dir + "weight_matrix_Cali_houses_corr.csv")
+npp_no2012 = pd.read_pickle(bio_reOrganized + "bpszone_ANPP_no2012.sav")
+queen_weights = pd.read_pickle(bio_reOrganized + "fid_contiguity_Queen_neighbors.sav")
+
+# %%
+npp_no2012 = npp_no2012['bpszone_ANPP']
+queen_weights = queen_weights["fid_contiguity_Queen_neighbors"]
+
+# %%
+npp_no2012.head(2)
+
+# %%
+print (queen_weights.shape)
+queen_weights.head(2)
+
+# %%
+# # %%time
+# Albers_geodesic_dist = pd.read_pickle(bio_reOrganized + "Albers_geodesic_dist.sav")
+# Albers_geodesic_dist = Albers_geodesic_dist["Albers_geodesic_dist"]
+# Albers_geodesic_dist.head(2)
+
+# %%
+
+# %%
+
+# %%
 
 # %%
 print (hh_R.shape)
