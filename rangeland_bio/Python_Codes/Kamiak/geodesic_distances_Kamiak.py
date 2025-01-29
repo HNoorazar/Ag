@@ -114,3 +114,56 @@ export_ = {
 }
 
 pickle.dump(export_, open(filename, "wb"))
+
+Albers_geodesic_dist_rowSTD = Albers_geodesic_dist.div(
+    Albers_geodesic_dist.sum(axis=1), axis=0
+)
+filename = bio_reOrganized + "Albers_geodesic_dist_rowSTD.sav"
+export_ = {
+    "Albers_geodesic_dist_rowSTD": Albers_geodesic_dist_rowSTD,
+    "source_code": "geodesic_distances_Kamiak",
+    "Author": "HN",
+    "Date": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+}
+
+pickle.dump(export_, open(filename, "wb"))
+
+#######################################################
+
+Albers_geodesic_dist_rowSTD.to_csv(
+    bio_reOrganized + "Albers_geodesic_dist_rowSTD.csv", index=True
+)
+Albers_geodesic_dist.to_csv(bio_reOrganized + "Albers_geodesic_dist.csv", index=True)
+
+#######################################################
+Albers_geodesic_dist = 1 / Albers_geodesic_dist
+Albers_geodesic_dist_rowSTD = Albers_geodesic_dist.div(
+    Albers_geodesic_dist.sum(axis=1), axis=0
+)
+
+filename = bio_reOrganized + "Albers_geodesic_dist_reciprocal.sav"
+export_ = {
+    "Albers_geodesic_dist_reciprocal": Albers_geodesic_dist,
+    "source_code": "geodesic_distances_Kamiak",
+    "Author": "HN",
+    "Date": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+}
+pickle.dump(export_, open(filename, "wb"))
+
+filename = bio_reOrganized + "Albers_geodesic_dist_reciprocal_rowSTD.sav"
+export_ = {
+    "Albers_geodesic_dist_reciprocal_rowSTD": Albers_geodesic_dist_rowSTD,
+    "source_code": "geodesic_distances_Kamiak",
+    "Author": "HN",
+    "Date": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+}
+pickle.dump(export_, open(filename, "wb"))
+#######################################################
+Albers_geodesic_dist.to_csv(
+    bio_reOrganized + "Albers_geodesic_dist_reciprocal.csv", index=True
+)
+Albers_geodesic_dist_rowSTD.to_csv(
+    bio_reOrganized + "Albers_geodesic_dist_reciprocal_rowSTD.csv", index=True
+)
+
+#######################################################

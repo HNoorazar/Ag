@@ -5,7 +5,7 @@
 #       extension: .py
 #       format_name: percent
 #       format_version: '1.3'
-#       jupytext_version: 1.15.2
+#       jupytext_version: 1.16.1
 #   kernelspec:
 #     display_name: Python 3 (ipykernel)
 #     language: python
@@ -19,9 +19,9 @@
 # The original link does not do anything about weights or spatial-correlation. So, here we are, doing the New link!
 
 # %%
+import os, sys
 import pandas as pd
 import numpy as np
-
 
 from pysal.lib import weights
 from pysal.model import spreg
@@ -38,7 +38,6 @@ from mgwr.gwr import GWR
 from mgwr.sel_bw import Sel_BW, Gaussian, Poisson
 import spglm
 
-
 import seaborn as sns
 import matplotlib
 import matplotlib.pyplot as plt
@@ -47,6 +46,16 @@ plt.rc("font", family="Palatino")
 import matplotlib.colors as colors
 from matplotlib.colors import ListedColormap, Normalize
 from matplotlib import cm
+
+# %%
+sys.path.append("/Users/hn/Documents/00_GitHub/Ag/rangeland/Python_Codes/")
+import rangeland_core as rc
+import rangeland_plot_core as rcp
+
+import importlib
+importlib.reload(rc);
+
+# %%
 
 # %%
 dpi_ = 300
@@ -97,8 +106,13 @@ state_fips.head(2)
 state_fips[state_fips["state_full"] == "California"]
 
 # %%
+print(geopandas.__version__) # Macbook: 0.14.3
+                             # Macbook: 1.0.1
 
-US_counties_SF = geopandas.read_file(SF_dir + "cb_2018_us_county_500k")
+# %%
+
+# %%
+US_counties_SF = geopandas.read_file(common_data + "cb_2018_us_county_500k")
 
 US_counties_SF.rename(columns=lambda x: x.lower().replace(' ', '_'), inplace=True)
 
@@ -128,6 +142,11 @@ weights_R = pd.read_csv(r_data_dir + "weight_matrix_Cali_houses_corr.csv")
 # %%
 print (hh_R.shape)
 hh_R.head(2)
+
+# %%
+weights_R.head(2)
+
+# %%
 
 # %%
 print (weights_R.shape)

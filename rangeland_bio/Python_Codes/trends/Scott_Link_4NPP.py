@@ -5,7 +5,7 @@
 #       extension: .py
 #       format_name: percent
 #       format_version: '1.3'
-#       jupytext_version: 1.15.2
+#       jupytext_version: 1.16.1
 #   kernelspec:
 #     display_name: Python 3 (ipykernel)
 #     language: python
@@ -19,6 +19,8 @@
 # The original link does not do anything about weights or spatial-correlation. So, here we are, doing the New link!
 
 # %%
+import sys, os
+
 import pandas as pd
 import numpy as np
 
@@ -48,7 +50,15 @@ from matplotlib.colors import ListedColormap, Normalize
 from matplotlib import cm
 
 # %%
-dpi_ = 300
+sys.path.append("/Users/hn/Documents/00_GitHub/Ag/rangeland/Python_Codes/")
+import rangeland_core as rc
+import rangeland_plot_core as rcp
+
+import importlib
+importlib.reload(rc);
+
+# %%
+dpi_, map_dpi_ = 300, 300
 
 # %%
 research_data_ = "/Users/hn/Documents/01_research_data/"
@@ -65,17 +75,6 @@ bio_reOrganized = rangeland_bio_data + "reOrganized/"
 common_data = research_data_ + "common_data/"
 
 # %%
-# # %%time
-                               
-# f_name = bio_reOrganized + 'Albers_SF_west_ANPP_MK_Spearman_no2012.shp.zip'
-# SF_west = geopandas.read_file(f_name)
-
-# %%
-
-# %%
-r_data_dir = "/Users/hn/Documents/01_research_data/RangeLand_bio/data_from_R/"
-
-# %%
 county_fips_dict = pd.read_pickle(common_data + "county_fips.sav")
 
 county_fips = county_fips_dict["county_fips"]
@@ -88,6 +87,36 @@ state_fips = county_fips_dict["state_fips"]
 
 state_fips = state_fips[state_fips.state != "VI"].copy()
 state_fips.head(2)
+
+# %%
+
+# %%
+# # %%time
+                               
+# f_name = bio_reOrganized + 'Albers_SF_west_ANPP_MK_Spearman_no2012.shp.zip'
+# SF_west = geopandas.read_file(f_name)
+
+from shapely.geometry import Polygon
+gdf = geopandas.read_file(common_data +'cb_2018_us_state_500k.zip')
+
+
+gdf.rename(columns={"STUSPS": "state"}, inplace=True)
+gdf = gdf[~gdf.state.isin(["PR", "VI", "AS", "GU", "MP"])]
+gdf = pd.merge(gdf, state_fips[["EW_meridian", "state"]], how="left", on="state")
+
+# %%
+visframe = gdf.to_crs({'init':'epsg:5070'})
+visframe_mainLand = visframe[~visframe.state.isin(["AK", "HI"])].copy()
+
+visframe_mainLand_west = visframe[visframe.EW_meridian.isin(["W"])].copy()
+visframe_mainLand_west = visframe_mainLand_west[~visframe_mainLand_west.state.isin(["AK", "HI"])].copy()
+
+# %%
+
+# %%
+r_data_dir = "/Users/hn/Documents/01_research_data/RangeLand_bio/data_from_R/"
+
+# %%
 
 # %%
 state_fips[state_fips["state_full"] == "California"]
@@ -135,19 +164,26 @@ Albers_SF_west.head(2)
 # # Spatial lag model
 
 # %%
-npp_no2012 = pd.read_pickle(bio_reOrganized + "bpszone_ANPP_no2012.sav")
-queen_weights = pd.read_pickle(bio_reOrganized + "fid_contiguity_Queen_neighbors.sav")
+# %%time
 
-# %%
+npp_no2012 = pd.read_pickle(bio_reOrganized + "bpszone_ANPP_no2012.sav")
 npp_no2012 = npp_no2012['bpszone_ANPP']
+
+queen_weights = pd.read_pickle(bio_reOrganized + "fid_contiguity_Queen_neighbors.sav")
 queen_weights = queen_weights["fid_contiguity_Queen_neighbors"]
 
-# %%
-npp_no2012.head(2)
+queen_weight_rstd = pd.read_pickle(bio_reOrganized + "fid_contiguity_Queen_neighbors_rowSTD.sav")
+queen_weight_rstd = queen_weight_rstd["fid_contiguity_Queen_neighbors_rowSTD"]
+queen_weight_rstd.head(2)
 
 # %%
-print (queen_weights.shape)
-queen_weights.head(2)
+queen_weight_rstd
+
+# %%
+
+# %%
+print (queen_weight_rstd.shape)
+queen_weight_rstd.head(2)
 
 # %%
 # # %%time
@@ -156,44 +192,91 @@ queen_weights.head(2)
 # Albers_geodesic_dist.head(2)
 
 # %%
+print (npp_no2012.shape)
+npp_no2012.head(2)
 
 # %%
+# print (queen_weights.shape)
+# queen_weights.columns = list(hh_R["County"])
+# queen_weights["County"] = list(hh_R["County"])
+# queen_weights.set_index('County', inplace=True)
+
+# queen_weights.head(2)
+# queen_weights.columns[np.where(queen_weights.loc["Yuba"]!=0)[0]]
 
 # %%
-
-# %%
-print (hh_R.shape)
-hh_R.head(2)
-
-# %%
-print (weights_R.shape)
-weights_R.columns = list(hh_R["County"])
-weights_R["County"] = list(hh_R["County"])
-weights_R.set_index('County', inplace=True)
-
-weights_R.head(2)
-
-# %%
-weights_R.columns[np.where(weights_R.loc["Yuba"]!=0)[0]]
 
 # %%
 from spreg import ML_Lag, ML_Error
 from libpysal.weights.util import full2W
 
-
-pysal_weights = full2W(weights_R.values)
+pysal_weights = full2W(queen_weight_rstd.values)
 print (f"{type(pysal_weights) = }")
 print ("------------------------------")
 
+
+# %%
+queen_weights[queen_weights.index.isin([28])]
+
+# %%
+# example of an island. FID for it is 102.
+print (queen_weights.iloc[28].sum())
+print (queen_weights.iloc[28].unique())
+
+# %%
+tick_legend_FontSize = 5
+params = {"font.family": "Palatino",
+          "legend.fontsize": tick_legend_FontSize,
+          "axes.labelsize": tick_legend_FontSize * .71,
+          "axes.titlesize": tick_legend_FontSize * 1,
+          "xtick.labelsize": tick_legend_FontSize * .7,
+          "ytick.labelsize": tick_legend_FontSize * .7,
+          "axes.titlepad": 5,
+          "legend.handlelength": 2,
+          "xtick.bottom": False,
+          "ytick.left": False,
+          "xtick.labelbottom": False,
+          "ytick.labelleft": False,
+          'axes.linewidth' : .05}
+
+plt.rcParams.update(params)
+
+# %%
+fig, ax = plt.subplots(1, 1, figsize=(2, 2), sharex=True, sharey=True, dpi=map_dpi_)
+ax.set_xticks([]); ax.set_yticks([])
+
+# rcp.plot_SF(SF=visframe_mainLand_west, ax_=ax, col="EW_meridian", cmap_=ListedColormap(['dodgerblue', 'white']))
+rcp.plot_SF(SF=visframe_mainLand_west, ax_=ax, cmap_ = "Pastel1", col="EW_meridian");
+Albers_SF_west["geometry"].centroid.plot(ax=ax, color='dodgerblue', markersize=0.01);
+Albers_SF_west[Albers_SF_west["fid"]==102]["geometry"].centroid.plot(ax=ax, color='red', markersize=.1);
+
+# %%
+visframe_ND = visframe_mainLand_west[visframe_mainLand_west["state"]=="ND"].copy()
+Albers_SF_west_ND = Albers_SF_west[Albers_SF_west["state_majority_area"] == "North Dakota"]
+
+fig, ax = plt.subplots(1, 1, figsize=(2, 2), sharex=True, sharey=True, dpi=map_dpi_)
+ax.set_xticks([]); ax.set_yticks([])
+
+# rcp.plot_SF(SF=visframe_mainLand_west, ax_=ax, col="EW_meridian", cmap_=ListedColormap(['dodgerblue', 'white']))
+rcp.plot_SF(SF=visframe_ND, ax_=ax, cmap_ = "Pastel1", col="EW_meridian");
+Albers_SF_west_ND["geometry"].centroid.plot(ax=ax, color='dodgerblue', markersize=0.01);
+Albers_SF_west_ND[Albers_SF_west_ND["fid"]==102]["geometry"].plot(ax=ax, color='red', markersize=.1);
+Albers_SF_west_ND[Albers_SF_west_ND["fid"]==102]["geometry"].centroid.plot(ax=ax, color='k', markersize=.1);
+
+# %%
+npp_no2012.head(2)
+
+# %%
 y = hh_R['houseValue'].values.reshape(-1, 1)  # Dependent variable
 X = hh_R[['age', 'nBedrooms']].values
-X_with_intercept = np.hstack((np.ones((X.shape[0], 1)), X))  # Adding a constant term
+X_with_intercept = np.hstack((np.ones((X.shape[0], 1)), X)) # Adding a constant term
 
 model = ML_Lag(y, X_with_intercept, w=pysal_weights, epsilon=1.0e-30);
 
 # Print model summary
 print(model.summary)
 
+# %%
 
 # %% [markdown]
 # # Spatial error model

@@ -5,7 +5,7 @@
 #       extension: .py
 #       format_name: percent
 #       format_version: '1.3'
-#       jupytext_version: 1.15.2
+#       jupytext_version: 1.16.1
 #   kernelspec:
 #     display_name: Python 3 (ipykernel)
 #     language: python
@@ -407,6 +407,21 @@ export_ = {"fid_contiguity_Queen_neighbors": fid_contiguity_Queen_neighbors,
            "Date": datetime.now().strftime("%Y-%m-%d %H:%M:%S")}
 
 pickle.dump(export_, open(filename, "wb"))
+
+# %%
+queen_weights_std = fid_contiguity_Queen_neighbors.div(fid_contiguity_Queen_neighbors.sum(axis=1), axis=0)
+
+filename = bio_reOrganized + "fid_contiguity_Queen_neighbors_rowSTD.sav"
+export_ = {"fid_contiguity_Queen_neighbors_rowSTD": queen_weights_std,
+           "source_code": "centroids_distance_weight_matrix_4_spatial_regression",
+           "Author": "HN",
+           "Date": datetime.now().strftime("%Y-%m-%d %H:%M:%S")}
+
+pickle.dump(export_, open(filename, "wb"))
+
+# %%
+
+# %%
 
 # %%
 import calendar
