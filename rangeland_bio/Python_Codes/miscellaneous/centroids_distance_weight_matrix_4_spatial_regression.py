@@ -420,12 +420,29 @@ export_ = {"fid_contiguity_Queen_neighbors_rowSTD": queen_weights_std,
 pickle.dump(export_, open(filename, "wb"))
 
 # %%
+filename = bio_reOrganized + "fid_contiguity_Queen_neighbors_rowSTD.sav"
+A = pd.read_pickle(filename)
+print (A["Date"])
 
 # %%
+queen_weights_std = A["fid_contiguity_Queen_neighbors_rowSTD"]
+queen_weights_std.head(2)
 
 # %%
-import calendar
-calendar.isleap(2016)
+queen_weights_std.reset_index(drop=False, inplace=True)
+queen_weights_std.head(2)
+
+# %%
+# %%time
+queen_weights_std.to_csv(bio_reOrganized+'fid_contiguity_Queen_neighbors_rowSTD.csv', index=False)
+
+# %%
+# %%time
+# What's the point of saving it this way???
+import pyreadstat
+queen_weights_std.rename(columns=lambda x: "var_" + str(x), inplace=True)
+pyreadstat.write_sav(queen_weights_std, 
+                     bio_reOrganized + 'fid_contiguity_Queen_neighbors_rowSTD_for_R.sav')
 
 # %%
 
