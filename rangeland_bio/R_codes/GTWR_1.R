@@ -76,11 +76,18 @@ WA_ANPP_no2012 <- bpszone_ANPP_no2012 %>%
 head(fid_queen_neib_rowSTD, 2)
 head(WA_ANPP_no2012, 2)
 head(WA_SF, 2)
-npp_yr_formula <- npp ~ year
+
+
+ WA_ANPP_no2012$groupveg <- NULL
+# Outer join
+WA_SF_outer = merge(x = WA_SF, y = WA_ANPP_no2012, by = "fid", all = TRUE)
+# WA_SF_outerLeft = merge(x = WA_SF, y = WA_ANPP_no2012, by = "fid", all.x = TRUE)
+# all.equal(WA_SF_outer, WA_SF_outerLeft)
 
 # bandwidth selection
-bw.gwr(formula=npp_yr_formula, data=WA_ANPP_no2012, 
-       approach="CV", kernel="bisquare", adaptive=FALSE, p=2, theta=0, longlat=F, dMat,
+npp_yr_formula <- mean_lb_per_acr ~ year
+bw.gwr(formula=npp_yr_formula, data=WA_SF_outer, 
+       approach="CV", kernel="bisquare", adaptive=FALSE, p=2, theta=0, longlat=F, dMat=fid_queen_neib_rowSTD,
        parallel.method=F, parallel.arg=NULL)
 
 # https://www.rdocumentation.org/packages/GWmodel/versions/2.2-2/topics/gtwr

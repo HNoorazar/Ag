@@ -5,7 +5,7 @@
 #       extension: .py
 #       format_name: percent
 #       format_version: '1.3'
-#       jupytext_version: 1.16.1
+#       jupytext_version: 1.15.2
 #   kernelspec:
 #     display_name: Python 3 (ipykernel)
 #     language: python
@@ -264,7 +264,7 @@ fid_contiguity_Queen_neighbors.head(2)
 # %%time
 filename = bio_reOrganized + "fid_contiguity_Queen_neighbors.sav"
 export_ = {"fid_contiguity_Queen_neighbors": fid_contiguity_Queen_neighbors,
-           "source_code": "centroids_distance_weight_matrix_4_spatial_regression",
+           "source_code": "queen_distance_weight_matrix_4_spatial_reg",
            "Author": "HN",
            "Date": datetime.now().strftime("%Y-%m-%d %H:%M:%S")}
 
@@ -272,11 +272,12 @@ pickle.dump(export_, open(filename, "wb"))
 
 # %%
 # %%time
-queen_weights_std = fid_contiguity_Queen_neighbors.div(fid_contiguity_Queen_neighbors.sum(axis=1), axis=0)
+queen_weights_std =
+fid_contiguity_Queen_neighbors.div(fid_contiguity_Queen_neighbors.sum(axis=1), axis=0)
 
 filename = bio_reOrganized + "fid_contiguity_Queen_neighbors_rowSTD.sav"
 export_ = {"fid_contiguity_Queen_neighbors_rowSTD": queen_weights_std,
-           "source_code": "centroids_distance_weight_matrix_4_spatial_regression",
+           "source_code": "queen_distance_weight_matrix_4_spatial_reg",
            "Author": "HN",
            "Date": datetime.now().strftime("%Y-%m-%d %H:%M:%S")}
 
@@ -290,6 +291,7 @@ queen_weights_std.head(2)
 queen_weights_std.to_csv(bio_reOrganized+'fid_contiguity_Queen_neighbors_rowSTD.csv', index=False)
 
 # %%
+# # !pip3 install pyreadstat
 
 # %%
 # %%time
@@ -354,6 +356,12 @@ print (type(WA_SF))
 WA_SF.head(2)
 
 # %%
+WA_SF.head(2)
+
+# %%
+WA_SF.drop(columns=["lat_long_centroid", "centroid"], inplace=True)
+f_name = bio_reOrganized + 'Albers_BioRangeland_Min_Ehsan_WA/Albers_BioRangeland_Min_Ehsan_WA.shp'
+WA_SF.to_file(filename=f_name, driver='ESRI Shapefile')
 
 # %%
 
