@@ -48,7 +48,7 @@ echo WORKDIR: ${PBS_O_WORKDIR}
 echo HOMEDIR: ${PBS_O_HOME}
 
 echo Running time on host `hostname`
-echo Time is `date`
+echo start Time is `date`
 echo Directory is `pwd`
 
 echo "--------- continue on ---------"
@@ -59,9 +59,10 @@ echo "--------- continue on ---------"
 
 python /home/h.noorazar/rangeland_bio/fid_geodesic_distances/geodesic_distances_Kamiak.py
 
+echo end Time is `date`
 echo
 echo "----- DONE -----"
 echo
 
-echo Time is `date`
+
 exit 0

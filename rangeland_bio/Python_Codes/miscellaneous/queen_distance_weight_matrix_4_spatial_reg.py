@@ -172,126 +172,7 @@ Albers_SF["centroid"].plot(ax=ax, color='dodgerblue', markersize=0.051);
 Albers_SF.plot(column='value', ax=ax, legend=False);
 
 # %%
-# from shapely.geometry import Point
-
-
-# point1 = Point(48.8566, 2.3522)  # Paris
-# point2 = Point(51.5074, 0.1278)  # London
-
-# # Calculate distance in kilometers
-# distance = geodesic(point1.coords[0], point2.coords[0]).km
-# distance
-
-# %%
-# # Create a DataFrame with Shapely Point objects
-# data = {'id': [1, 2], 'geometry': [Point(1, 2), Point(3, 4)]}
-# df = geopandas.GeoDataFrame(data, crs="EPSG:4326")
-
-# # Calculate distance between points
-# distances = df.geometry.distance(df.geometry.iloc[0])
-
-# print(distances)
-
-# %%
-# # Create a DataFrame with Shapely Point geometries
-# df = pd.DataFrame({'id': [1, 2, 3],
-#                    'geometry': [Point(1, 2), Point(3, 4), Point(5, 6)]
-#                   })
-
-# # Convert the DataFrame to a GeoDataFrame
-# gdf = geopandas.GeoDataFrame(df, geometry='geometry')
-
-# # Calculate the pairwise distance matrix
-# distance_matrix = gdf.geometry.apply(lambda x: gdf.geometry.distance(x))
-
-# print(distance_matrix)
-
-# %%
-# # Create a DataFrame with Shapely Point geometries
-# df = pd.DataFrame({'id': [1, 2],
-#                    'geometry': [Point(1, 2), Point(3, 4)]
-#                   })
-
-# # Convert the DataFrame to a GeoDataFrame
-# gdf = geopandas.GeoDataFrame(df, geometry='geometry')
-
-# # Calculate the pairwise distance matrix
-# distance_matrix = gdf.geometry.apply(lambda x: gdf.geometry.distance(x))
-
-# print(distance_matrix)
-
-# %%
-# geodesic(gdf["geometry"][0].coords[0], gdf["geometry"][1].coords[0]).km
-
-# %%
-# gdf.geometry.distance(gdf["geometry"][0])
-
-# %%
-# This is Euclidean distance. not good
-# p1 = np.array([Albers_SF.loc[0].centroid.x, Albers_SF.loc[0].centroid.y])
-# p2 = np.array([Albers_SF.loc[2].centroid.x, Albers_SF.loc[2].centroid.y])
-# np.linalg.norm(p1 - p2)
-
-# # %%time
-# CRS5070_distance_matrix = Albers_SF["centroid"].apply(lambda x: Albers_SF["centroid"].distance(x))
-# CRS5070_distance_matrix.head(2)
-
-# %%
-# # Sample DataFrame
-# df = pd.DataFrame({
-#     'point1': [Point(10, 20), Point(30, 40)],
-#     'point2': [Point(15, 25), Point(35, 45)]
-# })
-
-# # Calculate geodesic distance
-# def calculate_distance(row):
-#     return geodesic(
-#         (row['point1'].y, row['point1'].x), 
-#         (row['point2'].y, row['point2'].x)
-#     ).km
-
-# df['distance'] = df.apply(calculate_distance, axis=1)
-
-# print(df)
-
-# %%
-
-# %%
-# # Create sample DataFrame
-# df = pd.DataFrame({
-#     'point': [Point(10, 20), Point(30, 40), Point(50, 60)]
-# })
-
-# # Define a function to calculate pairwise distance
-
-# # Create a new DataFrame for pairwise distances
-# distances = pd.DataFrame(index=df.index, columns=df.index)
-
-# # Calculate distances
-# for i in df.index:
-#     for j in df.index:
-#         distances.loc[i, j] = rc.calculate_geodesic_distance(df.loc[i, 'point'], df.loc[j, 'point'])
-
-# print(distances)
-
-# %%
 Albers_SF.set_index('fid', inplace=True)
-
-# %%
-# import pyproj
-
-# source_crs = pyproj.CRS("EPSG:5070")
-# target_crs = pyproj.CRS("EPSG:4326")  # WGS84 (latitude/longitude)
-# transformer = pyproj.Transformer.from_crs(source_crs, target_crs)
-
-# x = 600000  # Example X coordinate
-# y = 2000000 # Example Y coordinate
-
-# # Transform the coordinates to latitude and longitude
-# lon, lat = transformer.transform(x, y)
-# print(f"Latitude: {lat}, Longitude: {lon}")
-
-# %%
 
 # %%
 # %%time
@@ -325,15 +206,6 @@ two_polys["centroid"].plot(ax=ax, color='red', markersize=.05);
 Centroid_WGS84_4326.head(2)
 
 # %%
-fig, ax = plt.subplots(figsize=(8, 4))
-xs, ys = Albers_SF.loc[1, "geometry"].exterior.xy
-ax.fill(xs, ys, alpha=0.5, fc='r', ec='none', color="dodgerblue");
-Albers_SF["centroid"].plot(ax=ax, color='red', markersize=0.051);
-# xs, ys = Albers_SF.loc[1, "centroid"].xy
-# ax.fill(xs, ys, alpha=1, fc='r', ec='none');
-# Albers_SF.loc[1, "centroid"].plot()
-
-# %%
 Albers_SF.head(2)
 
 # %%
@@ -342,19 +214,6 @@ Albers_SF.head(2)
 
 # %% [markdown]
 # ## Following cell takes too long. Running on Kamiak
-
-# %%
-# # %%time 
-# # Create a new DataFrame for pairwise distances
-# Albers_geodesic_dist = pd.DataFrame(index=Albers_SF.index, columns=Albers_SF.index)
-
-# # Calculate distances
-# for i in Albers_SF.index:
-#     for j in Albers_SF.index:
-#         Albers_geodesic_dist.loc[i, j] = rc.calculate_geodesic_distance(Albers_SF.loc[i, 'lat_long_centroid'], 
-#                                                                         Albers_SF.loc[j, 'lat_long_centroid'])
-
-# print(Albers_geodesic_distances)
 
 # %%
 Albers_SF.head(2)
@@ -384,3 +243,118 @@ print(binary_matrix)
 # %%
 # two_polys.iloc[[1, 2]].plot();
 two_polys.plot();
+
+# %%
+# %%time
+# Assuming you have a GeoDataFrame named 'gdf' with your polygon data
+w = ps.weights.contiguity.Queen.from_dataframe(Albers_SF)
+fid_contiguity_Queen_neighbors = w.full()[0]
+
+print(fid_contiguity_Queen_neighbors)
+
+# %%
+
+# %%
+fid_contiguity_Queen_neighbors = pd.DataFrame(fid_contiguity_Queen_neighbors, 
+                                              index=Albers_SF.index, columns=list(Albers_SF.index))
+fid_contiguity_Queen_neighbors = fid_contiguity_Queen_neighbors.astype(int)
+fid_contiguity_Queen_neighbors.head(2)
+
+# %%
+# %%time
+filename = bio_reOrganized + "fid_contiguity_Queen_neighbors.sav"
+export_ = {"fid_contiguity_Queen_neighbors": fid_contiguity_Queen_neighbors,
+           "source_code": "centroids_distance_weight_matrix_4_spatial_regression",
+           "Author": "HN",
+           "Date": datetime.now().strftime("%Y-%m-%d %H:%M:%S")}
+
+pickle.dump(export_, open(filename, "wb"))
+
+# %%
+# %%time
+queen_weights_std = fid_contiguity_Queen_neighbors.div(fid_contiguity_Queen_neighbors.sum(axis=1), axis=0)
+
+filename = bio_reOrganized + "fid_contiguity_Queen_neighbors_rowSTD.sav"
+export_ = {"fid_contiguity_Queen_neighbors_rowSTD": queen_weights_std,
+           "source_code": "centroids_distance_weight_matrix_4_spatial_regression",
+           "Author": "HN",
+           "Date": datetime.now().strftime("%Y-%m-%d %H:%M:%S")}
+
+pickle.dump(export_, open(filename, "wb"))
+
+# %%
+queen_weights_std.head(2)
+
+# %%
+# %%time
+queen_weights_std.to_csv(bio_reOrganized+'fid_contiguity_Queen_neighbors_rowSTD.csv', index=False)
+
+# %%
+
+# %%
+# %%time
+# What's the point of saving it this way???
+import pyreadstat
+queen_weights_std.rename(columns=lambda x: "var_" + str(x), inplace=True)
+pyreadstat.write_sav(queen_weights_std, 
+                     bio_reOrganized + 'fid_contiguity_Queen_neighbors_rowSTD_for_R.sav')
+
+# %% [markdown]
+# ## Washington Only 
+# for sake of model development
+
+# %%
+fid_contiguity_Queen_neighbors.head(2)
+
+# %%
+WA_SF = Albers_SF[Albers_SF["state_majority_area"] == "Washington"].copy()
+print (WA_SF.shape)
+WA_SF.head(2)
+
+# %%
+WA_FIDs = list(WA_SF.index.unique())
+WA_FIDs[:4]
+
+# %%
+WA_fid_Queen_neighbors = fid_contiguity_Queen_neighbors[
+                                        fid_contiguity_Queen_neighbors.index.isin(WA_FIDs)].copy()
+print (WA_fid_Queen_neighbors.shape)
+WA_fid_Queen_neighbors.head(2)
+
+# %%
+WA_fid_Queen_neighbors = WA_fid_Queen_neighbors[WA_FIDs].copy()
+WA_fid_Queen_neighbors.shape
+
+# %% [markdown]
+# ### form queen neighborhoods from scratch and compare it to above
+
+# %%
+# # %%time
+# # Assuming you have a GeoDataFrame named 'gdf' with your polygon data
+# w_WA = ps.weights.contiguity.Queen.from_dataframe(WA_SF)
+# WA_fid_Queen_neighbors_scratch = w_WA.full()[0]
+
+# WA_fid_Queen_neighbors_scratch = pd.DataFrame(WA_fid_Queen_neighbors_scratch, 
+#                                               index=WA_SF.index, columns=list(WA_SF.index))
+# WA_fid_Queen_neighbors_scratch = WA_fid_Queen_neighbors_scratch.astype(int)
+
+# print (WA_fid_Queen_neighbors.equals(WA_fid_Queen_neighbors_scratch)) # It was True
+# WA_fid_Queen_neighbors_scratch.head(2)
+
+# %%
+WA_fid_Queen_neighbors_std = WA_fid_Queen_neighbors.div(WA_fid_Queen_neighbors.sum(axis=1), axis=0)
+WA_fid_Queen_neighbors_std.head(2)
+
+# %%
+WA_fid_Queen_neighbors.to_csv(bio_reOrganized + 'WA_fid_Queen_neighbors.csv', index=True)
+WA_fid_Queen_neighbors_std.to_csv(bio_reOrganized + 'WA_fid_Queen_neighbors_rowSTD.csv', index=True)
+
+# %%
+print (type(WA_SF))
+WA_SF.head(2)
+
+# %%
+
+# %%
+
+# %%

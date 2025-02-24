@@ -9,18 +9,14 @@
 library(GWmodel)
 library(tmap)  # For visualization, optional
 
-
 library(foreign) # to read .sav files
 library(haven) # to read .sav files
 library(spdep)
 library(data.table)
 library(dplyr)
-library(sf)
-
 library(rgdal)
-library(dplyr)
-library(sp)
 library(sf)
+library(sp)
 
 # First library("remotes") then the following line
 if (!require("rspat")) remotes::install_github('rspatial/rspat')
@@ -34,45 +30,59 @@ reOrganized_dir = paste0(dir_base_, "reOrganized/")
 
 # Strange. csv file is lighter than the sav file
 # Strange: R cannot read CSV file (memory issue) but reads the sav file
-fid_queen_neib_rowSTD = read_sav(paste0(reOrganized_dir, "fid_contiguity_Queen_neighbors_rowSTD_for_R.sav"))
-col_names <- colnames(fid_queen_neib_rowSTD)
-# fid_queen_neib_rowSTD = read.spss(paste0(reOrganized_dir, "fid_contiguity_Queen_neighbors_rowSTD_for_R.sav"), to.data.frame=TRUE)
-# fid_queen_neib_rowSTD = data.table(read.csv(paste0(reOrganized_dir, "fid_contiguity_Queen_neighbors_rowSTD_for_R.sav")))
+# fid_queen_neib_rowSTD = read_sav(paste0(reOrganized_dir, "fid_contiguity_Queen_neighbors_rowSTD_for_R.sav"))
+# col_names <- colnames(fid_queen_neib_rowSTD)
+## fid_queen_neib_rowSTD = read.spss(paste0(reOrganized_dir, "fid_contiguity_Queen_neighbors_rowSTD_for_R.sav"), to.data.frame=TRUE)
+## fid_queen_neib_rowSTD = data.table(read.csv(paste0(reOrganized_dir, "fid_contiguity_Queen_neighbors_rowSTD_for_R.sav")))
+# for ( col in 1:ncol(fid_queen_neib_rowSTD)){
+#     colnames(fid_queen_neib_rowSTD)[col] <-  sub("var_", "", colnames(fid_queen_neib_rowSTD)[col])
+# }
 
+########################################
+fid_queen_neib_rowSTD = data.table(read.csv(paste0(reOrganized_dir, "WA_fid_Queen_neighbors_rowSTD.csv")))
+## column names have extra "X" in them!
 for ( col in 1:ncol(fid_queen_neib_rowSTD)){
-    colnames(fid_queen_neib_rowSTD)[col] <-  sub("var_", "", colnames(fid_queen_neib_rowSTD)[col])
+    colnames(fid_queen_neib_rowSTD)[col] <-  sub("X", "", colnames(fid_queen_neib_rowSTD)[col])
 }
-
+########################################
+bpszone_ANPP_no2012 = data.table(read.csv(paste0(reOrganized_dir, "bpszone_ANPP_no2012_for_R.csv")))
+head(bpszone_ANPP_no2012, 2)
 #
 # Lets just focus and develop on one state
 #
-Albers_Rangeland <- read_sf(paste0(reOrganized_dir, 
-                                   "Albers_BioRangeland_Min_Ehsan/Albers_BioRangeland_Min_Ehsan.shp"))
+# Albers_Rangeland <- read_sf(paste0(reOrganized_dir, 
+#                                    "Albers_BioRangeland_Min_Ehsan/Albers_BioRangeland_Min_Ehsan.shp"))
+# WA_SF <- Albers_Rangeland %>% filter(SATAE_MAX == "Washington")
+# WA_FIDs = WA_SF$MinStatsID
 
-WA_SF <- Albers_Rangeland %>% filter(SATAE_MAX == "Washington")
-WA_FIDs = WA_SF$MinStatsID
+# pick the rows of WA The following would be wrong. 
+# As some FIDs in WA will have neighbor in other states. So, I have done WA separately.
+# fid_queen_neib_rowSTD_WA <- fid_queen_neib_rowSTD %>% filter(fid %in% WA_FIDs)
+## pick the columns of WA
+# WA_FIDs_str = copy(WA_FIDs)
+# WA_FIDs_str <- as.character(WA_FIDs_str)
+# need_ <- c("fid", WA_FIDs_str)
+# fid_queen_neib_rowSTD_WA <- fid_queen_neib_rowSTD_WA[need_]
 
-# pick the rows of WA
-fid_queen_neib_rowSTD_WA <- fid_queen_neib_rowSTD %>% filter(fid %in% WA_FIDs)
-
-# pick the columns of WA
-WA_FIDs_str = copy(WA_FIDs)
-WA_FIDs_str <- as.character(WA_FIDs_str)
-need_ <- c("fid", WA_FIDs_str)
-fid_queen_neib_rowSTD_WA <- fid_queen_neib_rowSTD_WA[need_]
-
-
-
-npp_yr_formula <- npp ~ year
-
-
-bpszone_ANPP_no2012 = data.table(read.csv(paste0(reOrganized_dir, "bpszone_ANPP_no2012_for_R.csv")))
-head(bpszone_ANPP_no2012, 2)
+WA_SF <- read_sf(paste0(reOrganized_dir, "Albers_BioRangeland_Min_Ehsan_WA/Albers_BioRangeland_Min_Ehsan_WA.shp"))
+WA_FIDs = WA_SF$fid
 
 # I have checked in Python: read_sav_write_4_R.ipynb
 # in WA all locations have 39 years; no missing value
 
-WA_ANPP_no2012 <- bpszone_ANPP_no2012 %>% 
-                  filter()
+WA_ANPP_no2012 <- bpszone_ANPP_no2012 %>%
+                  filter(fid %in% WA_FIDs)
 
+head(fid_queen_neib_rowSTD, 2)
+head(WA_ANPP_no2012, 2)
+head(WA_SF, 2)
+npp_yr_formula <- npp ~ year
+
+# bandwidth selection
+bw.gwr(formula=npp_yr_formula, data=WA_ANPP_no2012, 
+       approach="CV", kernel="bisquare", adaptive=FALSE, p=2, theta=0, longlat=F, dMat,
+       parallel.method=F, parallel.arg=NULL)
+
+# https://www.rdocumentation.org/packages/GWmodel/versions/2.2-2/topics/gtwr
+gtwr(formula=npp_yr_formula, data=WA_ANPP_no2012, regression.points=WA_SF)
 
