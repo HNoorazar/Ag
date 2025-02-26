@@ -86,9 +86,45 @@ WA_SF_outer = merge(x = WA_SF, y = WA_ANPP_no2012, by = "fid", all = TRUE)
 
 # bandwidth selection
 npp_yr_formula <- mean_lb_per_acr ~ year
+
+## sort so that distance matrix and SF have the same order
+# OR ... do we have to expand the distance matrix so it has the same dimension as SF?
+WA_SF_outer <- WA_SF_outer[with(WA_SF_outer, order(fid, year)), ]
+
+# check if the dmatrix is sorted by fid in increasing fashion
+dmatrix_fid_list = fid_queen_neib_rowSTD$fid
+
+# everything seems to be positive?
+a = dmatrix_fid_list[(2:length(dmatrix_fid_list))] - dmatrix_fid_list[(1:length(dmatrix_fid_list)-1)]
+
+
+colnames_ = strtoi(colnames(fid_queen_neib_rowSTD)[2:length(fid_queen_neib_rowSTD)])
+# everything seems to be positive?
+b = colnames_[(2:length(colnames_))] - colnames_[(1:length(colnames_)-1)]
+# rows and columns are identical?
+a-b
+# dmatrix_fid_list[seq(length=n, from=length(dmatrix_fid_list), by=-1)] 
+distance_M = copy(fid_queen_neib_rowSTD)
+distance_M <- subset(distance_M, select = -c(fid))
+distance_M <- as.matrix(distance_M)
+distance_M <- unname(distance_M)
+
+library(Matrix)
+k = nrow(WA_SF_outer) / nrow(distance_M)
+block_diag = bdiag(replicate(k, distance_M, simplify = FALSE))
+
 bw.gwr(formula=npp_yr_formula, data=WA_SF_outer, 
-       approach="CV", kernel="bisquare", adaptive=FALSE, p=2, theta=0, longlat=F, dMat=fid_queen_neib_rowSTD,
+       approach="CV", kernel="bisquare", adaptive=FALSE, p=2, theta=0, longlat=F, dMat=block_diag,
        parallel.method=F, parallel.arg=NULL)
+
+# different (?) bandwidth from Scotts link:
+# https://rspatial.org/analysis/6-local_regression.html
+WA_SF_outer_df = data.frame(WA_SF_outer)
+WA_SF_outer_df <- subset(WA_SF_outer_df, select = -c(geometry, hucsgree_4, value, bps_code, bps_model, 
+                                                     state_1, state_2, pixel_count, area_sqMeter, bps_name))
+
+bw <- gwr.sel(mean_lb_per_acr ~ year, data=as.data.frame(WA_SF_outer_df), coords=WA_SF_outer_df[,c("lat", "long")])
+
 
 # https://www.rdocumentation.org/packages/GWmodel/versions/2.2-2/topics/gtwr
 gtwr(formula=npp_yr_formula, data=WA_ANPP_no2012, regression.points=WA_SF)
