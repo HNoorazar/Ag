@@ -39,8 +39,11 @@ Min_data_base = data_dir_base + "Min_Data/"
 reOrganized_dir = data_dir_base + "reOrganized/"
 seasonal_dir = reOrganized_dir + "seasonal_variables/02_merged_mean_over_county/"
 
+common_data = "/Users/hn/Documents/01_research_data/" + "common_data/"
+
 # %%
-abb_dict = pd.read_pickle(reOrganized_dir + "county_fips.sav")
+# abb_dict = pd.read_pickle(reOrganized_dir + "county_fips.sav")
+abb_dict = pd.read_pickle(common_data + "county_fips.sav")
 SoI = abb_dict["SoI"]
 SoI_abb = [abb_dict["full_2_abb"][x] for x in SoI]
 
@@ -66,7 +69,7 @@ county_id_name_fips.dropna(how="any", inplace=False).shape
 # %%
 
 # %%
-county_fips = pd.read_pickle(reOrganized_dir + "county_fips.sav")
+county_fips = pd.read_pickle(common_data + "county_fips.sav")
 county_fips = county_fips["county_fips"]
 
 print(f"{len(county_fips.state.unique()) = }")
