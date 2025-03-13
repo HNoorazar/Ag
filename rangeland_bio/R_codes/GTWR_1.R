@@ -117,15 +117,35 @@ bw.gwr(formula=npp_yr_formula, data=WA_SF_outer,
        approach="CV", kernel="bisquare", adaptive=FALSE, p=2, theta=0, longlat=F, dMat=block_diag,
        parallel.method=F, parallel.arg=NULL)
 
+bw.gtwr(formula=npp_yr_formula, data=WA_SF_outer, 
+        approach="CV", kernel="bisquare", adaptive=FALSE, p=2, theta=0, longlat=F, st.dMat=???,
+        parallel.method=F, parallel.arg=NULL)
+
+bw.gtwr(formula=npp_yr_formula, data=WA_SF_outer, obs.tv=WA_SF_outer$year, approach="CV", kernel="bisquare", adaptive=FALSE, p=2, theta=0, longlat=F)
+
 # different (?) bandwidth from Scotts link:
 # https://rspatial.org/analysis/6-local_regression.html
 WA_SF_outer_df = data.frame(WA_SF_outer)
 WA_SF_outer_df <- subset(WA_SF_outer_df, select = -c(geometry, hucsgree_4, value, bps_code, bps_model, 
                                                      state_1, state_2, pixel_count, area_sqMeter, bps_name))
 
-bw <- gwr.sel(mean_lb_per_acr ~ year, data=as.data.frame(WA_SF_outer_df), coords=WA_SF_outer_df[,c("lat", "long")])
+# repeating whatever they did in the link above
+alb <- "+proj=aea +lat_1=34 +lat_2=40.5 +lat_0=0 +lon_0=-120 +x_0=0 +y_0=-4000000 +datum=WGS84 +units=m"
+WA_sp <- vect(WA_SF_outer_df, c("long", "lat"), crs="+proj=longlat +datum=WGS84")
+WA_spt <- project(WA_sp, alb)
+# The link above says BW is 4340.569 which is in a different projection. Lets try it with lat long
+bw_spt <- gwr.sel(mean_lb_per_acr ~ year, data=as.data.frame(WA_spt), coords=geom(WA_spt)[,c("x", "y")]) # bw_spt = 4340.569 for WA.
+
+# band width with lat long: bw_sp_lat_long = 0.04689746 for WA
+bw_sp_lat_long <- gwr.sel(mean_lb_per_acr ~ year, data=as.data.frame(WA_sp), coords=geom(WA_sp)[,c("x", "y")])
 
 
 # https://www.rdocumentation.org/packages/GWmodel/versions/2.2-2/topics/gtwr
-gtwr(formula=npp_yr_formula, data=WA_ANPP_no2012, regression.points=WA_SF)
+a_model <- gtwr(formula=npp_yr_formula, data=WA_SF_outer, obs.tv=WA_SF_outer$year)
 
+# the weight matrix in Geographical and Temporal Weighted Regression (GTWR)
+# is sorted by year first, i.e. all locations in a given year all together.
+# lets see if that can change things
+WA_SF_outer_TimeSort <- copy(WA_SF_outer)
+WA_SF_outer_TimeSort <- WA_SF_outer_TimeSort[with(WA_SF_outer_TimeSort, order(year, fid)), ]
+a_model_TimeSort <- gtwr(formula=npp_yr_formula, data=WA_SF_outer_TimeSort, obs.tv=WA_SF_outer_TimeSort$year)

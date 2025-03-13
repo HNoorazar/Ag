@@ -96,7 +96,7 @@ threshold_func_Springer <- function(file, data_type){
 
           mutate(thresh_37half = detect_index(.x = cume_portions,
                                               .f = chill_thresh,
-                                               threshold = 37.5), # 37.5 comes from 75% of 50CP
+                                              threshold = 37.5), # 37.5 comes from 75% of 50CP
                  thresh_55 =     detect_index(.x = cume_portions,
                                               .f = chill_thresh,
                                               threshold = 55)
