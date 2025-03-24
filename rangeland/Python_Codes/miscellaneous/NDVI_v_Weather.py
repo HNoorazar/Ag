@@ -315,3 +315,5 @@ print (NDVI_weather.dropna().shape)
 # %%
 
 # %%
+
+# %%
