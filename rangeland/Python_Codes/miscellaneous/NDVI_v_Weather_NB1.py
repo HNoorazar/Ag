@@ -5,7 +5,7 @@
 #       extension: .py
 #       format_name: percent
 #       format_version: '1.3'
-#       jupytext_version: 1.16.1
+#       jupytext_version: 1.15.2
 #   kernelspec:
 #     display_name: Python 3 (ipykernel)
 #     language: python
@@ -39,6 +39,16 @@ print("Today's date:", date.today())
 print("Current Time =", current_time)
 
 from pysal.model import spreg
+
+# %%
+import tensorflow as tf
+
+from tensorflow.keras.models import Sequential
+from tensorflow.keras.layers import Dense
+
+from keras import losses 
+from keras import optimizers 
+from keras import metrics 
 
 # %%
 dpi_ = 300
@@ -312,7 +322,162 @@ NDVI_weather.head(5)
 print (NDVI_weather.shape)
 print (NDVI_weather.dropna().shape)
 
+# %% [markdown]
+# This is the base model. Lets see what we can change
+#
+# \begin{equation}
+# \label{eq:DLNDVI}
+# \text{NDVI}_t = f(T_{t-1}, S_{t-1}, P_{t-1}, \Delta \text{NDVI}_{t-1}, t, \text{lat}, \text{long})
+# \end{equation}
+#
+# Let us make a copy of data, keep the original as is. and then manipulate it.
+
 # %%
+NDVI_weather_orig = NDVI_weather.copy()
+
+# %%
+# NDVI_weather = NDVI_weather_orig.copy()
+
+# %%
+NDVI_weather_shifted = NDVI_weather.copy()
+NDVI_weather_shifted['month'] = NDVI_weather_shifted['month'] + 1
+# change the year for Januaries
+NDVI_weather_shifted.head(5)
+
+# %%
+idx_13 = NDVI_weather_shifted[NDVI_weather_shifted["month"]==13].index
+NDVI_weather_shifted.loc[idx_13, "year"] = NDVI_weather_shifted.loc[idx_13, "year"] + 1
+NDVI_weather_shifted.loc[idx_13, "month"] = 1
+NDVI_weather_shifted.head(5)
+
+# %%
+NDVI_weather_shifted.rename(columns={"MODIS_NDVI": "MODIS_NDVI_lag1",
+                                     "tavg_avg" : "tavg_avg_lag1",
+                                     "ppt" : "ppt_lag1"}, inplace=True)
+
+# %%
+NDVI_weather_orig[8:16]
+
+# %%
+NDVI_weather_shifted[8:16]
+
+# %%
+NDVI_weather = pd.merge(NDVI_weather, NDVI_weather_shifted, how="left", on=['county_fips', 'year', 'month'])
+NDVI_weather.head(2)
+
+# %%
+NDVI_weather[8:16]
+
+# %%
+# delta_NDVI = NDVI_weather_orig[['county_fips', "year", "month", "MODIS_NDVI"]].copy()
+# delta_NDVI["delta_NDVI"] = np.nan
+# delta_NDVI.head(2)
+
+del(delta_NDVI)
+
+# %%
+NDVI_weather["delta_NDVI"] = np.nan
+
+# %%
+# %%time
+for a_county in list(NDVI_weather.county_fips.unique()):
+    df = NDVI_weather[NDVI_weather["county_fips"] == a_county]
+    curr_idx = df.index
+    deltas = df.loc[curr_idx[1:], "MODIS_NDVI"].values - df.loc[curr_idx[:-1], "MODIS_NDVI"].values
+    
+    NDVI_weather.loc[curr_idx[2:], "delta_NDVI"] = deltas[:-1]
+    
+
+# %%
+NDVI_weather.head(15)
+
+# %%
+NDVI_weather.tail(15)
+
+# %%
+NDVI_weather.columns
+
+# %%
+NDVI_weather.dropna(inplace=True)
+
+# %%
+import pickle
+from datetime import datetime
+
+filename = "/Users/hn/Documents/01_research_data/NDVI_v_Weather/data/" + "NDVI_weather.sav"
+
+export_ = {"NDVI_weather_input": NDVI_weather, 
+           "NDVI_weather_orig": NDVI_weather_orig, 
+           "source_code" : "NDVI_v_Weather_NB1",
+           "Author": "HN",
+           "Date" : datetime.now().strftime('%Y-%m-%d %H:%M:%S')}
+
+pickle.dump(export_, open(filename, 'wb'))
+
+# %%
+
+# %%
+indp_vars = ['county_fips', 'year', 'month', 'tavg_avg_lag1', 'ppt_lag1', 'delta_NDVI']
+y_var = 'MODIS_NDVI'
+
+X = NDVI_weather[indp_vars].copy()
+y = NDVI_weather[y_var].copy()
+
+
+# %%
+
+# %%
+
+# %%
+def rmse(y_true, y_pred):
+    return tf.sqrt(tf.reduce_mean(tf.square(y_pred - y_true)))
+
+from keras import backend as K
+def root_mean_squared_error(y_true, y_pred):
+        return K.sqrt(K.mean(K.square(y_pred - y_true)))
+    
+def r_squared(y_true, y_pred):
+    # Total sum of squares
+    ss_tot = tf.reduce_sum(tf.square(y_true - tf.reduce_mean(y_true)))
+    # Residual sum of squares
+    ss_res = tf.reduce_sum(tf.square(y_true - y_pred))
+    return (1 - ss_res / ss_tot)
+
+
+model = Sequential()
+model.add(Dense(250, input_shape=(6,), activation='relu'))
+model.add(Dense(200, activation='relu'))
+model.add(Dense(150, activation='relu'))
+model.add(Dense(100, activation='relu'))
+model.add(Dense(50, activation='relu'))
+model.add(Dense(25, activation='relu'))
+model.add(Dense(10, activation='relu'))
+model.add(Dense(1,  activation='relu'))
+# model.compile(loss=rmse, optimizer='adam', metrics=[rmse, 'R2Score'])
+model.compile(loss='mean_squared_error', optimizer='adam', metrics=[rmse, r_squared])
+
+model.fit(X, y, epochs=50, batch_size=10)
+
+# %%
+
+# %%
+# from numpy import loadtxt
+# dataset = loadtxt('/Users/hn/Desktop/pima-indians-diabetes.txt', delimiter=',')
+# X = dataset[:,0:8]
+# y = dataset[:,8]
+
+# model = Sequential()
+# model.add(Dense(12, input_shape=(8,), activation='relu'))
+# model.add(Dense(8, activation='relu'))
+# model.add(Dense(1, activation='sigmoid'))
+
+# # compile the keras model
+# model.compile(loss='binary_crossentropy', optimizer='adam', metrics=['accuracy'])
+
+# # fit the keras model on the dataset
+# model.fit(X, y, epochs=50, batch_size=10); # , verbose=0
+# _, accuracy = model.evaluate(X, y)
+# print('Accuracy: %.2f' % (accuracy*100))
 
 # %%
 
