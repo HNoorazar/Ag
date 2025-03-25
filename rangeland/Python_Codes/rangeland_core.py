@@ -7,10 +7,37 @@ import os, os.path, sys
 import scipy
 from scipy.linalg import inv
 from geopy.distance import geodesic
+import tensorflow as tf
+from tensorflow.keras.models import Sequential
+from tensorflow.keras.layers import Dense
+
+from keras import losses
+from keras import optimizers
+from keras import metrics
+
 
 """
 There are scipy.linalg.block_diag() and scipy.sparse.block_diag()
 """
+
+
+def rmse(y_true, y_pred):
+    return tf.sqrt(tf.reduce_mean(tf.square(y_pred - y_true)))
+
+
+from keras import backend as K
+
+
+def root_mean_squared_error(y_true, y_pred):
+    return K.sqrt(K.mean(K.square(y_pred - y_true)))
+
+
+def r_squared(y_true, y_pred):
+    # Total sum of squares
+    ss_tot = tf.reduce_sum(tf.square(y_true - tf.reduce_mean(y_true)))
+    # Residual sum of squares
+    ss_res = tf.reduce_sum(tf.square(y_true - y_pred))
+    return 1 - ss_res / ss_tot
 
 
 def calculate_geodesic_distance(point1, point2):
