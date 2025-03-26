@@ -11,10 +11,7 @@ import tensorflow as tf
 from tensorflow.keras.models import Sequential
 from tensorflow.keras.layers import Dense
 
-from keras import losses
-from keras import optimizers
-from keras import metrics
-
+from keras import losses, optimizers, metrics
 
 """
 There are scipy.linalg.block_diag() and scipy.sparse.block_diag()

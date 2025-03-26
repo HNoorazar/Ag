@@ -200,6 +200,30 @@ grid_result = grid.fit(X, y)
 grid_result
 
 # %%
+grid_result.cv_results_
+
+# %%
+pickle.dump(model, f)
+
+# %%
+filename = "/Users/hn/Documents/01_research_data/NDVI_v_Weather/data/" + "grid_result_Savetest.sav"
+
+export_ = {"grid_result": grid_result, 
+           "source_code" : "NDVI_v_Weather_NB1",
+           "Author": "HN",
+           "Date" : datetime.now().strftime('%Y-%m-%d %H:%M:%S')}
+
+pickle.dump(export_, open(filename, 'wb'))
+
+# %%
+with open(filename, 'rb') as f:
+    A = pickle.load(f)
+
+# %%
+A["grid_result"]
+
+# %%
+grid_result.cv_results_
 
 # %%
 filename = "/Users/hn/Documents/01_research_data/NDVI_v_Weather/data/" + "testing_grid_result.cv_results_.sav"
@@ -210,6 +234,17 @@ export_ = {"grid_result.cv_results_": grid_result.cv_results_,
            "Date" : datetime.now().strftime('%Y-%m-%d %H:%M:%S')}
 
 pickle.dump(export_, open(filename, 'wb'))
+
+# %%
+indp_vars
+
+# %%
+
+# %%
+# current_time = datetime.now().strftime("%H:%M:%S")
+a = datetime.now()
+
+# %%
 
 # %%
 

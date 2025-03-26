@@ -5,6 +5,13 @@ Global Normalized Difference Vegetation Index forecasting from air
 temperature, soil moisture and precipitation using a deep neural network
 
 """
+from datetime import datetime, date
+
+current_time = datetime.now()
+print("Today's date:", date.today())
+print("Current Time =", current_time.strftime("%H:%M:%S"))
+
+
 import shutup
 
 shutup.please()
@@ -12,25 +19,8 @@ shutup.please()
 import pandas as pd
 import numpy as np
 import os, os.path, pickle, sys
-import seaborn as sns
-
-import matplotlib
-import matplotlib.pyplot as plt
 
 from sklearn import preprocessing
-import statistics
-import statsmodels.api as sm
-
-
-from datetime import datetime, date
-from scipy.linalg import inv
-
-current_time = datetime.now().strftime("%H:%M:%S")
-print("Today's date:", date.today())
-print("Current Time =", current_time)
-
-
-# %%
 import tensorflow as tf
 from tensorflow.keras.models import Sequential
 from tensorflow.keras.layers import Dense
@@ -42,6 +32,18 @@ from sklearn.model_selection import train_test_split
 sys.path.append("/home/h.noorazar/rangeland/")
 import rangeland_core as rc
 
+####################################################################################
+###
+###      Parameters
+###
+####################################################################################
+
+NDVI_lag_or_delta = sys.argv[1]  # let be either lag or delta
+
+# do the following since walla walla has two parts and we have to use walla_walla in terminal
+print("Terminal Arguments are: ")
+print("NDVI_lag_or_delta= ", NDVI_lag_or_delta)
+print("__________________________________________")
 
 ######################################################################################
 ######################################################################################
@@ -55,6 +57,10 @@ dpi_ = 300
 data_basement = "/data/project/agaid/h.noorazar/"
 NDVI_weather_base = data_basement + "NDVI_v_Weather/"
 NDVI_weather_data_dir = NDVI_weather_base + "data/"
+
+models_dir = NDVI_weather_base + "models/DL/"
+os.makedirs(models_dir, exist_ok=True)
+
 plot_dir = NDVI_weather_base + "plots/"
 os.makedirs(plot_dir, exist_ok=True)
 
@@ -114,11 +120,32 @@ NDVI_weather = NDVI_weather["NDVI_weather_input"]
 ######################################################################################
 ######################################################################################
 ######################################################################################
+
+if NDVI_lag_or_delta == "deta":
+    indp_vars = [
+        "county_fips",
+        "year",
+        "month",
+        "tavg_avg_lag1",
+        "ppt_lag1",
+        "delta_NDVI",
+    ]
+else:
+    indp_vars = [
+        "county_fips",
+        "year",
+        "month",
+        "tavg_avg_lag1",
+        "ppt_lag1",
+        "MODIS_NDVI_lag1",
+    ]
+
+y_var = "MODIS_NDVI"
+
+NDVI_weather = NDVI_weather[[y_var] + indp_vars]
 NDVI_weather.dropna(inplace=True)
 NDVI_weather.reset_index(drop=True, inplace=True)
 
-indp_vars = ["county_fips", "year", "month", "tavg_avg_lag1", "ppt_lag1", "delta_NDVI"]
-y_var = "MODIS_NDVI"
 
 X = NDVI_weather[indp_vars].copy()
 y = NDVI_weather[y_var].copy()
@@ -160,7 +187,7 @@ param_grid = dict(
     LR=[0.000001, 0.00001, 0.0001, 0.001, 0.01, 0.1],
     batch_sizes=[16, 32, 64, 128],
     L2s=[0.001, 0.01, 0.1],
-    epochs=[10, 50, 100],
+    epochs=[10, 20, 50, 100],
 )
 
 seed = 7
@@ -169,3 +196,25 @@ tf.random.set_seed(seed)
 
 grid = GridSearchCV(estimator=model, param_grid=param_grid, n_jobs=-1, cv=5)
 grid_result = grid.fit(X, Y)
+
+
+filename = models_dir + "DL_" + NDVI_lag_or_delta + "NDVI_GridRes_NB1_PaperArch.sav"
+
+export_ = {
+    "grid_result.cv_results_": grid_result.cv_results_,
+    "source_code": "DL_DeltaNDVIs_model_NB1",
+    "Author": "HN",
+    "Date": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+}
+
+pickle.dump(export_, open(filename, "wb"))
+
+print("Best: %f using %s" % (grid_result.best_score_, grid_result.best_params_))
+
+
+final_time = datetime.now()
+print("Today's date:", date.today())
+print("Current Time =", final_time.strftime("%H:%M:%S"))
+print(
+    "it took the following to run the code (in hours): ", (b - a).total_seconds() / 3600
+)
