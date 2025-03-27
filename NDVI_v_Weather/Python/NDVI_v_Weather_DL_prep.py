@@ -92,6 +92,9 @@ mike_dir = data_dir_base + "Mike/"
 reOrganized_dir = data_dir_base + "reOrganized/"
 os.makedirs(reOrganized_dir, exist_ok=True)
 
+
+NDVI_weather_data_dir = research_db + "/NDVI_v_Weather/"
+
 # %%
 abb_dict = pd.read_pickle(common_data + "county_fips.sav")
 county_fips_df = abb_dict["county_fips"]

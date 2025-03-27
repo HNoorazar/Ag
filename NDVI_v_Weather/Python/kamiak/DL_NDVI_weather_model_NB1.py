@@ -181,7 +181,11 @@ x_train_df, x_test_df, y_train_df, y_test_df = train_test_split(
 #############
 def create_model(l2_lambda):
     model = Sequential()
-    model.add(Dense(250, input_shape=(6,), activation="relu"))
+    model.add(
+        Dense(
+            250, input_shape=(6,), activation="relu", kernel_regularizer=l2(l2_lambda)
+        )
+    )
     model.add(Dense(200, activation="relu", kernel_regularizer=l2(l2_lambda)))
     model.add(Dense(150, activation="relu", kernel_regularizer=l2(l2_lambda)))
     model.add(Dense(100, activation="relu", kernel_regularizer=l2(l2_lambda)))
@@ -198,7 +202,7 @@ def create_model(l2_lambda):
 
 
 # model = KerasRegressor(build_fn=create_model) # this seems to work, but i want to try:
-model = KerasRegressor(model=create_model)
+model = KerasRegressor(model=create_model, verbose=0)
 
 param_grid = {
     "optimizer__learning_rate": [0.0001, 0.001, 0.01, 0.1],
