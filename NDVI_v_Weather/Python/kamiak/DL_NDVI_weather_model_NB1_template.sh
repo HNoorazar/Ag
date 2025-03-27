@@ -4,7 +4,7 @@
 ##SBATCH --partition=rajagopalan
 #SBATCH --requeue
 #SBATCH --job-name=DL_NDVI_weather_model_NB1_NDVI_lag_or_delta # Job Name
-#SBATCH --time=1-00:00:00    # Wall clock time limit in Days-HH:MM:SS
+#SBATCH --time=7-00:00:00    # Wall clock time limit in Days-HH:MM:SS
 #SBATCH --mem=10GB 
 #SBATCH --nodes=1            # Node count required for the job
 #SBATCH --ntasks-per-node=1  # Number of tasks to be launched per Node

@@ -39,6 +39,7 @@ from keras.models import Sequential
 from keras.layers import Dense
 
 from keras import losses, optimizers, metrics, regularizers
+from keras.regularizers import l2
 from scikeras.wrappers import KerasRegressor
 from sklearn.model_selection import train_test_split, GridSearchCV
 from keras import backend as K
@@ -178,14 +179,15 @@ x_train_df, x_test_df, y_train_df, y_test_df = train_test_split(
 #############
 #############
 #############
-def create_model():
+#############
+def create_model(l2_lambda):
     model = Sequential()
-    model.add(Dense(150, activation="relu"))
-    model.add(Dense(100, activation="relu"))
-    model.add(Dense(50, activation="relu"))
-    model.add(Dense(25, activation="relu"))
-    model.add(Dense(10, activation="relu"))
-    model.add(Dense(1, activation="relu"))
+    model.add(Dense(150, activation="relu", kernel_regularizer=l2(l2_lambda)))
+    model.add(Dense(100, activation="relu", kernel_regularizer=l2(l2_lambda)))
+    model.add(Dense(50, activation="relu", kernel_regularizer=l2(l2_lambda)))
+    model.add(Dense(25, activation="relu", kernel_regularizer=l2(l2_lambda)))
+    model.add(Dense(10, activation="relu", kernel_regularizer=l2(l2_lambda)))
+    model.add(Dense(1, activation="relu", kernel_regularizer=l2(l2_lambda)))
     model.compile(
         loss="mean_squared_error",
         optimizer="adam",
@@ -194,11 +196,11 @@ def create_model():
     return model
 
 
-model = KerasRegressor(model=create_model)
+model = KerasRegressor(build_fn=create_model)
 
 param_grid = {
     "optimizer__learning_rate": [0.0001, 0.001, 0.01, 0.1],
-    "model__l2_reg": [0.001, 0.01, 0.1],
+    "model__l2_lambda": [0.001, 0.01, 0.1],
     # "l2_lambda": [0.001, 0.01, 0.1],
     "batch_size": [16, 32, 64, 128],
     "epochs": [10, 20, 50, 100],
@@ -208,7 +210,7 @@ seed = 7
 tf.random.set_seed(seed)
 grid = GridSearchCV(estimator=model, param_grid=param_grid, n_jobs=-1, cv=5)
 grid_result = grid.fit(x_train_df, y_train_df)
-
+#########################################################################################################
 
 filename = models_dir + "DL_" + NDVI_lag_or_delta + "DL_Network2.sav"
 
