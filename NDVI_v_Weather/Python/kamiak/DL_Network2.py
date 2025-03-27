@@ -180,8 +180,6 @@ x_train_df, x_test_df, y_train_df, y_test_df = train_test_split(
 #############
 def create_model():
     model = Sequential()
-    model.add(Dense(250, input_shape=(6,), activation="relu"))
-    model.add(Dense(200, activation="relu"))
     model.add(Dense(150, activation="relu"))
     model.add(Dense(100, activation="relu"))
     model.add(Dense(50, activation="relu"))
@@ -212,11 +210,11 @@ grid = GridSearchCV(estimator=model, param_grid=param_grid, n_jobs=-1, cv=5)
 grid_result = grid.fit(x_train_df, y_train_df)
 
 
-filename = models_dir + "DL_" + NDVI_lag_or_delta + "NDVI_GridRes_NB1_PaperArch.sav"
+filename = models_dir + "DL_" + NDVI_lag_or_delta + "DL_Network2.sav"
 
 export_ = {
     "grid_result.cv_results_": grid_result.cv_results_,
-    "source_code": "DL_DeltaNDVIs_model_NB1",
+    "source_code": "DL_Network2",
     "Author": "HN",
     "Date": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
 }

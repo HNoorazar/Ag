@@ -8,8 +8,20 @@ import scipy
 from scipy.linalg import inv
 from geopy.distance import geodesic
 import tensorflow as tf
-from tensorflow.keras.models import Sequential
-from tensorflow.keras.layers import Dense
+
+
+"""
+for whatever reason, the following 2 lines dont work
+even tho tensorflow in my environemnt is the same as that
+on my computer!!! So, we comment out and then add it in 
+different way!
+"""
+# from tensorflow.keras.models import Sequential
+# from tensorflow.keras.layers import Dense
+
+from tensorflow import keras
+from keras.models import Sequential
+from keras.layers import Dense
 
 from keras import losses, optimizers, metrics
 

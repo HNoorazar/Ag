@@ -44,6 +44,10 @@ from keras import losses, optimizers, metrics
 from scikeras.wrappers import KerasRegressor
 from sklearn.model_selection import GridSearchCV
 
+# %%
+print(tf.__version__)
+print(tf.version.VERSION)
+
 
 # %%
 def rmse(y_true, y_pred):
@@ -60,6 +64,11 @@ def r_squared(y_true, y_pred):
     ss_res = tf.reduce_sum(tf.square(y_true - y_pred))
     return (1 - ss_res / ss_tot)
 
+
+# %%
+
+# %%
+param_grid
 
 # %%
 dpi_ = 300
