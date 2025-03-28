@@ -171,6 +171,8 @@ x_train_df, x_test_df, y_train_df, y_test_df = train_test_split(
     X, y, test_size=0.2, random_state=0, shuffle=True
 )
 
+input_shape_ = x_train_df.shape[1]
+
 
 ######################################################################################
 ######################################################################################
@@ -184,7 +186,10 @@ def create_model(l2_lambda):
     model = Sequential()
     model.add(
         Dense(
-            150, input_shape=(6,), activation="relu", kernel_regularizer=l2(l2_lambda)
+            150,
+            input_shape=(input_shape_,),
+            activation="relu",
+            kernel_regularizer=l2(l2_lambda),
         )
     )
     model.add(Dense(100, activation="relu", kernel_regularizer=l2(l2_lambda)))

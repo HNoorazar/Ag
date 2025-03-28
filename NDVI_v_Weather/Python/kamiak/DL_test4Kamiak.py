@@ -199,6 +199,10 @@ Y = dataset[:,8]
 # create model
 
 # %%
+input_shape_ = X.shape[1]
+input_shape_
+
+# %%
 # Use scikit-learn to grid search the learning rate and momentum
 import numpy as np
 import tensorflow as tf
@@ -211,7 +215,7 @@ from scikeras.wrappers import KerasClassifier
 def create_model():
     # create model
     model = Sequential()
-    model.add(Dense(12, input_shape=(8,), activation='relu'))
+    model.add(Dense(12, input_shape=(input_shape_,), activation='relu'))
     model.add(Dense(1, activation='sigmoid'))
     return model
 # fix random seed for reproducibility
@@ -219,7 +223,9 @@ seed = 7
 tf.random.set_seed(seed)
 
 # %%
-model = KerasClassifier(model=create_model, loss="binary_crossentropy", optimizer="SGD", epochs=100, batch_size=10, verbose=0)
+# %%time
+model = KerasClassifier(model=create_model, loss="binary_crossentropy", 
+                        optimizer="SGD", epochs=100, batch_size=10, verbose=0)
 # define the grid search parameters
 learn_rate = [0.001, 0.01, 0.1, 0.2, 0.3]
 momentum = [0.0, 0.2, 0.4, 0.6, 0.8, 0.9]
