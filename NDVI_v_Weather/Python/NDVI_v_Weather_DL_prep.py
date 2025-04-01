@@ -121,7 +121,9 @@ state_fips_west = list(state_fips_SoI[state_fips_SoI["EW_meridian"] == "W"]["sta
 state_fips_west[:3]
 
 # %% [markdown]
-# # pick up western meridian
+# ### western meridian
+#
+# saved data is already western side (```NDVI_v_Weather_dataPrep.ipynb```).
 
 # %%
 WM_counties = county_fips_df[county_fips_df["EW_meridian"] == "W"]
@@ -134,14 +136,16 @@ NDVI_weather = pd.read_pickle(filename)
 NDVI_weather=NDVI_weather["NDVI_weather_input"]
 
 # %%
+indp_vars = ['county_fips', 'year', 'month', 'tavg_avg_lag1', 'ppt_lag1', 'delta_NDVI']
+y_var = 'MODIS_NDVI'
+
+NDVI_weather = NDVI_weather[[y_var] + indp_vars]
+
 print (NDVI_weather.shape)
 NDVI_weather.dropna(inplace=True)
 NDVI_weather.reset_index(drop=True, inplace=True)
 print (NDVI_weather.shape)
 # 258300 - 256250
-
-indp_vars = ['county_fips', 'year', 'month', 'tavg_avg_lag1', 'ppt_lag1', 'delta_NDVI']
-y_var = 'MODIS_NDVI'
 
 X = NDVI_weather[indp_vars].copy()
 y = NDVI_weather[y_var].copy()

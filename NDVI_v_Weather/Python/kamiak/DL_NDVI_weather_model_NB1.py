@@ -119,17 +119,6 @@ state_name_fips = pd.merge(
 state_name_fips.head(2)
 
 
-state_fips_SoI = state_name_fips[state_name_fips.state.isin(SoI_abb)].copy()
-state_fips_SoI.reset_index(drop=True, inplace=True)
-state_fips_SoI.head(2)
-
-
-state_fips_west = list(
-    state_fips_SoI[state_fips_SoI["EW_meridian"] == "W"]["state_fips"].values
-)
-state_fips_west[:3]
-
-
 NDVI_weather = pd.read_pickle(NDVI_weather_data_dir + "NDVI_weather.sav")
 NDVI_weather = NDVI_weather["NDVI_weather_input"]
 

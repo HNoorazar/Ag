@@ -212,9 +212,6 @@ Albers_SF.head(2)
 Albers_SF['lat_long_centroid'] = geopandas.points_from_xy(Albers_SF['long'], Albers_SF['lat'])
 Albers_SF.head(2)
 
-# %% [markdown]
-# ## Following cell takes too long. Running on Kamiak
-
 # %%
 Albers_SF.head(2)
 
