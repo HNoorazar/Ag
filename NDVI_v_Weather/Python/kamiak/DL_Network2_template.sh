@@ -5,7 +5,7 @@
 #SBATCH --requeue
 #SBATCH --job-name=DL_Network2_NDVI_lag_or_delta # Job Name
 #SBATCH --time=7-00:00:00    # Wall clock time limit in Days-HH:MM:SS
-#SBATCH --mem=10GB 
+#SBATCH --mem=50GB 
 #SBATCH --nodes=1            # Node count required for the job
 #SBATCH --ntasks-per-node=1  # Number of tasks to be launched per Node
 #SBATCH --ntasks=1           # Number of tasks per array job

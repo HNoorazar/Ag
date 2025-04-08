@@ -61,7 +61,6 @@ NASS_downloads_state = data_dir_base + "/NASS_downloads_state/"
 mike_dir = data_dir_base + "Mike/"
 reOrganized_dir = data_dir_base + "reOrganized/"
 
-
 NDVI_weather_data_dir = research_db + "/NDVI_v_Weather/"
 
 # %%
@@ -102,6 +101,7 @@ print (bio_reOrganized_dir + "fid_Queen_neighbors_rowSTD.csv")
 
 
 # %%
+# %%time
 a = pd.read_csv(bio_reOrganized_dir + "fid_contiguity_Queen_neighbors_rowSTD.csv")
 
 # %%
@@ -144,12 +144,14 @@ from sklearn.model_selection import train_test_split
 x_train, x_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=0, shuffle=True)
 
 # %%
+from scipy.sparse import csr_matrix, save_npz, load_npz
+row = np.array([0, 0, 1, 2, 2, 2])
+col = np.array([0, 2, 2, 0, 1, 2])
+data = np.array([1, 2, 3, 4, 5, 6])
+sparse_matrix = csr_matrix((data, (row, col)), shape=(3, 3))
 
 # %%
-import sklearn
-print(sklearn.__version__)
-
-# %%
+sparse_matrix.toarray()
 
 # %%
 

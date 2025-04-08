@@ -202,7 +202,7 @@ param_grid = {
     "optimizer__learning_rate": [0.0001, 0.001, 0.01, 0.1],
     "model__l2_lambda": [0.001, 0.01, 0.1],
     # "l2_lambda": [0.001, 0.01, 0.1],
-    "batch_size": [16, 32, 64, 128],
+    # "batch_size": [16, 32, 64, 128],
     "epochs": [10, 20, 50, 100],
 }
 
@@ -212,7 +212,12 @@ grid = GridSearchCV(estimator=model, param_grid=param_grid, n_jobs=-1, cv=5)
 grid_result = grid.fit(x_train_df, y_train_df)
 #########################################################################################################
 
-filename = models_dir + "DL_" + NDVI_lag_or_delta + "NDVI_GridRes_NB1_PaperArch.sav"
+filename = (
+    models_dir
+    + "DL_"
+    + NDVI_lag_or_delta
+    + "NDVI_GridRes_NB1_PaperArch_noBatchSize.sav"
+)
 
 export_ = {
     "grid_result.cv_results_": grid_result.cv_results_,
