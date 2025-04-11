@@ -207,8 +207,9 @@ param_grid = {
 }
 
 seed = 7
+cv_ = 3
 tf.random.set_seed(seed)
-grid = GridSearchCV(estimator=model, param_grid=param_grid, n_jobs=-1, cv=5)
+grid = GridSearchCV(estimator=model, param_grid=param_grid, n_jobs=-1, cv=cv_)
 grid_result = grid.fit(x_train_df, y_train_df)
 #########################################################################################################
 
@@ -216,6 +217,8 @@ filename = (
     models_dir
     + "DL_"
     + NDVI_lag_or_delta
+    + "cv_"
+    + str(cv_)
     + "NDVI_GridRes_NB1_PaperArch_noBatchSize.sav"
 )
 

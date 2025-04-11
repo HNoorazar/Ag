@@ -216,12 +216,14 @@ param_grid = {
 }
 
 seed = 7
+cv_ = 3
 tf.random.set_seed(seed)
-grid = GridSearchCV(estimator=model, param_grid=param_grid, n_jobs=-1, cv=5)
+grid = GridSearchCV(estimator=model, param_grid=param_grid, n_jobs=-1, cv=cv_)
 grid_result = grid.fit(x_train_df, y_train_df)
 #########################################################################################################
 
-filename = models_dir + "DL_" + NDVI_lag_or_delta + "DL_Network2_noBatchSize.sav"
+filename = models_dir + "DL_" + NDVI_lag_or_delta + "cv_"
+    + str(cv_) + "DL_Network2_noBatchSize.sav"
 
 export_ = {
     "grid_result.cv_results_": grid_result.cv_results_,
