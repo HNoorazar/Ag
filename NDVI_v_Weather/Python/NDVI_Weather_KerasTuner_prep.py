@@ -5,7 +5,7 @@
 #       extension: .py
 #       format_name: percent
 #       format_version: '1.3'
-#       jupytext_version: 1.15.2
+#       jupytext_version: 1.16.1
 #   kernelspec:
 #     display_name: Python 3 (ipykernel)
 #     language: python
@@ -42,8 +42,8 @@ from keras import losses, optimizers, metrics, layers
 from tensorflow.keras.models import Sequential
 from tensorflow.keras.layers import Dense
 
-from scikeras.wrappers import KerasRegressor
-from sklearn.model_selection import GridSearchCV
+# from scikeras.wrappers import KerasRegressor
+# from sklearn.model_selection import GridSearchCV
 
 import keras_tuner
 
