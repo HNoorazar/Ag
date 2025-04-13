@@ -39,6 +39,7 @@ import tensorflow as tf
 
 import keras
 from keras import losses, optimizers, metrics, layers
+from keras.regularizers import l2
 from tensorflow.keras.models import Sequential
 from tensorflow.keras.layers import Dense
 
@@ -94,7 +95,7 @@ reOrganized_dir = data_dir_base + "reOrganized/"
 os.makedirs(reOrganized_dir, exist_ok=True)
 
 
-NDVI_weather_data_dir = research_db + "/NDVI_v_Weather/"
+NDVI_weather_data_dir = research_db + "/NDVI_v_Weather/data/"
 
 # %%
 abb_dict = pd.read_pickle(common_data + "county_fips.sav")
@@ -132,7 +133,7 @@ WM_counties = list(WM_counties["county_fips"])
 len(WM_counties)
 
 # %%
-filename = "/Users/hn/Documents/01_research_data/NDVI_v_Weather/data/NDVI_weather.sav"
+filename = NDVI_weather_data_dir + "NDVI_weather.sav"
 NDVI_weather = pd.read_pickle(filename)
 NDVI_weather=NDVI_weather["NDVI_weather_input"]
 
@@ -156,10 +157,18 @@ y = NDVI_weather[y_var].copy()
 X['county_fips'] = X['county_fips'].astype(np.float64)
 
 # %%
+
+# %%
 from sklearn.model_selection import train_test_split
 x_train, x_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=0, shuffle=True)
 
 # %%
+
+# %%
+x_train.shape
+
+# %%
+x_val.shape
 
 # %%
 # we need to do this. tf or keras throws an error with newer version kf scikir learn:
@@ -187,7 +196,8 @@ x_train, x_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_
 
 def call_existing_code(epochs, learning_rate, l2_lambda):
     model = Sequential()
-    model.add(Dense(250, input_shape=(input_shape_,), activation="relu", kernel_regularizer=l2(l2_lambda)))
+    model.add(layers.Flatten())
+    # model.add(Dense(250, input_shape=(input_shape_,), activation="relu", kernel_regularizer=l2(l2_lambda)))
     model.add(Dense(200, activation="relu", kernel_regularizer=l2(l2_lambda)))
     model.add(Dense(150, activation="relu", kernel_regularizer=l2(l2_lambda)))
     model.add(Dense(100, activation="relu", kernel_regularizer=l2(l2_lambda)))
@@ -198,7 +208,7 @@ def call_existing_code(epochs, learning_rate, l2_lambda):
     model.compile(loss="mean_squared_error", optimizer="adam", metrics=["mean_squared_error", "R2Score"],)
     return model
 
-def build_model_kerasTuner(hp):
+def build_model(hp):
     """
     https://keras.io/keras_tuner/api/hyperparameters/
     hp.Float("learning_rate", min_value=0.001, max_value=10, step=10, sampling="log")
@@ -215,14 +225,15 @@ def build_model_kerasTuner(hp):
 
 # %%
 # https://keras.io/keras_tuner/getting_started/
-tuner = keras_tuner.RandomSearch(hypermodel=build_model_kerasTuner,
+project_name_ = "p"
+tuner = keras_tuner.RandomSearch(hypermodel=build_model,
                                  seed=19,
                                  objective="val_accuracy",
                                  max_trials=10,
                                  executions_per_trial=1,
                                  overwrite=False, 
                                  directory=NDVI_weather_data_dir,
-                                 project_name="NDVI_Weather")
+                                 project_name=project_name_)
 
 tuner.search_space_summary()
 
@@ -232,6 +243,77 @@ print (tuner.search_space_summary())
 # %%
 
 # %%
+
+# %%
+# %%time
+
+(x, y), (x_test, y_test) = keras.datasets.mnist.load_data()
+
+x_train = x[:-10000]
+x_val = x[-10000:]
+y_train = y[:-10000]
+y_val = y[-10000:]
+
+x_train = np.expand_dims(x_train, -1).astype("float32") / 255.0
+x_val = np.expand_dims(x_val, -1).astype("float32") / 255.0
+x_test = np.expand_dims(x_test, -1).astype("float32") / 255.0
+
+num_classes = 10
+y_train = keras.utils.to_categorical(y_train, num_classes)
+y_val = keras.utils.to_categorical(y_val, num_classes)
+y_test = keras.utils.to_categorical(y_test, num_classes)
+
+
+# %%
+def build_model(hp):
+    model = keras.Sequential()
+    model.add(layers.Flatten())
+    # Tune the number of layers.
+    for i in range(hp.Int("num_layers", 1, 3)):
+        model.add(
+            layers.Dense(
+                # Tune number of units separately.
+                units=hp.Int(f"units_{i}", min_value=32, max_value=512, step=32),
+                activation=hp.Choice("activation", ["relu", "tanh"]),
+            )
+        )
+    if hp.Boolean("dropout"):
+        model.add(layers.Dropout(rate=0.25))
+    model.add(layers.Dense(10, activation="softmax"))
+    learning_rate = hp.Float("lr", min_value=1e-4, max_value=1e-2, sampling="log")
+    model.compile(optimizer=keras.optimizers.Adam(learning_rate=learning_rate),
+                  loss="categorical_crossentropy",
+                  metrics=["accuracy", "R2Score"])
+    return model
+
+
+print (f"{build_model(keras_tuner.HyperParameters()) = }")
+
+tuner = keras_tuner.RandomSearch(
+    hypermodel=build_model,
+    objective="val_accuracy",
+    max_trials=3,
+    executions_per_trial=2,
+    overwrite=True,
+    directory=NDVI_weather_data_dir,
+    project_name="helloworld",
+)
+print ("---------------------------------------------------------------------")
+tuner.search_space_summary()
+print ("---------------------------------------------------------------------")
+tuner.search(x_train, y_train, epochs=2, validation_data=(x_val, y_val))
+
+# %%
+# Get the top 2 models.
+models = tuner.get_best_models(num_models=1)
+best_model = models[0]
+best_model.summary()
+
+# %%
+models
+
+# %%
+tuner.results_summary()
 
 # %%
 
