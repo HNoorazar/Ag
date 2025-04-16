@@ -5,7 +5,7 @@
 #       extension: .py
 #       format_name: percent
 #       format_version: '1.3'
-#       jupytext_version: 1.16.1
+#       jupytext_version: 1.15.2
 #   kernelspec:
 #     display_name: Python 3 (ipykernel)
 #     language: python
@@ -37,8 +37,12 @@ current_time = datetime.now().strftime("%H:%M:%S")
 print("Today's date:", date.today())
 print("Current Time =", current_time)
 
-sys.path.append("/Users/hn/Documents/00_GitHub/Ag/rangeland/Python_Codes/")
-import rangeland_core as rc
+# sys.path.append("/Users/hn/Documents/00_GitHub/Ag/rangeland/Python_Codes/")
+# import rangeland_core as rc
+
+# %%
+
+# %%
 
 # %%
 dpi_ = 300

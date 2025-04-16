@@ -316,10 +316,10 @@ filename = (
     models_dir
     + "KerasTuner_"
     + project_name_
-    + "executions_per_trial_"
+    + "_executions_per_trial_"
     + str(executions_per_trial_)
-    + "executions_per_trial_"
-    + str(executions_per_trial_)
+    + "_max_trials_"
+    + str(max_trials_)
     + "best_model.sav"
 )
 
@@ -337,5 +337,6 @@ final_time = datetime.now()
 print("Today's date:", date.today())
 print("Current Time =", final_time.strftime("%H:%M:%S"))
 print(
-    "it took the following to run the code (in hours): ", (b - a).total_seconds() / 3600
+    "it took the following to run the code (in hours): ",
+    (final_time - current_time).total_seconds() / 3600,
 )
