@@ -5,7 +5,7 @@
 #       extension: .py
 #       format_name: percent
 #       format_version: '1.3'
-#       jupytext_version: 1.15.2
+#       jupytext_version: 1.16.1
 #   kernelspec:
 #     display_name: Python 3 (ipykernel)
 #     language: python
@@ -144,14 +144,14 @@ from sklearn.model_selection import train_test_split
 x_train, x_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=0, shuffle=True)
 
 # %%
-from scipy.sparse import csr_matrix, save_npz, load_npz
-row = np.array([0, 0, 1, 2, 2, 2])
-col = np.array([0, 2, 2, 0, 1, 2])
-data = np.array([1, 2, 3, 4, 5, 6])
-sparse_matrix = csr_matrix((data, (row, col)), shape=(3, 3))
+# from scipy.sparse import csr_matrix, save_npz, load_npz
+# row = np.array([0, 0, 1, 2, 2, 2])
+# col = np.array([0, 2, 2, 0, 1, 2])
+# data = np.array([1, 2, 3, 4, 5, 6])
+# sparse_matrix = csr_matrix((data, (row, col)), shape=(3, 3))
+# sparse_matrix.toarray()
 
 # %%
-sparse_matrix.toarray()
 
 # %%
 

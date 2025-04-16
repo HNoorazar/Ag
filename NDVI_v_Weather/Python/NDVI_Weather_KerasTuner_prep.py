@@ -160,15 +160,18 @@ X['county_fips'] = X['county_fips'].astype(np.float64)
 
 # %%
 from sklearn.model_selection import train_test_split
-x_train, x_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=0, shuffle=True)
+
+x_train_df, x_test_df, y_train_df, y_test_df = train_test_split(X, y, test_size=0.2, random_state=0, shuffle=True)
 
 # %%
+#### do a validation set for the KerasTuner.
+x_train_df, x_val_df, y_train_df, y_val_df = train_test_split(
+    x_train_df, y_train_df, test_size=0.2, random_state=0, shuffle=True
+)
+input_shape_ = x_train_df.shape[1]
 
 # %%
 x_train.shape
-
-# %%
-x_val.shape
 
 # %%
 # we need to do this. tf or keras throws an error with newer version kf scikir learn:
@@ -194,18 +197,30 @@ x_val.shape
 #     return model
 
 
+# def call_existing_code(epochs, learning_rate, l2_lambda):
+#     model = Sequential()
+#     model.add(Dense(250, input_shape=(input_shape_,), activation="relu", kernel_regularizer=l2(l2_lambda)))
+#     model.add(Dense(200, activation="relu", kernel_regularizer=l2(l2_lambda)))
+#     model.add(Dense(150, activation="relu", kernel_regularizer=l2(l2_lambda)))
+#     model.add(Dense(100, activation="relu", kernel_regularizer=l2(l2_lambda)))
+#     model.add(Dense(50, activation="relu", kernel_regularizer=l2(l2_lambda)))
+#     model.add(Dense(25, activation="relu", kernel_regularizer=l2(l2_lambda)))
+#     model.add(Dense(10, activation="relu", kernel_regularizer=l2(l2_lambda)))
+#     model.add(Dense(1, activation="relu", kernel_regularizer=l2(l2_lambda)))
+#     model.compile(loss="mean_squared_error", optimizer="adam", metrics=["mean_squared_error", "R2Score"],)
+#     return model
+
 def call_existing_code(epochs, learning_rate, l2_lambda):
     model = Sequential()
-    model.add(layers.Flatten())
-    # model.add(Dense(250, input_shape=(input_shape_,), activation="relu", kernel_regularizer=l2(l2_lambda)))
-    model.add(Dense(200, activation="relu", kernel_regularizer=l2(l2_lambda)))
-    model.add(Dense(150, activation="relu", kernel_regularizer=l2(l2_lambda)))
-    model.add(Dense(100, activation="relu", kernel_regularizer=l2(l2_lambda)))
-    model.add(Dense(50, activation="relu", kernel_regularizer=l2(l2_lambda)))
-    model.add(Dense(25, activation="relu", kernel_regularizer=l2(l2_lambda)))
+    # model.add(Dense(150, input_shape=(input_shape_,), activation="relu", kernel_regularizer=l2(l2_lambda)))
+#         model.add(Dense(100, activation="relu", kernel_regularizer=l2(l2_lambda)))
+#         model.add(Dense(50, activation="relu", kernel_regularizer=l2(l2_lambda)))
+#         model.add(Dense(25, activation="relu", kernel_regularizer=l2(l2_lambda)))
+        
+    model.add(Dense(25, input_shape=(input_shape_,), activation="relu", kernel_regularizer=l2(l2_lambda)))
     model.add(Dense(10, activation="relu", kernel_regularizer=l2(l2_lambda)))
     model.add(Dense(1, activation="relu", kernel_regularizer=l2(l2_lambda)))
-    model.compile(loss="mean_squared_error", optimizer="adam", metrics=["mean_squared_error", "R2Score"],)
+    model.compile(loss="mean_squared_error", optimizer="adam", metrics=["mean_squared_error", "R2Score"])
     return model
 
 def build_model(hp):
@@ -228,21 +243,21 @@ def build_model(hp):
 project_name_ = "p"
 tuner = keras_tuner.RandomSearch(hypermodel=build_model,
                                  seed=19,
-                                 objective="val_accuracy",
+                                 objective="val_loss",
                                  max_trials=10,
                                  executions_per_trial=1,
-                                 overwrite=False, 
+                                 overwrite=True, 
                                  directory=NDVI_weather_data_dir,
                                  project_name=project_name_)
 
-tuner.search_space_summary()
-
-print ("-------------------------------------------------------")
 print (tuner.search_space_summary())
+print("-------------------------------------------------------------------")
 
 # %%
+tuner.search(x_train_df, y_train_df, validation_data=(x_val_df, y_val_df))
 
 # %%
+print(logs)
 
 # %%
 # %%time

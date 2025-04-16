@@ -284,15 +284,15 @@ def build_model(hp):
 #########
 #########    Search
 #########
-
+max_trials_ = 10
+executions_per_trial_ = 3
 print(f"{build_model(keras_tuner.HyperParameters()) = }")
-
 project_name_ = architecture + "_" + NDVI_lag_or_delta
 tuner = keras_tuner.RandomSearch(
     hypermodel=build_model,
-    objective="val_accuracy",
-    max_trials=3,
-    executions_per_trial=2,
+    objective="val_loss",
+    max_trials=max_trials_,
+    executions_per_trial=executions_per_trial_,
     overwrite=True,
     directory=NDVI_weather_data_dir,
     project_name=project_name_,
@@ -312,7 +312,16 @@ print(tuner.results_summary())
 
 
 #########################################################################################################
-filename = models_dir + "KerasTuner_" + project_name_ + "best_model.sav"
+filename = (
+    models_dir
+    + "KerasTuner_"
+    + project_name_
+    + "executions_per_trial_"
+    + str(executions_per_trial_)
+    + "executions_per_trial_"
+    + str(executions_per_trial_)
+    + "best_model.sav"
+)
 
 export_ = {
     "best_model": best_model,
@@ -322,8 +331,6 @@ export_ = {
 }
 
 pickle.dump(export_, open(filename, "wb"))
-
-print("Best: %f using %s" % (grid_result.best_score_, grid_result.best_params_))
 
 
 final_time = datetime.now()
