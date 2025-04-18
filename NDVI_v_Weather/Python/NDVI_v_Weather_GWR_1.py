@@ -5,7 +5,7 @@
 #       extension: .py
 #       format_name: percent
 #       format_version: '1.3'
-#       jupytext_version: 1.15.2
+#       jupytext_version: 1.16.1
 #   kernelspec:
 #     display_name: Python 3 (ipykernel)
 #     language: python
@@ -39,8 +39,6 @@ print("Current Time =", current_time)
 
 # sys.path.append("/Users/hn/Documents/00_GitHub/Ag/rangeland/Python_Codes/")
 # import rangeland_core as rc
-
-# %%
 
 # %%
 
@@ -101,23 +99,47 @@ WM_counties = list(WM_counties["county_fips"])
 len(WM_counties)
 
 # %%
-print (bio_reOrganized_dir + "fid_Queen_neighbors_rowSTD.csv")
-
+# # %%time
+# weight_rowSTD = pd.read_csv(bio_reOrganized_dir + "fid_contiguity_Queen_neighbors_rowSTD.csv")
+# weight_rowSTD.head(2)
 
 # %%
 # %%time
-a = pd.read_csv(bio_reOrganized_dir + "fid_contiguity_Queen_neighbors_rowSTD.csv")
+weight_rowSTD_sav = pd.read_pickle(bio_reOrganized_dir + "fid_contiguity_Queen_neighbors_rowSTD.sav")
+print (weight_rowSTD_sav["source_code"])
+
+weight_rowSTD_sav = weight_rowSTD_sav["fid_contiguity_Queen_neighbors_rowSTD"]
+weight_rowSTD_sav.head(3)
 
 # %%
-a.head(2)
+
+# %%
+weight_rowSTD_sav.reset_index(inplace=True, drop=True)
+weight_rowSTD_sav.head(3)
+
+# %%
+weight_rowSTD.head(3)
+
+# %%
+print (weight_rowSTD_sav.shape)
+print (weight_rowSTD.shape)
+
+# %%
+
+# %%
+len(WM_counties)
 
 # %%
 filename = "/Users/hn/Documents/01_research_data/NDVI_v_Weather/data/NDVI_weather.sav"
 NDVI_weather = pd.read_pickle(filename)
-NDVI_weather=NDVI_weather["NDVI_weather_input"]
+print (NDVI_weather["source_code"])
+NDVI_weather = NDVI_weather["NDVI_weather_input"]
 
 # %%
 NDVI_weather.head(2)
+
+# %%
+NDVI_weather[(NDVI_weather["county_fips"] == "04001") & (NDVI_weather["year"] == 2002)]
 
 # %%
 indp_vars = ['county_fips', 'year', 'month', 'tavg_avg', 'ppt', 'tavg_avg_lag1', 'ppt_lag1', 'MODIS_NDVI_lag1']
@@ -131,8 +153,8 @@ NDVI_weather.reset_index(drop=True, inplace=True)
 print (NDVI_weather.shape)
 # 258300 - 256250
 
-X = NDVI_weather[indp_vars].copy()
-y = NDVI_weather[y_var].copy()
+# X = NDVI_weather[indp_vars].copy()
+# y = NDVI_weather[y_var].copy()
 
 # %%
 print (NDVI_weather.shape)
@@ -140,12 +162,41 @@ NDVI_weather = NDVI_weather[NDVI_weather["county_fips"].isin(WM_counties)]
 print (NDVI_weather.shape)
 
 # %%
+NDVI_weather[(NDVI_weather["county_fips"] == "04001") & (NDVI_weather["year"] == 2002)]
+
+# %%
+NDVI_weather[(NDVI_weather["county_fips"] == "04001") & (NDVI_weather["year"] == 2003)]
+
+# %%
 # it was working before, without doing this!!!
 # X['county_fips'] = X['county_fips'].astype(np.float64)
 
+# %% [markdown]
+# ## Split train and test set
+
 # %%
-from sklearn.model_selection import train_test_split
-x_train, x_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=0, shuffle=True)
+# from sklearn.model_selection import train_test_split
+# x_train, x_test, y_train, y_test = train_test_split(NDVI_weather[indp_vars], NDVI_weather[y_var], 
+#                                                     test_size=0.4, random_state=0, shuffle=True)
+
+# %%
+print (f"{len(sorted(NDVI_weather.year.unique())) = }")
+print (sorted(NDVI_weather.year.unique()))
+
+# %%
+years_list = sorted(NDVI_weather.year.unique())
+train_perc = 70/100
+year_count = len(years_list)
+train_years = years_list[: int(np.ceil(train_perc * year_count))]
+
+# %%
+train_DF = NDVI_weather[NDVI_weather.year.isin(train_years)].copy()
+x_train = train_DF[indp_vars].copy()
+y_train = train_DF[y_var].copy()
+
+# %%
+print (x_train.shape)
+x_train.head(2)
 
 # %%
 # from scipy.sparse import csr_matrix, save_npz, load_npz
@@ -156,7 +207,112 @@ x_train, x_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_
 # sparse_matrix.toarray()
 
 # %%
+weight_rowSTD.head(2)
+
+# %% [markdown]
+# ### Form weight matrix for x_train. 
+#
+# Sort ```x_train``` by year, so that from year to year a given county is not its own neighbor! 
+#
+# Or we can explore the idea of doing this for few years prior to a given year to consider time-neighboring!!!
 
 # %%
+NDVI_weather.head(2)
+
+# %%
+x_train.head(2)
+
+# %%
+y_train.head(2)
+
+# %%
+### If we split randomly: 
+
+# Doing it this way, automatically merges x_train an y_train
+# and sorting by year in one step!
+# train_Xy = NDVI_weather[NDVI_weather.index.isin(x_train.index)].copy()
+# train_Xy.head(2)
+
+# print (sorted(list(train_Xy.index)) == sorted(list(x_train.index)))
+# print (NDVI_weather.shape[0] - train_Xy.shape[0] == x_test.shape[0])
+# # to double check
+# A = x_train[x_train.index.isin(list(train_Xy.index))].copy()
+# A.equals(x_train)
+
+# # redefine
+# x_train = train_Xy[indp_vars].copy()
+# y_train = train_Xy[y_var].copy()
+
+# %%
+## If the data is complete; for all years and months
+## we have all data, then we can compute the neighbors once
+## and repeat it on main diagonal of bigger matrix. 
+## Let us check that? This is not possible. split of train and test was done
+## randomly.
+
+train_unique_years = x_train["year"].unique()
+train_unique_months = x_train["month"].unique()
+train_unique_counties = x_train["county_fips"].unique()
+
+# %%
+# # %%time
+### This crashes the Kernel. Too big.
+### Lets try numpy matrix, if that does not work, go into sparse matrix.
+
+# # the data is monthly. So, This is bad operation. Kernel dies.
+w = np.zeros((len(x_train), len(x_train)))
+weightMatrix = pd.DataFrame(w)
+
+idx = list(x_train['county_fips'] + "_" + x_train['year'].astype(str) + "_" + x_train["month"].astype(str))
+# weightMatrix.index = idx
+weightMatrix.columns = idx
+
+#####################################################
+# weightMatrix["county_fips"] = x_train["county_fips"]
+# weightMatrix["year"] = x_train["year"]
+# weightMatrix["month"] = x_train["month"]
+# weightMatrix = weightMatrix.set_index(['county_fips', 'year', 'month'])
+#####################################################
+idx_arrays = [x_train['county_fips'], x_train['year'], x_train['month']]
+idx_tuples = list(zip(*idx_arrays))
+index_ = pd.MultiIndex.from_tuples(idx_tuples, names=["county_fips", "year", "month"])
+weightMatrix.index = index_
+weightMatrix.head(15)
+
+# %%
+for a_county in train_unique_counties:
+    
+
+# %%
+a_county = train_unique_counties[0]
+a_county
+
+# %%
+weight_rowSTD.columns
+
+# %%
+
+# %%
+
+# %%
+x_train.head(10)
+
+# %%
+weightMatrix[weightMatrix.index == "04001"].shape
+
+# %%
+x_train[x_train.county_fips == "04001"].shape
+
+# %%
+list(x_train['county_fips'] + "_" + x_train['year'].astype(str) + "_" + x_train["month"].astype(str))
+
+# %%
+index = pd.MultiIndex.from_product([['mammal'], ('goat', 'human', 'cat', 'dog')],
+                                    names=['Category', 'Animals'])
+leg_num = pd.DataFrame(data=(4, 2, 4, 4), index=index, columns=['Legs'])
+leg_num
+
+# %%
+index
 
 # %%
