@@ -5,7 +5,7 @@
 #       extension: .py
 #       format_name: percent
 #       format_version: '1.3'
-#       jupytext_version: 1.16.1
+#       jupytext_version: 1.15.2
 #   kernelspec:
 #     display_name: Python 3 (ipykernel)
 #     language: python
@@ -39,8 +39,6 @@ print("Current Time =", current_time)
 
 # sys.path.append("/Users/hn/Documents/00_GitHub/Ag/rangeland/Python_Codes/")
 # import rangeland_core as rc
-
-# %%
 
 # %%
 dpi_ = 300
@@ -104,12 +102,12 @@ len(WM_counties)
 # weight_rowSTD.head(2)
 
 # %%
-# %%time
-weight_rowSTD_sav = pd.read_pickle(bio_reOrganized_dir + "fid_contiguity_Queen_neighbors_rowSTD.sav")
-print (weight_rowSTD_sav["source_code"])
+# # %%time
+# weight_rowSTD_sav = pd.read_pickle(bio_reOrganized_dir + "fid_contiguity_Queen_neighbors_rowSTD.sav")
+# print (weight_rowSTD_sav["source_code"])
 
-weight_rowSTD_sav = weight_rowSTD_sav["fid_contiguity_Queen_neighbors_rowSTD"]
-weight_rowSTD_sav.head(3)
+# weight_rowSTD_sav = weight_rowSTD_sav["fid_contiguity_Queen_neighbors_rowSTD"]
+# weight_rowSTD_sav.head(3)
 
 # %%
 
@@ -125,9 +123,20 @@ print (weight_rowSTD_sav.shape)
 print (weight_rowSTD.shape)
 
 # %%
+len(WM_counties)
 
 # %%
-len(WM_counties)
+# %%time
+a = pd.read_csv(bio_reOrganized_dir + "county_contiguity_Queen_neighbors_rowSTD.csv")
+a.head(2)
+
+# %%
+# %%time
+weight_rowSTD_sav = pd.read_pickle(bio_reOrganized_dir + "county_contiguity_Queen_neighbors_rowSTD.sav")
+print (weight_rowSTD_sav["source_code"])
+
+weight_rowSTD_sav = weight_rowSTD_sav["county_contiguity_Queen_neighbors_rowSTD"]
+weight_rowSTD_sav.head(3)
 
 # %%
 filename = "/Users/hn/Documents/01_research_data/NDVI_v_Weather/data/NDVI_weather.sav"
@@ -281,7 +290,7 @@ weightMatrix.head(15)
 
 # %%
 for a_county in train_unique_counties:
-    
+
 
 # %%
 a_county = train_unique_counties[0]

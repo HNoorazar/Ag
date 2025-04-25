@@ -5,7 +5,7 @@
 #       extension: .py
 #       format_name: percent
 #       format_version: '1.3'
-#       jupytext_version: 1.16.1
+#       jupytext_version: 1.15.2
 #   kernelspec:
 #     display_name: Python 3 (ipykernel)
 #     language: python
@@ -89,26 +89,6 @@ state_fips.head(2)
 # %%
 
 # %%
-# ## Supriya's columns need to change. So, read, write.
-# WGS84_4326_name = common_data + "WGS84_4326/Albers_BioRangeland_Centroid_WGS84_4326/" + \
-#                    "Albers_BioRangeland_Centroid_WGS84_4326.shp"
-# WGS84_4326 = geopandas.read_file(WGS84_4326_name)
-
-# WGS84_4326.rename(columns={"lat": "supriya_long", "lon": "supriya_lat"}, inplace=True)
-
-# Centroid_WGS84_4326 = pd.read_csv(common_data + "WGS84_4326/" + "Centroid_WGS84_4326.csv")
-# Centroid_WGS84_4326.rename(columns={"lat": "supriya_long", "lon": "supriya_lat"}, inplace=True)
-
-
-# Centroid_WGS84_4326 = Centroid_WGS84_4326[["fid", "supriya_long", "supriya_lat"]]
-# Centroid_WGS84_4326.to_csv(common_data + "WGS84_4326/" + "centroid_WGS84_4326_correctColNames.csv", index=False)
-# Centroid_WGS84_4326.head(2)
-
-# %%
-Centroid_WGS84_4326 = pd.read_csv(common_data + "WGS84_4326/" + "centroid_WGS84_4326_correctColNames.csv")
-Centroid_WGS84_4326.head(2)
-
-# %%
 from shapely.geometry import Polygon
 us_states = geopandas.read_file(common_data +'cb_2018_us_state_500k.zip')
 
@@ -117,7 +97,8 @@ us_states = us_states[~us_states.state.isin(["PR", "VI", "AS", "GU", "MP"])]
 us_states = pd.merge(us_states, state_fips[["EW_meridian", "state"]], how="left", on="state")
 
 
-visframe = us_states.to_crs({'init':'epsg:5070'})
+# visframe = us_states.to_crs({'init':'epsg:5070'})
+visframe = us_states.to_crs({'init':'epsg:4269'})
 visframe_mainLand = visframe[~visframe.state.isin(["AK", "HI"])].copy()
 
 visframe_mainLand_west = visframe[visframe.EW_meridian.isin(["W"])].copy()
@@ -125,29 +106,34 @@ visframe_mainLand_west = visframe_mainLand_west[~visframe_mainLand_west.state.is
 
 # %%
 # %%time
-Albers_SF_name = bio_reOrganized + "Albers_BioRangeland_Min_Ehsan"
-Albers_SF = geopandas.read_file(Albers_SF_name)
-Albers_SF.rename(columns=lambda x: x.lower().replace(' ', '_'), inplace=True)
-Albers_SF.rename(columns={"minstatsid": "fid", 
-                          "satae_max": "state_majority_area"}, inplace=True)
-Albers_SF.head(2)
+SF_name = common_data + "cb_2018_us_county_500k"
+county_SF = geopandas.read_file(SF_name)
+county_SF.rename(columns=lambda x: x.lower().replace(' ', '_'), inplace=True)
+county_SF.rename(columns={"statefp": "state_fips", 
+                          "countyfp": "county_fips"}, inplace=True)
+
+county_SF["county_fips"] = county_SF["state_fips"] + county_SF["county_fips"]
+county_SF.head(2)
 
 # %%
-Albers_SF = pd.merge(Albers_SF, state_fips[["EW_meridian", "state_full"]], 
-                     how="left", left_on="state_majority_area", right_on="state_full")
-
-Albers_SF.drop(columns=["state_full"], inplace=True)
-Albers_SF.head(2)
+state_fips.head(2)
 
 # %%
-print (Albers_SF.shape)
-Albers_SF = Albers_SF[Albers_SF["EW_meridian"] == "W"].copy()
-
-print (Albers_SF.shape)
+state_fips[state_fips["state_full"].isin(["Alaska", "Hawaii"])]
 
 # %%
-Albers_SF["centroid"] = Albers_SF["geometry"].centroid
-Albers_SF.head(2)
+county_SF = pd.merge(county_SF, state_fips[["EW_meridian", "state_fips", "state_full"]], 
+                     how="left", on="state_fips")
+
+print (county_SF.shape)
+county_SF = county_SF[county_SF["EW_meridian"] == "W"]
+# remove Alaska and Hawaii
+county_SF = county_SF[~(county_SF["state_fips"].isin(["02", "15"]))]
+county_SF["centroid"] = county_SF["geometry"].centroid
+county_SF.reset_index(drop=True, inplace=True)
+print (county_SF.shape)
+
+county_SF.head(2)
 
 # %%
 tick_legend_FontSize = 5
@@ -168,55 +154,68 @@ plt.rcParams.update(params)
 
 # %%
 fig, ax = plt.subplots(1, 1, figsize=(2, 3), sharex=True, sharey=True, dpi=dpi_)
-Albers_SF["centroid"].plot(ax=ax, color='dodgerblue', markersize=0.051);
-Albers_SF.plot(column='value', ax=ax, legend=False);
+county_SF["centroid"].plot(ax=ax, color='dodgerblue', markersize=0.051);
+county_SF.plot(ax=ax, legend=False);
 
 # %%
-Albers_SF.set_index('fid', inplace=True)
+county_SF.set_index('county_fips', inplace=True)
+county_SF.head(2)
 
 # %%
-# %%time
-import pyproj
-source_crs = pyproj.CRS("EPSG:5070")
-target_crs = pyproj.CRS("EPSG:4326") # WGS84 (latitude/longitude)
-transformer = pyproj.Transformer.from_crs(source_crs, target_crs)
 
-def convert_5070Centroids_to_lat_long(row):
-    lat, long = transformer.transform(row["centroid"].coords[0][0], row["centroid"].coords[0][1])
-    return (lat, long)
+# %%
+county_SF.crs
 
-Albers_SF[["lat", "long"]] = Albers_SF.apply(convert_5070Centroids_to_lat_long, axis=1, result_type='expand')
-Albers_SF.head(2)
+# %%
+visframe_mainLand_west.crs
+
+# %%
+# # %%time
+### This did not work here. So, rather, above, I used 
+### visframe = us_states.to_crs({'init':'epsg:4269'}) 
+### rather than 5070 from what I did initially in 
+### queen_distance_weight_matrix_4_spatial_reg_FID.ipynb
+
+# import pyproj
+
+# # 4269 too 5070 seems to be the correct way, but lat long come out infinity!!!
+# source_crs = pyproj.CRS("EPSG:5070")
+
+# # california and 3 counties come out wrong. 
+# # Is this the reason? 4269 did not help neither
+# target_crs = pyproj.CRS("EPSG:4269") # WGS84 (latitude/longitude) 
+# transformer = pyproj.Transformer.from_crs(source_crs, target_crs)
+
+# def convert_5070Centroids_to_lat_long(row):
+#     lat, long = transformer.transform(row["centroid"].coords[0][0], row["centroid"].coords[0][1])
+#     return (lat, long)
+
+# county_SF[["lat", "long"]] = county_SF.apply(convert_5070Centroids_to_lat_long, axis=1, result_type='expand')
+# county_SF.head(2)
+
+county_SF["lat"] = county_SF["centroid"].y
+county_SF["long"] = county_SF["centroid"].x
+county_SF.head(2)
 
 # %% [markdown]
 # #### Check if centroids are in the "middle" of polygons
 
 # %%
-two_polys = Albers_SF.iloc[:3].copy()
-two_polys
+three_polys = county_SF.iloc[:3].copy()
+three_polys
 
 # %%
-fig, ax = plt.subplots(1, 1, figsize=(2, 3), sharex=True, sharey=True, dpi=dpi_)
-
-rcp.plot_SF(SF=visframe_mainLand_west[visframe_mainLand_west.state=="SD"], ax_=ax, col="EW_meridian")
-two_polys.plot(column='value', ax=ax, legend=False);
-two_polys["centroid"].plot(ax=ax, color='red', markersize=.05);
+state_fips[state_fips["state_fips"] == "06"]
 
 # %%
-Centroid_WGS84_4326.head(2)
+fig, ax = plt.subplots(1, 1, figsize=(2, 2), sharex=True, sharey=True, dpi=dpi_)
+
+rcp.plot_SF(SF=visframe_mainLand_west[visframe_mainLand_west.state=="CA"], ax_=ax, col="EW_meridian")
+three_polys.plot(ax=ax, legend=False);
+three_polys["centroid"].plot(ax=ax, color='red', markersize=.05);
 
 # %%
-Albers_SF.head(2)
-
-# %%
-Albers_SF['lat_long_centroid'] = geopandas.points_from_xy(Albers_SF['long'], Albers_SF['lat'])
-Albers_SF.head(2)
-
-# %%
-Albers_SF.head(2)
-
-# %%
-Albers_SF.crs
+county_SF.head(2)
 
 # %%
 import libpysal as ps
@@ -232,36 +231,38 @@ gdf = geopandas.GeoDataFrame({
 })
 
 # Create the binary matrix
-w = ps.weights.contiguity.Queen.from_dataframe(two_polys)
+w = ps.weights.contiguity.Queen.from_dataframe(three_polys)
 binary_matrix = w.full()[0]
 
 print(binary_matrix)
 
 # %%
 # two_polys.iloc[[1, 2]].plot();
-two_polys.plot();
+three_polys.plot();
 
 # %%
 # %%time
 # Assuming you have a GeoDataFrame named 'gdf' with your polygon data
-w = ps.weights.contiguity.Queen.from_dataframe(Albers_SF)
-fid_contiguity_Queen_neighbors = w.full()[0]
+w = ps.weights.contiguity.Queen.from_dataframe(county_SF)
+county_contiguity_Queen_neighbors = w.full()[0]
 
-print(fid_contiguity_Queen_neighbors)
-
-# %%
+print(county_contiguity_Queen_neighbors)
 
 # %%
-fid_contiguity_Queen_neighbors = pd.DataFrame(fid_contiguity_Queen_neighbors, 
-                                              index=Albers_SF.index, columns=list(Albers_SF.index))
-fid_contiguity_Queen_neighbors = fid_contiguity_Queen_neighbors.astype(int)
-fid_contiguity_Queen_neighbors.head(2)
+
+# %%
+county_contiguity_Queen_neighbors = pd.DataFrame(county_contiguity_Queen_neighbors, 
+                                                  index=county_SF.index, columns=list(county_SF.index))
+county_contiguity_Queen_neighbors = county_contiguity_Queen_neighbors.astype(int)
+county_contiguity_Queen_neighbors.head(2)
+
+# %%
 
 # %%
 # %%time
-filename = bio_reOrganized + "fid_contiguity_Queen_neighbors.sav"
-export_ = {"fid_contiguity_Queen_neighbors": fid_contiguity_Queen_neighbors,
-           "source_code": "queen_distance_weight_matrix_4_spatial_reg",
+filename = bio_reOrganized + "county_contiguity_Queen_neighbors.sav"
+export_ = {"county_contiguity_Queen_neighbors": county_contiguity_Queen_neighbors,
+           "source_code": "queen_distance_weight_matrix_4_spatial_reg_county",
            "Author": "HN",
            "Date": datetime.now().strftime("%Y-%m-%d %H:%M:%S")}
 
@@ -269,11 +270,11 @@ pickle.dump(export_, open(filename, "wb"))
 
 # %%
 # %%time
-queen_weights_std = fid_contiguity_Queen_neighbors.div(fid_contiguity_Queen_neighbors.sum(axis=1), axis=0)
+queen_weights_std = county_contiguity_Queen_neighbors.div(county_contiguity_Queen_neighbors.sum(axis=1), axis=0)
 
-filename = bio_reOrganized + "fid_contiguity_Queen_neighbors_rowSTD.sav"
-export_ = {"fid_contiguity_Queen_neighbors_rowSTD": queen_weights_std,
-           "source_code": "queen_distance_weight_matrix_4_spatial_reg",
+filename = bio_reOrganized + "county_contiguity_Queen_neighbors_rowSTD.sav"
+export_ = {"county_contiguity_Queen_neighbors_rowSTD": queen_weights_std,
+           "source_code": "queen_distance_weight_matrix_4_spatial_reg_county",
            "Author": "HN",
            "Date": datetime.now().strftime("%Y-%m-%d %H:%M:%S")}
 
@@ -284,10 +285,7 @@ queen_weights_std.head(2)
 
 # %%
 # %%time
-queen_weights_std.to_csv(bio_reOrganized+'fid_contiguity_Queen_neighbors_rowSTD.csv', index=False)
-
-# %%
-# # !pip3 install pyreadstat
+queen_weights_std.to_csv(bio_reOrganized+'county_contiguity_Queen_neighbors_rowSTD.csv', index=False)
 
 # %%
 # %%time
@@ -295,33 +293,36 @@ queen_weights_std.to_csv(bio_reOrganized+'fid_contiguity_Queen_neighbors_rowSTD.
 import pyreadstat
 queen_weights_std.rename(columns=lambda x: "var_" + str(x), inplace=True)
 pyreadstat.write_sav(queen_weights_std, 
-                     bio_reOrganized + 'fid_contiguity_Queen_neighbors_rowSTD_for_R.sav')
+                     bio_reOrganized + 'county_contiguity_Queen_neighbors_rowSTD_for_R.sav')
 
 # %% [markdown]
 # ## Washington Only 
 # for sake of model development
 
 # %%
-fid_contiguity_Queen_neighbors.head(2)
+county_contiguity_Queen_neighbors.head(2)
 
 # %%
-WA_SF = Albers_SF[Albers_SF["state_majority_area"] == "Washington"].copy()
+county_SF.head(2)
+
+# %%
+WA_SF = county_SF[county_SF["state_full"] == "Washington"].copy()
 print (WA_SF.shape)
 WA_SF.head(2)
 
 # %%
-WA_FIDs = list(WA_SF.index.unique())
-WA_FIDs[:4]
+WA_counties = list(WA_SF.index.unique())
+WA_counties[:4]
 
 # %%
-WA_fid_Queen_neighbors = fid_contiguity_Queen_neighbors[
-                                        fid_contiguity_Queen_neighbors.index.isin(WA_FIDs)].copy()
-print (WA_fid_Queen_neighbors.shape)
-WA_fid_Queen_neighbors.head(2)
+WA_county_Queen_neighbors = county_contiguity_Queen_neighbors[
+                                        county_contiguity_Queen_neighbors.index.isin(WA_counties)].copy()
+print (WA_county_Queen_neighbors.shape)
+WA_county_Queen_neighbors.head(2)
 
 # %%
-WA_fid_Queen_neighbors = WA_fid_Queen_neighbors[WA_FIDs].copy()
-WA_fid_Queen_neighbors.shape
+WA_county_Queen_neighbors = WA_county_Queen_neighbors[WA_counties].copy()
+WA_county_Queen_neighbors.shape
 
 # %% [markdown]
 # ### form queen neighborhoods from scratch and compare it to above
@@ -330,22 +331,22 @@ WA_fid_Queen_neighbors.shape
 # # %%time
 # # Assuming you have a GeoDataFrame named 'gdf' with your polygon data
 # w_WA = ps.weights.contiguity.Queen.from_dataframe(WA_SF)
-# WA_fid_Queen_neighbors_scratch = w_WA.full()[0]
+# WA_county_Queen_neighbors_scratch = w_WA.full()[0]
 
-# WA_fid_Queen_neighbors_scratch = pd.DataFrame(WA_fid_Queen_neighbors_scratch, 
+# WA_county_Queen_neighbors_scratch = pd.DataFrame(WA_county_Queen_neighbors_scratch, 
 #                                               index=WA_SF.index, columns=list(WA_SF.index))
-# WA_fid_Queen_neighbors_scratch = WA_fid_Queen_neighbors_scratch.astype(int)
+# WA_county_Queen_neighbors_scratch = WA_county_Queen_neighbors_scratch.astype(int)
 
-# print (WA_fid_Queen_neighbors.equals(WA_fid_Queen_neighbors_scratch)) # It was True
-# WA_fid_Queen_neighbors_scratch.head(2)
-
-# %%
-WA_fid_Queen_neighbors_std = WA_fid_Queen_neighbors.div(WA_fid_Queen_neighbors.sum(axis=1), axis=0)
-WA_fid_Queen_neighbors_std.head(2)
+# print (WA_county_Queen_neighbors.equals(WA_county_Queen_neighbors_scratch)) # It was True
+# WA_county_Queen_neighbors_scratch.head(2)
 
 # %%
-WA_fid_Queen_neighbors.to_csv(bio_reOrganized + 'WA_fid_Queen_neighbors.csv', index=True)
-WA_fid_Queen_neighbors_std.to_csv(bio_reOrganized + 'WA_fid_Queen_neighbors_rowSTD.csv', index=True)
+WA_county_Queen_neighbors_std = WA_county_Queen_neighbors.div(WA_county_Queen_neighbors.sum(axis=1), axis=0)
+WA_county_Queen_neighbors_std.head(2)
+
+# %%
+WA_county_Queen_neighbors.to_csv(bio_reOrganized + 'WA_county_Queen_neighbors.csv', index=True)
+WA_county_Queen_neighbors_std.to_csv(bio_reOrganized + 'WA_county_Queen_neighbors_rowSTD.csv', index=True)
 
 # %%
 print (type(WA_SF))
@@ -355,10 +356,11 @@ WA_SF.head(2)
 WA_SF.head(2)
 
 # %%
-WA_SF.drop(columns=["lat_long_centroid", "centroid"], inplace=True)
-f_name = bio_reOrganized + 'Albers_BioRangeland_Min_Ehsan_WA/Albers_BioRangeland_Min_Ehsan_WA.shp'
+WA_SF.drop(columns=["centroid"], inplace=True)
+f_name = bio_reOrganized + 'county_BioRangeland_Min_Ehsan_WA/county_BioRangeland_Min_Ehsan_WA.shp'
 WA_SF.to_file(filename=f_name, driver='ESRI Shapefile')
 
 # %%
+bio_reOrganized
 
 # %%

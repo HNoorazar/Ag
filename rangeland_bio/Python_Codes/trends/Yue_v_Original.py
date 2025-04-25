@@ -5,7 +5,7 @@
 #       extension: .py
 #       format_name: percent
 #       format_version: '1.3'
-#       jupytext_version: 1.16.1
+#       jupytext_version: 1.15.2
 #   kernelspec:
 #     display_name: Python 3 (ipykernel)
 #     language: python
@@ -82,6 +82,9 @@ os.makedirs(yue_plots, exist_ok=True)
 ANPP = pd.read_pickle(bio_reOrganized + "bpszone_ANPP_no2012.sav")
 ANPP = ANPP["bpszone_ANPP"]
 ANPP.head(2)
+
+# %%
+ANPP
 
 # %%
 2012 in sorted(ANPP.year.unique())

@@ -3,7 +3,7 @@
 ##SBATCH --constraint=cascadelake
 #SBATCH --partition=rajagopalan
 #SBATCH --requeue
-#SBATCH --job-name=fid_geodesic_distances
+#SBATCH --job-name=county_geodesic_distances
 #SBATCH --time=01-00:00:00    # Wall clock time limit in Days-HH:MM:SS
 #SBATCH --mem=200GB 
 #SBATCH --nodes=1            # Node count required for the job
@@ -13,8 +13,8 @@
 ####SBATCH --array=0-30000
 
 ###SBATCH -k o
-#SBATCH --output=/home/h.noorazar/rangeland_bio/fid_geodesic_distances/error/fid_geodesic_distances.o
-#SBATCH  --error=/home/h.noorazar/rangeland_bio/fid_geodesic_distances/error/fid_geodesic_distances.e
+#SBATCH --output=/home/h.noorazar/rangeland_bio/geodesic_distances/error/county_geodesic_distances.o
+#SBATCH  --error=/home/h.noorazar/rangeland_bio/geodesic_distances/error/county_geodesic_distances.e
 echo
 echo "--- We are now in $PWD, running an R script ..."
 echo
@@ -57,7 +57,7 @@ echo "--------- continue on ---------"
 # Run python code for matrix
 # ----------------------------------------------------------------
 
-python /home/h.noorazar/rangeland_bio/fid_geodesic_distances/geodesic_distances_Kamiak.py
+python /home/h.noorazar/rangeland_bio/geodesic_distances/county_geodesic_distances_Kamiak.py
 
 echo end Time is `date`
 echo
