@@ -153,9 +153,23 @@ params = {"font.family": "Palatino",
 plt.rcParams.update(params)
 
 # %%
+six_CA_cnty = county_SF[county_SF["county_fips"].isin(['06001', '06013', '06085', '06099', '06077', '06075'])]
+
+# %%
 fig, ax = plt.subplots(1, 1, figsize=(2, 3), sharex=True, sharey=True, dpi=dpi_)
 county_SF["centroid"].plot(ax=ax, color='dodgerblue', markersize=0.051);
 county_SF.plot(ax=ax, legend=False);
+six_CA_cnty.plot(ax=ax, legend=False, color="red");
+
+# %%
+fig, ax = plt.subplots(1, 1, figsize=(2, 3), sharex=True, sharey=True, dpi=dpi_)
+six_CA_cnty.plot(ax=ax, legend=False, color="red");
+six_CA_cnty["centroid"].plot(ax=ax, color='dodgerblue', markersize=0.051);
+
+for idx, row in six_CA_cnty.iterrows():
+    ax.text(row["centroid"].x, row["centroid"].y, row["county_fips"], fontsize=3, ha='center')
+
+# %%
 
 # %%
 county_SF.set_index('county_fips', inplace=True)

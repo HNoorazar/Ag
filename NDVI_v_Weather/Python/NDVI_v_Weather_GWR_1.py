@@ -108,27 +108,16 @@ len(WM_counties)
 
 # weight_rowSTD_sav = weight_rowSTD_sav["fid_contiguity_Queen_neighbors_rowSTD"]
 # weight_rowSTD_sav.head(3)
-
-# %%
-
-# %%
-weight_rowSTD_sav.reset_index(inplace=True, drop=True)
-weight_rowSTD_sav.head(3)
-
-# %%
-weight_rowSTD.head(3)
-
-# %%
-print (weight_rowSTD_sav.shape)
-print (weight_rowSTD.shape)
+# weight_rowSTD_sav.reset_index(inplace=True, drop=True)
+# weight_rowSTD_sav.head(3)
 
 # %%
 len(WM_counties)
 
 # %%
-# %%time
-a = pd.read_csv(bio_reOrganized_dir + "county_contiguity_Queen_neighbors_rowSTD.csv")
-a.head(2)
+# # %%time
+# a = pd.read_csv(bio_reOrganized_dir + "county_contiguity_Queen_neighbors_rowSTD.csv")
+# a.head(3)
 
 # %%
 # %%time
@@ -216,7 +205,7 @@ x_train.head(2)
 # sparse_matrix.toarray()
 
 # %%
-weight_rowSTD.head(2)
+weight_rowSTD_sav.head(2)
 
 # %% [markdown]
 # ### Form weight matrix for x_train. 
@@ -259,8 +248,8 @@ y_train.head(2)
 ## Let us check that? This is not possible. split of train and test was done
 ## randomly.
 
-train_unique_years = x_train["year"].unique()
-train_unique_months = x_train["month"].unique()
+train_unique_years = sorted(x_train["year"].unique())
+train_unique_months = sorted(x_train["month"].unique())
 train_unique_counties = x_train["county_fips"].unique()
 
 # %%
@@ -275,6 +264,8 @@ weightMatrix = pd.DataFrame(w)
 idx = list(x_train['county_fips'] + "_" + x_train['year'].astype(str) + "_" + x_train["month"].astype(str))
 # weightMatrix.index = idx
 weightMatrix.columns = idx
+weightMatrix.index = idx
+weightMatrix.head(3)
 
 #####################################################
 # weightMatrix["county_fips"] = x_train["county_fips"]
@@ -282,46 +273,80 @@ weightMatrix.columns = idx
 # weightMatrix["month"] = x_train["month"]
 # weightMatrix = weightMatrix.set_index(['county_fips', 'year', 'month'])
 #####################################################
-idx_arrays = [x_train['county_fips'], x_train['year'], x_train['month']]
-idx_tuples = list(zip(*idx_arrays))
-index_ = pd.MultiIndex.from_tuples(idx_tuples, names=["county_fips", "year", "month"])
-weightMatrix.index = index_
-weightMatrix.head(15)
+# idx_arrays = [x_train['county_fips'], x_train['year'], x_train['month']]
+# idx_tuples = list(zip(*idx_arrays))
+# index_ = pd.MultiIndex.from_tuples(idx_tuples, names=["county_fips", "year", "month"])
+# weightMatrix.index = index_
+# weightMatrix.head(13)
 
 # %%
+weight_rowSTD_sav.head(2)
+
+# %%
+a_county = "06001"
+a_year = train_unique_years[0]
+a_month = train_unique_months[1]
+
+# %%
+curr_month_data = NDVI_weather[(NDVI_weather["month"] == a_month) & (NDVI_weather["year"] == a_year)]
+len(curr_month_data)>0
+
+# %%
+existing_counties = list(curr_month_data["county_fips"])
+all_neighbor_idx = np.nonzero(weight_rowSTD_sav[weight_rowSTD_sav.index == a_county].values)[1]
+curr_cnty_all_neighbors = list(weight_rowSTD_sav.columns[all_neighbor_idx])
+curr_cnty_all_neighbors
+
+# %%
+
+# %%
+curr_t_neighbors
+
+# %%
+row_idx = "_".join([a_county, str(a_year), str(a_month)])
+row_idx
+
+# %%
+# %%time
 for a_county in train_unique_counties:
+    for a_year in train_unique_years:
+        for a_month in train_unique_months:
+            ### If data is complete some of the followings would be redundant
+            ### but we do not take that chance, do we?
+            
+            curr_month_data = NDVI_weather[(NDVI_weather["month"] == a_month) & (NDVI_weather["year"] == a_year)]
+            if len(curr_month_data)>0:
+                # locations for which we have data for current month
+                existing_counties = list(curr_month_data["county_fips"])
 
+                # all neighbors of current location
+                all_neighbor_idx = np.nonzero(weight_rowSTD_sav[weight_rowSTD_sav.index == a_county].values)[1]
+                curr_cnty_all_neighbors = list(weight_rowSTD_sav.columns[all_neighbor_idx])
+
+                # existing neighbors for a given county in a given month
+                # This would be redundant if we have data for all counties for all months
+                curr_t_neighbors = list(curr_month_data[curr_month_data["county_fips"].isin(
+                                           curr_cnty_all_neighbors)]["county_fips"])
+                
+                row_idx = "_".join([a_county, str(a_year), str(a_month)])
+
+                # update all columns at once
+                post =  "_" + str(a_year) + "_" + str(a_month)
+                update_col_names = [s + post for s in curr_t_neighbors]
+                
+                weightMatrix.loc[row_idx, update_col_names] = \
+                          weight_rowSTD_sav.loc[a_county, curr_t_neighbors].values
+                
+#                 for a_neighb in curr_t_neighbors:
+#                     update_col_name = a_neighb + "_" + str(a_year) + "_" + str(a_month)
+#                     weightMatrix.loc[row_idx, update_col_name] = weight_rowSTD_sav.loc[a_county, a_neighb]
+
+
+# %% [markdown]
+# ### Assume data is complete and form weight matrix. Fast
 
 # %%
-a_county = train_unique_counties[0]
-a_county
 
 # %%
-weight_rowSTD.columns
-
-# %%
-
-# %%
-
-# %%
-x_train.head(10)
-
-# %%
-weightMatrix[weightMatrix.index == "04001"].shape
-
-# %%
-x_train[x_train.county_fips == "04001"].shape
-
-# %%
-list(x_train['county_fips'] + "_" + x_train['year'].astype(str) + "_" + x_train["month"].astype(str))
-
-# %%
-index = pd.MultiIndex.from_product([['mammal'], ('goat', 'human', 'cat', 'dog')],
-                                    names=['Category', 'Animals'])
-leg_num = pd.DataFrame(data=(4, 2, 4, 4), index=index, columns=['Legs'])
-leg_num
-
-# %%
-index
 
 # %%
