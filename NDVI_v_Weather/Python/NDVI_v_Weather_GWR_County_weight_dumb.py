@@ -13,6 +13,9 @@
 # ---
 
 # %% [markdown]
+# The reason the name of this notebook is dumb is that it goes through for-loop to avoid any bug. A smart version that will assume data is complete will be created
+
+# %% [markdown]
 # It seems all the libraryes want to do it the bandwidth way; no pre-specified weight matrix!
 # Lets just do it outselves 
 #
@@ -170,6 +173,52 @@ NDVI_weather[(NDVI_weather["county_fips"] == "04001") & (NDVI_weather["year"] ==
 # X['county_fips'] = X['county_fips'].astype(np.float64)
 
 # %% [markdown]
+# ### Shannon County, SD
+#
+# Shannon County, SD (```FIPS code = 46113```) was renamed Oglala Lakota County and assigned anew FIPS code (```46102```) effective in 2014.
+#
+#
+# Old county fips for this county is ```46113``` which is what Min has in its dataset.
+#
+# How can I take care of this? If I get an old county shapefile, then, which year?
+#
+#
+# Lets just figure out how many mismatches are there and exclude them
+
+# %%
+NDVI_counties = list(NDVI_weather["county_fips"].unique())
+
+# %%
+weight_rowSTD_sav_counties = list(weight_rowSTD_sav.index)
+
+NDVI_missing_from_weights = []
+
+for a_county in NDVI_counties:
+    if not(a_county in list(weight_rowSTD_sav.index)):
+        NDVI_missing_from_weights = NDVI_missing_from_weights + [a_county]
+
+print (NDVI_missing_from_weights)
+weights_missing_from_NDVI = []
+for a_county in weight_rowSTD_sav_counties:
+    if not(a_county in NDVI_counties):
+        weights_missing_from_NDVI = weights_missing_from_NDVI + [a_county]
+print (len(weights_missing_from_NDVI))
+weights_missing_from_NDVI
+
+
+# %% [markdown]
+# # Toss 46113
+
+# %%
+"46113" in list(NDVI_weather["county_fips"].unique())
+
+# %%
+NDVI_weather = NDVI_weather[NDVI_weather['county_fips'] != "46113"].copy()
+
+# %%
+"46113" in list(NDVI_weather["county_fips"].unique())
+
+# %% [markdown]
 # ## Split train and test set
 
 # %%
@@ -300,13 +349,6 @@ curr_cnty_all_neighbors
 # %%
 
 # %%
-curr_t_neighbors
-
-# %%
-row_idx = "_".join([a_county, str(a_year), str(a_month)])
-row_idx
-
-# %%
 # %%time
 for a_county in train_unique_counties:
     for a_year in train_unique_years:
@@ -342,10 +384,21 @@ for a_county in train_unique_counties:
 #                     weightMatrix.loc[row_idx, update_col_name] = weight_rowSTD_sav.loc[a_county, a_neighb]
 
 
-# %% [markdown]
-# ### Assume data is complete and form weight matrix. Fast
+# %%
+weightMatrix.head(2)
 
 # %%
+weightMatrix.iloc[0].unique()
+
+# %%
+# %%time
+filename = NDVI_weather_data_dir + "monthly_NDVI_county_weight_for_WR.sav"
+export_ = {"weightMatrix": weightMatrix,
+           "source_code": "NDVI_v_Weather_GWR_County_weight_dumb",
+           "Author": "HN",
+           "Date": datetime.now().strftime("%Y-%m-%d %H:%M:%S")}
+
+# pickle.dump(export_, open(filename, "wb"))
 
 # %%
 

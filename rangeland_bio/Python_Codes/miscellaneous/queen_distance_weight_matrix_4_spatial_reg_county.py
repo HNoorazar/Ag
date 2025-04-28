@@ -112,6 +112,7 @@ county_SF.rename(columns=lambda x: x.lower().replace(' ', '_'), inplace=True)
 county_SF.rename(columns={"statefp": "state_fips", 
                           "countyfp": "county_fips"}, inplace=True)
 
+county_SF.drop(columns =["countyns", "affgeoid", "lsad", "aland", "awater"], inplace=True)
 county_SF["county_fips"] = county_SF["state_fips"] + county_SF["county_fips"]
 county_SF.head(2)
 
@@ -134,6 +135,70 @@ county_SF.reset_index(drop=True, inplace=True)
 print (county_SF.shape)
 
 county_SF.head(2)
+
+# %% [markdown]
+# ### Shannon County, SD
+#
+# Shannon County, SD (```FIPS code = 46113```) was renamed Oglala Lakota County and assigned anew FIPS code (```46102```) effective in 2014.
+#
+#
+# Old county fips for this county is ```46113``` which is what Min has in its dataset.
+#
+# How can I take care of this? If I get an old county shapefile, then, which year?
+
+# %%
+county_SF[county_SF["county_fips"] == "46102"]
+
+# %%
+county_SF[county_SF["county_fips"] == "48199"]
+
+# %%
+
+# %%
+filename = "/Users/hn/Documents/01_research_data/NDVI_v_Weather/data/NDVI_weather.sav"
+NDVI_weather = pd.read_pickle(filename)
+print (NDVI_weather["source_code"])
+NDVI_weather = NDVI_weather["NDVI_weather_input"]
+NDVI_weather.head(2)
+
+# %%
+NDVI_missing_from_weights = []
+
+for a_county in list(NDVI_weather["county_fips"].unique()):
+    if not(a_county in list(county_SF['county_fips'].unique())):
+        NDVI_missing_from_weights = NDVI_missing_from_weights + [a_county]
+
+weights_missing_from_NDVI = []
+
+for a_county in list(county_SF['county_fips'].unique()):
+    if not(a_county in list(NDVI_weather["county_fips"].unique())):
+        weights_missing_from_NDVI = weights_missing_from_NDVI + [a_county]
+print (len(weights_missing_from_NDVI))
+weights_missing_from_NDVI
+
+# %%
+NDVI_missing_from_weights
+
+# %%
+weather_counties = set(NDVI_weather["county_fips"].unique())
+all_counties = set(county_SF['county_fips'].unique())
+
+print (len(weather_counties))
+print (len(all_counties))
+
+# %% [markdown]
+# ### Just pick the counties in common
+
+# %%
+common_counties = list(weather_counties.intersection(all_counties))
+
+# %%
+print (county_SF.shape)
+county_SF = county_SF[county_SF["county_fips"].isin(common_counties)].copy()
+print (county_SF.shape)
+
+# %%
+"46113" in common_counties
 
 # %%
 tick_legend_FontSize = 5

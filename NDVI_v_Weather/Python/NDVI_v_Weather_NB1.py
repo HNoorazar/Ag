@@ -5,7 +5,7 @@
 #       extension: .py
 #       format_name: percent
 #       format_version: '1.3'
-#       jupytext_version: 1.16.1
+#       jupytext_version: 1.15.2
 #   kernelspec:
 #     display_name: Python 3 (ipykernel)
 #     language: python
@@ -138,6 +138,17 @@ county_grid_mean_idx.head(2)
 
 # %%
 NDVI_df[NDVI_df["county_fips"] == "01003"]
+
+# %%
+"48199" in list(NDVI_df["county_fips"])
+
+# %%
+"48199" in list(county_grid_mean_idx["county_fips"])
+
+# %%
+NDVI_df['county_fips'].str()
+
+# %%
 
 # %% [markdown]
 # ### First drop the counties for which the whole year is missing
