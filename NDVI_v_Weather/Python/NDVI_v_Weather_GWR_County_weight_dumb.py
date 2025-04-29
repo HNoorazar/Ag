@@ -64,7 +64,7 @@ NASS_downloads_state = data_dir_base + "/NASS_downloads_state/"
 mike_dir = data_dir_base + "Mike/"
 reOrganized_dir = data_dir_base + "reOrganized/"
 
-NDVI_weather_data_dir = research_db + "/NDVI_v_Weather/"
+NDVI_weather_data_dir = research_db + "/NDVI_v_Weather/data/"
 
 # %%
 bio_data_dir_base = research_db + "/RangeLand_bio/Data/"
@@ -398,7 +398,7 @@ export_ = {"weightMatrix": weightMatrix,
            "Author": "HN",
            "Date": datetime.now().strftime("%Y-%m-%d %H:%M:%S")}
 
-# pickle.dump(export_, open(filename, "wb"))
+pickle.dump(export_, open(filename, "wb"))
 
 # %%
 
