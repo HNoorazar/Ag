@@ -35,7 +35,7 @@ import matplotlib.pyplot as plt
 
 from sklearn import preprocessing
 from datetime import datetime, date
-
+from scipy import sparse
 current_time = datetime.now().strftime("%H:%M:%S")
 print("Today's date:", date.today())
 print("Current Time =", current_time)
@@ -64,7 +64,7 @@ NASS_downloads_state = data_dir_base + "/NASS_downloads_state/"
 mike_dir = data_dir_base + "Mike/"
 reOrganized_dir = data_dir_base + "reOrganized/"
 
-NDVI_weather_data_dir = research_db + "/NDVI_v_Weather/"
+NDVI_weather_data_dir = research_db + "/NDVI_v_Weather/data/"
 
 # %%
 bio_data_dir_base = research_db + "/RangeLand_bio/Data/"
@@ -100,27 +100,7 @@ WM_counties = list(WM_counties["county_fips"])
 len(WM_counties)
 
 # %%
-# # %%time
-# weight_rowSTD = pd.read_csv(bio_reOrganized_dir + "fid_contiguity_Queen_neighbors_rowSTD.csv")
-# weight_rowSTD.head(2)
-
-# %%
-# # %%time
-# weight_rowSTD_sav = pd.read_pickle(bio_reOrganized_dir + "fid_contiguity_Queen_neighbors_rowSTD.sav")
-# print (weight_rowSTD_sav["source_code"])
-
-# weight_rowSTD_sav = weight_rowSTD_sav["fid_contiguity_Queen_neighbors_rowSTD"]
-# weight_rowSTD_sav.head(3)
-# weight_rowSTD_sav.reset_index(inplace=True, drop=True)
-# weight_rowSTD_sav.head(3)
-
-# %%
 len(WM_counties)
-
-# %%
-# # %%time
-# a = pd.read_csv(bio_reOrganized_dir + "county_contiguity_Queen_neighbors_rowSTD.csv")
-# a.head(3)
 
 # %%
 # %%time
@@ -131,7 +111,7 @@ weight_rowSTD_sav = weight_rowSTD_sav["county_contiguity_Queen_neighbors_rowSTD"
 weight_rowSTD_sav.head(3)
 
 # %%
-filename = NDVI_weather_data_dir + "/data/NDVI_weather.sav"
+filename = NDVI_weather_data_dir + "NDVI_weather.sav"
 NDVI_weather = pd.read_pickle(filename)
 print (NDVI_weather["source_code"])
 NDVI_weather = NDVI_weather["NDVI_weather_input"]
@@ -226,8 +206,11 @@ print (f"{len(sorted(NDVI_weather.year.unique())) = }")
 print (sorted(NDVI_weather.year.unique()))
 
 # %%
+train_perc_ = 40
+
+# %%
 years_list = sorted(NDVI_weather.year.unique())
-train_perc = 70/100
+train_perc = train_perc_/100
 year_count = len(years_list)
 train_years = years_list[: int(np.ceil(train_perc * year_count))]
 
@@ -278,6 +261,43 @@ train_unique_years = sorted(x_train["year"].unique())
 train_unique_months = sorted(x_train["month"].unique())
 train_unique_counties = x_train["county_fips"].unique()
 
+# %% [markdown]
+# ## Different from Dumb Version
+#
+# we need to sort differently here:
+#
+
+# %%
+train_df = x_train.copy()
+train_df["MODIS_NDVI"] = y_train.values
+train_df.head(2)
+
+# %%
+train_df.sort_values(by=["year", "month", "county_fips"], inplace=True)
+train_df.head(10)
+
+# %%
+train_county_order = list(train_df[(train_df["year"] == 2002) & (train_df["month"] == 2)]["county_fips"])
+train_county_order[:2]
+list(weight_rowSTD_sav.index) == train_county_order
+
+# %%
+
+# %%
+# Lets see if we change order of rows and columns then we get a symmetric matrix.
+# Well, it does not have to be symmetric!
+# This method works and I went into queen_distance_weight_matrix_4_spatial_reg_county.ipynb
+# and applied it.
+# weight_rowSTD_sav = weight_rowSTD_sav.sort_index()
+# weight_rowSTD_sav = weight_rowSTD_sav[list(weight_rowSTD_sav.index)]
+# weight_rowSTD_sav.head(2)
+
+# %%
+x_train = train_df[indp_vars]
+y_train = train_df[y_var]
+
+# %%
+
 # %%
 # # %%time
 ### This crashes the Kernel. Too big.
@@ -288,22 +308,9 @@ w = np.zeros((len(x_train), len(x_train)))
 weightMatrix = pd.DataFrame(w)
 
 idx = list(x_train['county_fips'] + "_" + x_train['year'].astype(str) + "_" + x_train["month"].astype(str))
-# weightMatrix.index = idx
 weightMatrix.columns = idx
 weightMatrix.index = idx
 weightMatrix.head(3)
-
-#####################################################
-# weightMatrix["county_fips"] = x_train["county_fips"]
-# weightMatrix["year"] = x_train["year"]
-# weightMatrix["month"] = x_train["month"]
-# weightMatrix = weightMatrix.set_index(['county_fips', 'year', 'month'])
-#####################################################
-# idx_arrays = [x_train['county_fips'], x_train['year'], x_train['month']]
-# idx_tuples = list(zip(*idx_arrays))
-# index_ = pd.MultiIndex.from_tuples(idx_tuples, names=["county_fips", "year", "month"])
-# weightMatrix.index = index_
-# weightMatrix.head(13)
 
 # %%
 weight_rowSTD_sav.head(2)
@@ -326,5 +333,137 @@ bad_counties
 
 # %%
 weightMatrix["04001_2002_2"].unique()
+
+# %%
+print (weightMatrix.shape)
+weightMatrix.head(2)
+
+# %%
+x_train.head(2)
+
+# %%
+weight_rowSTD_sav.head(2)
+
+# %%
+print (len(x_train["county_fips"]))
+print (len(weight_rowSTD_sav.index))
+print (len(x_train["county_fips"].unique()))
+# Why the following is not integer?
+# Does ground-truth have a county that is not in x_train?
+len(weightMatrix) / len(weight_rowSTD_sav)
+
+# %%
+weight_rowSTD_sav_counties = list(weight_rowSTD_sav.index)
+
+NDVI_missing_from_weights = []
+x_train_counties = x_train["county_fips"].unique()
+
+for a_county in x_train_counties:
+    if not(a_county in list(weight_rowSTD_sav.index)):
+        NDVI_missing_from_weights = NDVI_missing_from_weights + [a_county]
+
+print (NDVI_missing_from_weights)
+weights_missing_from_NDVI = []
+for a_county in weight_rowSTD_sav_counties:
+    if not(a_county in x_train_counties):
+        weights_missing_from_NDVI = weights_missing_from_NDVI + [a_county]
+print (len(weights_missing_from_NDVI))
+weights_missing_from_NDVI
+
+# %%
+A = x_train.copy()
+A.sort_values(by=["county_fips", "year", "month"], inplace=True)
+A.equals(x_train)
+
+# %%
+# del(weight_rowSTD_sav_counties)
+weights_missing_from_NDVI = []
+x_train_counties =  x_train["county_fips"].unique()
+for a_county in NDVI_weather.county_fips.unique():
+    if not(a_county in x_train_counties):
+        weights_missing_from_NDVI = weights_missing_from_NDVI + [a_county]
+print (len(weights_missing_from_NDVI))
+weights_missing_from_NDVI
+
+# %%
+x_train.head(2)
+
+# %%
+weightMatrix.head(2)
+
+# %%
+weight_rowSTD_sav.head(2)
+
+# %%
+int(len(weightMatrix) / len(weight_rowSTD_sav))
+
+# %%
+## other than the first year for which January is missing other years have the same length
+county_count = len(x_train_counties)
+for ii in range(int(len(weightMatrix) / len(weight_rowSTD_sav))):
+    start = ii*county_count
+    end = start+county_count
+    weightMatrix.iloc[start:end, start:end] = weight_rowSTD_sav.values
+    
+
+# %%
+weightMatrix.iloc[0:1024, 0:1024]
+
+# %%
+ii=0
+start = ii*county_count
+end = start+county_count
+A = weightMatrix.iloc[start:end, start:end].values
+
+# %%
+ii=1
+start = ii*county_count
+end = start+county_count
+B = weightMatrix.iloc[start:end, start:end].values
+
+(A-B).sum()
+
+# %%
+# %%time
+sparse_matrix = sparse.coo_matrix(weightMatrix.values)
+
+# %%
+# %%time
+filename = (NDVI_weather_data_dir + "monthly_NDVI_county_weight_for_GWR_"
+    + str(len(train_years))
+    + "trainYears_sparse.sav"
+)
+
+export_ = {
+    "weightMatrix": sparse_matrix,
+    "x_train": x_train, # for sake of knowing what's where
+    "y_train": y_train,
+    "source_code": "NDVI_v_Weather_GWR_County_weight_smart",
+    "Author": "HN",
+    "Date": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+}
+pickle.dump(export_, open(filename, "wb"))
+
+# %%
+sparse_matrix.shape
+
+# %%
+
+# %%
+# %%time
+filename = NDVI_weather_data_dir + "monthly_NDVI_county_weight_for_GWR_" + str(len(train_years)) + "trainYears.sav"
+
+export_ = {
+    "weightMatrix": weightMatrix,
+    "x_train": x_train,  # for sake of knowing what's where
+    "y_train": y_train,
+    "source_code": "NDVI_v_Weather_GWR_County_weight_smart",
+    "Author": "HN",
+    "Date": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+}
+pickle.dump(export_, open(filename, "wb"))
+
+# %%
+weightMatrix.shape
 
 # %%

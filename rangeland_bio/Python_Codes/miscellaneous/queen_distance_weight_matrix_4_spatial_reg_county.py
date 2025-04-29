@@ -87,8 +87,6 @@ state_fips = state_fips[state_fips.state != "VI"].copy()
 state_fips.head(2)
 
 # %%
-
-# %%
 from shapely.geometry import Polygon
 us_states = geopandas.read_file(common_data +'cb_2018_us_state_500k.zip')
 
@@ -191,6 +189,8 @@ print (len(all_counties))
 
 # %%
 common_counties = list(weather_counties.intersection(all_counties))
+
+# 53055 is in WA, is island. no neighbor. Toss it. Or, turn NaN in its row std into 0.
 
 # %%
 print (county_SF.shape)
@@ -320,6 +320,13 @@ print(binary_matrix)
 three_polys.plot();
 
 # %%
+county_SF.head(2)
+
+# %%
+# sort by index
+county_SF = county_SF.sort_index()
+
+# %%
 # %%time
 # Assuming you have a GeoDataFrame named 'gdf' with your polygon data
 w = ps.weights.contiguity.Queen.from_dataframe(county_SF)
@@ -333,6 +340,7 @@ print(county_contiguity_Queen_neighbors)
 county_contiguity_Queen_neighbors = pd.DataFrame(county_contiguity_Queen_neighbors, 
                                                   index=county_SF.index, columns=list(county_SF.index))
 county_contiguity_Queen_neighbors = county_contiguity_Queen_neighbors.astype(int)
+np.fill_diagonal(county_contiguity_Queen_neighbors.values, 1)
 county_contiguity_Queen_neighbors.head(2)
 
 # %%
@@ -358,6 +366,18 @@ export_ = {"county_contiguity_Queen_neighbors_rowSTD": queen_weights_std,
            "Date": datetime.now().strftime("%Y-%m-%d %H:%M:%S")}
 
 pickle.dump(export_, open(filename, "wb"))
+
+# %%
+queen_weights_std = county_contiguity_Queen_neighbors.div(county_contiguity_Queen_neighbors.sum(axis=1), axis=0)
+queen_weights_std.loc["53055"]
+
+# %%
+
+# %%
+queen_weights_std.loc["53055"] = 0
+
+# %%
+queen_weights_std.loc["53055"]
 
 # %%
 queen_weights_std.head(2)
@@ -438,8 +458,3 @@ WA_SF.head(2)
 WA_SF.drop(columns=["centroid"], inplace=True)
 f_name = bio_reOrganized + 'county_BioRangeland_Min_Ehsan_WA/county_BioRangeland_Min_Ehsan_WA.shp'
 WA_SF.to_file(filename=f_name, driver='ESRI Shapefile')
-
-# %%
-bio_reOrganized
-
-# %%
