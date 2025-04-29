@@ -131,7 +131,7 @@ weight_rowSTD_sav = weight_rowSTD_sav["county_contiguity_Queen_neighbors_rowSTD"
 weight_rowSTD_sav.head(3)
 
 # %%
-filename = "/Users/hn/Documents/01_research_data/NDVI_v_Weather/data/NDVI_weather.sav"
+filename = NDVI_weather_data_dir + "/data/NDVI_weather.sav"
 NDVI_weather = pd.read_pickle(filename)
 print (NDVI_weather["source_code"])
 NDVI_weather = NDVI_weather["NDVI_weather_input"]
