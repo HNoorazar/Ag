@@ -12,7 +12,9 @@
 #     name: python3
 # ---
 
-# %% [markdown]
+# %%
+
+# %% [raw]
 # The reason the name of this notebook is smart is that it assumes data is complete (all locations have full data for each year) and avoids for-loop in ```NDVI_v_Weather_GWR_County_weight_dumb.ipynb```
 
 # %% [markdown]
@@ -220,6 +222,17 @@ x_train = train_DF[indp_vars].copy()
 y_train = train_DF[y_var].copy()
 
 # %%
+test_DF = NDVI_weather[~(NDVI_weather["year"].isin(train_years))].copy()
+x_test = test_DF[indp_vars].copy()
+y_test = test_DF[y_var].copy()
+
+# %%
+x_test["year"].unique()
+
+# %%
+x_train["year"].unique()
+
+# %%
 print (x_train.shape)
 x_train.head(2)
 
@@ -248,9 +261,6 @@ NDVI_weather.head(2)
 x_train.head(2)
 
 # %%
-y_train.head(2)
-
-# %%
 ## If the data is complete; for all years and months
 ## we have all data, then we can compute the neighbors once
 ## and repeat it on main diagonal of bigger matrix. 
@@ -270,11 +280,12 @@ train_unique_counties = x_train["county_fips"].unique()
 # %%
 train_df = x_train.copy()
 train_df["MODIS_NDVI"] = y_train.values
-train_df.head(2)
-
-# %%
 train_df.sort_values(by=["year", "month", "county_fips"], inplace=True)
 train_df.head(10)
+
+# %%
+x_train = train_df[indp_vars]
+y_train = train_df[y_var]
 
 # %%
 train_county_order = list(train_df[(train_df["year"] == 2002) & (train_df["month"] == 2)]["county_fips"])
@@ -282,6 +293,18 @@ train_county_order[:2]
 list(weight_rowSTD_sav.index) == train_county_order
 
 # %%
+test_df = x_test.copy()
+test_df["MODIS_NDVI"] = y_test.values
+test_df.sort_values(by=["year", "month", "county_fips"], inplace=True)
+
+x_test = test_df[indp_vars]
+y_test = test_df[y_var]
+
+# %%
+test_county_order = list(test_df[(test_df["year"] == test_df["year"].unique()[0]) & 
+                                 (test_df["month"] == 2)]["county_fips"])
+test_county_order[:2]
+list(weight_rowSTD_sav.index) == test_county_order
 
 # %%
 # Lets see if we change order of rows and columns then we get a symmetric matrix.
@@ -291,12 +314,6 @@ list(weight_rowSTD_sav.index) == train_county_order
 # weight_rowSTD_sav = weight_rowSTD_sav.sort_index()
 # weight_rowSTD_sav = weight_rowSTD_sav[list(weight_rowSTD_sav.index)]
 # weight_rowSTD_sav.head(2)
-
-# %%
-x_train = train_df[indp_vars]
-y_train = train_df[y_var]
-
-# %%
 
 # %%
 # # %%time
@@ -315,31 +332,33 @@ weightMatrix.head(3)
 # %%
 weight_rowSTD_sav.head(2)
 
+# %%
+w = np.zeros((len(x_test), len(x_test)))
+test_weightMatrix = pd.DataFrame(w)
+
+idx = list(x_test['county_fips'] + "_" + x_test['year'].astype(str) + "_" + x_test["month"].astype(str))
+test_weightMatrix.columns = idx
+test_weightMatrix.index = idx
+test_weightMatrix.head(3)
+
 # %% [markdown]
 # ### Check data is complete and form weight matrix. Fast
 
 # %%
-test_county = train_unique_counties[0]
-default_length = len(x_train[x_train["county_fips"] == test_county])
-default_length
+a_county = train_unique_counties[0]
+default_length = len(x_train[x_train["county_fips"] == a_county])
+print (default_length)
 
-# %%
 bad_counties = []
 for a_county in train_unique_counties:
     curr_df = x_train[x_train["county_fips"]==a_county]
     if len(curr_df) != default_length:
         bad_counties = bad_counties + [a_county]
-bad_counties     
-
-# %%
-weightMatrix["04001_2002_2"].unique()
+bad_counties
 
 # %%
 print (weightMatrix.shape)
 weightMatrix.head(2)
-
-# %%
-x_train.head(2)
 
 # %%
 weight_rowSTD_sav.head(2)
@@ -371,28 +390,13 @@ print (len(weights_missing_from_NDVI))
 weights_missing_from_NDVI
 
 # %%
-A = x_train.copy()
-A.sort_values(by=["county_fips", "year", "month"], inplace=True)
-A.equals(x_train)
-
-# %%
 # del(weight_rowSTD_sav_counties)
 weights_missing_from_NDVI = []
-x_train_counties =  x_train["county_fips"].unique()
 for a_county in NDVI_weather.county_fips.unique():
     if not(a_county in x_train_counties):
         weights_missing_from_NDVI = weights_missing_from_NDVI + [a_county]
 print (len(weights_missing_from_NDVI))
 weights_missing_from_NDVI
-
-# %%
-x_train.head(2)
-
-# %%
-weightMatrix.head(2)
-
-# %%
-weight_rowSTD_sav.head(2)
 
 # %%
 int(len(weightMatrix) / len(weight_rowSTD_sav))
@@ -404,7 +408,7 @@ for ii in range(int(len(weightMatrix) / len(weight_rowSTD_sav))):
     start = ii*county_count
     end = start+county_count
     weightMatrix.iloc[start:end, start:end] = weight_rowSTD_sav.values
-    
+
 
 # %%
 weightMatrix.iloc[0:1024, 0:1024]
@@ -425,7 +429,29 @@ B = weightMatrix.iloc[start:end, start:end].values
 
 # %%
 # %%time
-sparse_matrix = sparse.coo_matrix(weightMatrix.values)
+weightMatrix = sparse.coo_matrix(weightMatrix.values)
+
+# %% [markdown]
+# ### Form test weight matrix (here it is assumed data is complete without checking)
+
+# %%
+# %%time
+
+## other than the first year for which January is missing other years have the same length
+x_test_counties = x_test["county_fips"].unique()
+test_county_count = len(x_test_counties)
+for ii in range(int(len(test_weightMatrix) / len(weight_rowSTD_sav))):
+    start = ii*test_county_count
+    end = start+test_county_count
+    test_weightMatrix.iloc[start:end, start:end] = weight_rowSTD_sav.values
+    
+test_weightMatrix = sparse.coo_matrix(test_weightMatrix.values)
+
+# %%
+x_train.shape
+
+# %% [raw]
+#
 
 # %%
 # %%time
@@ -435,9 +461,12 @@ filename = (NDVI_weather_data_dir + "monthly_NDVI_county_weight_for_GWR_"
 )
 
 export_ = {
-    "weightMatrix": sparse_matrix,
+    "weightMatrix": weightMatrix,
     "x_train": x_train, # for sake of knowing what's where
     "y_train": y_train,
+    "test_weightMatrix" : test_weightMatrix,
+    "x_test": x_test, # for sake of knowing what's where
+    "y_test": y_test,
     "source_code": "NDVI_v_Weather_GWR_County_weight_smart",
     "Author": "HN",
     "Date": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
@@ -450,18 +479,18 @@ sparse_matrix.shape
 # %%
 
 # %%
-# %%time
-filename = NDVI_weather_data_dir + "monthly_NDVI_county_weight_for_GWR_" + str(len(train_years)) + "trainYears.sav"
+# # %%time
+# filename = NDVI_weather_data_dir + "monthly_NDVI_county_weight_for_GWR_" + str(len(train_years)) + "trainYears.sav"
 
-export_ = {
-    "weightMatrix": weightMatrix,
-    "x_train": x_train,  # for sake of knowing what's where
-    "y_train": y_train,
-    "source_code": "NDVI_v_Weather_GWR_County_weight_smart",
-    "Author": "HN",
-    "Date": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
-}
-pickle.dump(export_, open(filename, "wb"))
+# export_ = {
+#     "weightMatrix": weightMatrix,
+#     "x_train": x_train,  # for sake of knowing what's where
+#     "y_train": y_train,
+#     "source_code": "NDVI_v_Weather_GWR_County_weight_smart",
+#     "Author": "HN",
+#     "Date": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+# }
+# pickle.dump(export_, open(filename, "wb"))
 
 # %%
 weightMatrix.shape
