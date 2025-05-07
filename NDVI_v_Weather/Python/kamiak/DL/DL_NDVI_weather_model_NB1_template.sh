@@ -1,11 +1,11 @@
 #!/bin/bash
-##SBATCH --partition=kamiak
-##SBATCH --constraint=cascadelake
-#SBATCH --partition=rajagopalan
+#SBATCH --partition=kamiak
+#SBATCH --constraint=cascadelake
+##SBATCH --partition=rajagopalan
 #SBATCH --requeue
-#SBATCH --job-name=GWR_formWeight_dumb_trainP_train_percentage # Job Name
-#SBATCH --time=00-20:00:00   # Wall clock time limit in Days-HH:MM:SS
-#SBATCH --mem=100GB 
+#SBATCH --job-name=DL_NDVI_weather_NB1_NDVI_lag_or_delta_batch_or_not # Job Name
+#SBATCH --time=7-00:00:00    # Wall clock time limit in Days-HH:MM:SS
+#SBATCH --mem=50GB 
 #SBATCH --nodes=1            # Node count required for the job
 #SBATCH --ntasks-per-node=1  # Number of tasks to be launched per Node
 #SBATCH --ntasks=1           # Number of tasks per array job
@@ -13,8 +13,8 @@
 ####SBATCH --array=0-30000
 
 ###SBATCH -k o
-#SBATCH --output=/home/h.noorazar/NDVI_v_Weather/GWR/error/GWR_formWeight_dumb_trainP_o
-#SBATCH --error=/home/h.noorazar/NDVI_v_Weather/GWR/error/GWR_formWeight_dumb_trainP_e
+#SBATCH --output=/home/h.noorazar/NDVI_v_Weather/DL_models/error/DL_NDVI_weather_model_NB1_NDVI_lag_or_delta_batch_or_not_o
+#SBATCH --error=/home/h.noorazar/NDVI_v_Weather/DL_models/error/DL_NDVI_weather_model_NB1_NDVI_lag_or_delta_batch_or_not_e
 
 echo
 echo "--- We are now in $PWD ..."
@@ -33,8 +33,8 @@ echo
 ##### module load python3/3.5.0
 ##### module load python3/3.7.0
 ## I commented out the two following lines after adding source activate NDVI_v_weather
-module load gcc/7.3.0
-module load anaconda3
+# module load gcc/7.3.0
+# module load anaconda3
 
 # pip install shutup
 # pip install dtaidistance
@@ -59,10 +59,10 @@ echo "--------- continue on ---------"
 # ----------------------------------------------------------------
 # Run python code for matrix
 # ----------------------------------------------------------------
+## conda deactivate is correct command even tho Kamiak page says source deactivate!
+source activate NDVI_v_Weather
 
-# source activate NDVI_v_Weather
-
-python /home/h.noorazar/NDVI_v_Weather/GWR/NDVI_v_Weather_GWR_County_weight_dumb_kamiak.py 40
+python /home/h.noorazar/NDVI_v_Weather/DL_models/DL_NDVI_weather_model_NB1.py NDVI_lag_or_delta batch_or_not
 
 echo Running time on host `hostname`
 echo End Time is `date`

@@ -12,9 +12,7 @@
 #     name: python3
 # ---
 
-# %%
-
-# %% [raw]
+# %% [markdown]
 # The reason the name of this notebook is smart is that it assumes data is complete (all locations have full data for each year) and avoids for-loop in ```NDVI_v_Weather_GWR_County_weight_dumb.ipynb```
 
 # %% [markdown]
@@ -102,15 +100,14 @@ WM_counties = list(WM_counties["county_fips"])
 len(WM_counties)
 
 # %%
-len(WM_counties)
-
-# %%
 # %%time
 weight_rowSTD_sav = pd.read_pickle(bio_reOrganized_dir + "county_contiguity_Queen_neighbors_rowSTD.sav")
-print (weight_rowSTD_sav["source_code"])
 
-weight_rowSTD_sav = weight_rowSTD_sav["county_contiguity_Queen_neighbors_rowSTD"]
-weight_rowSTD_sav.head(3)
+print (weight_rowSTD_sav["source_code"])
+print (weight_rowSTD_sav.keys())
+
+weight_rowSTD_sav = weight_rowSTD_sav["county_geodesic_dist_rowSTD"]
+weight_rowSTD_sav.head(2)
 
 # %%
 filename = NDVI_weather_data_dir + "NDVI_weather.sav"

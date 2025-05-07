@@ -3,7 +3,7 @@
 ##SBATCH --constraint=cascadelake
 #SBATCH --partition=rajagopalan
 #SBATCH --requeue
-#SBATCH --job-name=GWR_formWeight_smart_trainP_train_percentage # Job Name
+#SBATCH --job-name=GWR_formWeight_dumb_trainP_train_percentage # Job Name
 #SBATCH --time=00-20:00:00   # Wall clock time limit in Days-HH:MM:SS
 #SBATCH --mem=100GB 
 #SBATCH --nodes=1            # Node count required for the job
@@ -13,8 +13,8 @@
 ####SBATCH --array=0-30000
 
 ###SBATCH -k o
-#SBATCH --output=/home/h.noorazar/NDVI_v_Weather/GWR/error/GWR_formWeight_smart_trainP_o
-#SBATCH --error=/home/h.noorazar/NDVI_v_Weather/GWR/error/GWR_formWeight_smart_trainP_e
+#SBATCH --output=/home/h.noorazar/NDVI_v_Weather/GWR/error/GWR_formWeight_dumb_trainP_o
+#SBATCH --error=/home/h.noorazar/NDVI_v_Weather/GWR/error/GWR_formWeight_dumb_trainP_e
 
 echo
 echo "--- We are now in $PWD ..."
@@ -62,7 +62,7 @@ echo "--------- continue on ---------"
 
 # source activate NDVI_v_Weather
 
-python /home/h.noorazar/NDVI_v_Weather/GWR/NDVI_v_Weather_GWR_County_weight_smart_kamiak.py 40
+python /home/h.noorazar/NDVI_v_Weather/GWR/GWR_County_weight_QueenAdj_dumb_kamiak.py 40
 
 echo Running time on host `hostname`
 echo End Time is `date`

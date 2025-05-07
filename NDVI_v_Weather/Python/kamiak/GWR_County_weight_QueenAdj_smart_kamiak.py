@@ -130,10 +130,7 @@ print(NDVI_weather.shape)
 NDVI_weather = NDVI_weather[NDVI_weather["county_fips"].isin(WM_counties)]
 print(NDVI_weather.shape)
 
-# %%
 NDVI_weather[(NDVI_weather["county_fips"] == "04001") & (NDVI_weather["year"] == 2002)]
-
-# %%
 NDVI_weather[(NDVI_weather["county_fips"] == "04001") & (NDVI_weather["year"] == 2003)]
 # ### Shannon County, SD
 #
@@ -166,13 +163,9 @@ weights_missing_from_NDVI
 # %% [markdown]
 # # Toss 46113
 
-# %%
+
 "46113" in list(NDVI_weather["county_fips"].unique())
-
-# %%
 NDVI_weather = NDVI_weather[NDVI_weather["county_fips"] != "46113"].copy()
-
-# %%
 "46113" in list(NDVI_weather["county_fips"].unique())
 
 # %% [markdown]
@@ -302,7 +295,7 @@ export_ = {
     "weightMatrix": sparse_matrix,
     "x_train": x_train,  # for sake of knowing what's where
     "y_train": y_train,
-    "source_code": "NDVI_v_Weather_GWR_County_weight_dumb_kamiak",
+    "source_code": "GWR_County_weight_dumb_kamiak",
     "Author": "HN",
     "Date": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
 }
@@ -317,7 +310,7 @@ filename = (
 )
 export_ = {
     "weightMatrix": weightMatrix,
-    "source_code": "NDVI_v_Weather_GWR_County_weight_dumb_kamiak",
+    "source_code": "GWR_County_weight_dumb_kamiak",
     "Author": "HN",
     "Date": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
 }

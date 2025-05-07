@@ -3,7 +3,7 @@
 #SBATCH --constraint=cascadelake
 ##SBATCH --partition=rajagopalan
 #SBATCH --requeue
-#SBATCH --job-name=DL_NDVI_weather_model_NB1_NDVI_lag_or_delta # Job Name
+#SBATCH --job-name=DL_Network2_NDVI_lag_or_delta_batch_or_not # Job Name
 #SBATCH --time=7-00:00:00    # Wall clock time limit in Days-HH:MM:SS
 #SBATCH --mem=50GB 
 #SBATCH --nodes=1            # Node count required for the job
@@ -13,8 +13,8 @@
 ####SBATCH --array=0-30000
 
 ###SBATCH -k o
-#SBATCH --output=/home/h.noorazar/NDVI_v_Weather/DL_models/error/DL_NDVI_weather_model_NB1_NDVI_lag_or_delta_o
-#SBATCH --error=/home/h.noorazar/NDVI_v_Weather/DL_models/error/DL_NDVI_weather_model_NB1_NDVI_lag_or_delta_e
+#SBATCH --output=/home/h.noorazar/NDVI_v_Weather/DL_models/error/DL_Network2_NDVI_lag_or_delta_batch_or_not_o
+#SBATCH --error=/home/h.noorazar/NDVI_v_Weather/DL_models/error/DL_Network2_NDVI_lag_or_delta_batch_or_not_e
 
 echo
 echo "--- We are now in $PWD ..."
@@ -62,7 +62,7 @@ echo "--------- continue on ---------"
 
 source activate NDVI_v_Weather
 
-python /home/h.noorazar/NDVI_v_Weather/DL_models/DL_NDVI_weather_model_NB1.py NDVI_lag_or_delta
+python /home/h.noorazar/NDVI_v_Weather/DL_models/DL_Network2.py NDVI_lag_or_delta batch_or_not
 
 echo Running time on host `hostname`
 echo End Time is `date`

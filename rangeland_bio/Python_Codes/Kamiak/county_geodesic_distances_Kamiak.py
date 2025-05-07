@@ -22,6 +22,10 @@ rangeland_bio_base = research_data_ + "rangeland_bio/"
 rangeland_bio_data = rangeland_bio_base + "Data/"
 bio_reOrganized = rangeland_bio_data + "reOrganized/"
 common_data = research_data_ + "common_data/"
+
+NDVI_weather_base = research_data_ + "NDVI_v_Weather/"
+NDVI_weather_data_dir = NDVI_weather_base + "data/"
+
 #####################################################################################
 
 county_fips_dict = pd.read_pickle(common_data + "county_fips.sav")
@@ -63,9 +67,27 @@ county_SF["centroid"] = county_SF["geometry"].centroid
 county_SF.reset_index(drop=True, inplace=True)
 print(county_SF.shape)
 
+############################################################################################
+### Just pick the counties in common
+
+NDVI_weather = pd.read_pickle(NDVI_weather_data_dir + "NDVI_weather.sav")
+NDVI_weather = NDVI_weather["NDVI_weather_input"]
+
+
+weather_counties = set(NDVI_weather["county_fips"].unique())
+all_counties = set(county_SF["county_fips"].unique())
+print(len(weather_counties))
+print(len(all_counties))
+
+common_counties = list(weather_counties.intersection(all_counties))
+county_SF = county_SF[county_SF["county_fips"].isin(common_counties)].copy()
 county_SF.set_index("county_fips", inplace=True)
 # Create a new DataFrame for pairwise distances
 county_geodesic_dist = pd.DataFrame(index=county_SF.index, columns=county_SF.index)
+county_geodesic_dist = county_geodesic_dist.astype(int)
+# distance of a county to itself is zero. But in queen, we made diagonals equal to 1.
+# np.fill_diagonal(county_geodesic_dist.values, 1)
+
 
 print("line 97")
 print(county_geodesic_dist)

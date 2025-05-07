@@ -43,6 +43,7 @@ from keras.regularizers import l2
 from scikeras.wrappers import KerasRegressor
 from sklearn.model_selection import train_test_split, GridSearchCV
 from keras import backend as K
+from keras.optimizers import Adam
 
 sys.path.append("/home/h.noorazar/rangeland/")
 import rangeland_core as rc
@@ -55,12 +56,15 @@ import rangeland_core as rc
 ####################################################################################
 
 NDVI_lag_or_delta = sys.argv[1]  # let be either lag or delta
+batch_or_not = sys.argv[2]  # withBatch or noBatch
 
 # do the following since walla walla has two parts and we have to use walla_walla in terminal
 print("Terminal Arguments are: ")
 print("NDVI_lag_or_delta= ", NDVI_lag_or_delta)
+print("batch_or_not= ", batch_or_not)  # withBatch or noBatch
 print("__________________________________________")
-
+SEED = 7
+cv_ = 3
 ######################################################################################
 ######################################################################################
 ######################################################################################
@@ -119,17 +123,6 @@ state_name_fips = pd.merge(
 state_name_fips.head(2)
 
 
-state_fips_SoI = state_name_fips[state_name_fips.state.isin(SoI_abb)].copy()
-state_fips_SoI.reset_index(drop=True, inplace=True)
-state_fips_SoI.head(2)
-
-
-state_fips_west = list(
-    state_fips_SoI[state_fips_SoI["EW_meridian"] == "W"]["state_fips"].values
-)
-state_fips_west[:3]
-
-
 NDVI_weather = pd.read_pickle(NDVI_weather_data_dir + "NDVI_weather.sav")
 NDVI_weather = NDVI_weather["NDVI_weather_input"]
 
@@ -172,62 +165,111 @@ x_train_df, x_test_df, y_train_df, y_test_df = train_test_split(
 )
 
 input_shape_ = x_train_df.shape[1]
+######################################################################################
+######################################################################################
+######################################################################################
+#############
+#############
+#############
+#############
+np.random.seed(SEED)
+tf.random.set_seed(SEED)
 
 
-######################################################################################
-######################################################################################
-######################################################################################
-#############
-#############
-#############
-#############
-#############
-def create_model(l2_lambda):
+# in my computer create_model(l2_lambda, learning_rate) works
+# but on kamiak. we had to do learning_rate=0.001!!!!
+# even tho I made tensofrlow, keras, and scikeras versions identical to
+# my computer.
+def create_model(l2_lambda, learning_rate=0.001):
+    np.random.seed(SEED)
+    tf.random.set_seed(SEED)
     model = Sequential()
     model.add(
         Dense(
-            150,
+            250,
             input_shape=(input_shape_,),
             activation="relu",
             kernel_regularizer=l2(l2_lambda),
         )
     )
+    model.add(Dense(200, activation="relu", kernel_regularizer=l2(l2_lambda)))
+    model.add(Dense(150, activation="relu", kernel_regularizer=l2(l2_lambda)))
     model.add(Dense(100, activation="relu", kernel_regularizer=l2(l2_lambda)))
     model.add(Dense(50, activation="relu", kernel_regularizer=l2(l2_lambda)))
     model.add(Dense(25, activation="relu", kernel_regularizer=l2(l2_lambda)))
     model.add(Dense(10, activation="relu", kernel_regularizer=l2(l2_lambda)))
-    model.add(Dense(1, activation="relu", kernel_regularizer=l2(l2_lambda)))
+    # May 6, 2025: ChatGPT suggested to do linear for the last leyer.
+    model.add(Dense(1, activation="linear", kernel_regularizer=l2(l2_lambda)))
+    """
+    Old!!! learning rate is not used. updated May 6, 2025 along with
+    last layers activation
+    # optimizer="adam",
+    """
+    print(f"{learning_rate = }")
     model.compile(
         loss="mean_squared_error",
-        optimizer="adam",
+        optimizer=Adam(learning_rate=learning_rate),
         metrics=["mean_squared_error", "R2Score"],
     )
     return model
 
 
+"""
+  For some reason Kamiak started to throw error with 
+  model = KerasRegressor(model=create_model, verbose=0)
+
+  lets do
+  model = KerasRegressor(build_fn=create_model)
+
+  They both throw error. Possibly in the past 
+  I had create_model(l2_lambda) and it worked. 
+  So, I donnot how to pass learning rate to it!
+  and model = KerasRegressor(model=create_model, verbose=0) works on computer
+"""
+# model = KerasRegressor(build_fn=create_model)  # this seems to work, but i want to try:
+np.random.seed(SEED)
+tf.random.set_seed(SEED)
 model = KerasRegressor(model=create_model, verbose=0)
+
 
 param_grid = {
     "optimizer__learning_rate": [0.0001, 0.001, 0.01, 0.1],
     "model__l2_lambda": [0.001, 0.01, 0.1],
-    # "l2_lambda": [0.001, 0.01, 0.1],
-    # "batch_size": [16, 32, 64, 128],
     "epochs": [10, 20, 50, 100],
 }
-
-seed = 7
-cv_ = 3
-tf.random.set_seed(seed)
+param_grid = {
+    "model__learning_rate": [0.0001, 0.001, 0.01, 0.1],
+    "model__l2_lambda": [0.001, 0.01, 0.1],
+    "epochs": [10, 20, 50, 100],
+}
+if batch_or_not == "withBatch":  # withBatch or noBatch
+    param_grid["batch_size"] = [16, 32, 64, 128]
+    filename = (
+        models_dir
+        + "DL_"
+        + NDVI_lag_or_delta
+        + "cv_"
+        + str(cv_)
+        + "NDVI_GridRes_NB1_PaperArch.sav"
+    )
+else:
+    filename = (
+        models_dir
+        + "DL_"
+        + NDVI_lag_or_delta
+        + "cv_"
+        + str(cv_)
+        + "NDVI_GridRes_NB1_PaperArch_noBatchSize.sav"
+    )
+np.random.seed(SEED)
+tf.random.set_seed(SEED)
 grid = GridSearchCV(estimator=model, param_grid=param_grid, n_jobs=-1, cv=cv_)
 grid_result = grid.fit(x_train_df, y_train_df)
 #########################################################################################################
-
-filename = models_dir + "DL_" + NDVI_lag_or_delta + "cv_"
-    + str(cv_) + "DL_Network2_noBatchSize.sav"
-
 export_ = {
     "grid_result.cv_results_": grid_result.cv_results_,
-    "source_code": "DL_Network2",
+    # "source_code": "DL_DeltaNDVIs_model_NB1", old and out of date.
+    "source_code": "DL_NDVI_weather_model_NB1",
     "Author": "HN",
     "Date": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
 }

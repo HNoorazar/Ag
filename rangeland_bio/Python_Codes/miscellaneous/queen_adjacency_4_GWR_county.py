@@ -192,7 +192,6 @@ common_counties = list(weather_counties.intersection(all_counties))
 
 # 53055 is in WA, is island. no neighbor. Toss it. Or, turn NaN in its row std into 0.
 
-# %%
 print (county_SF.shape)
 county_SF = county_SF[county_SF["county_fips"].isin(common_counties)].copy()
 print (county_SF.shape)

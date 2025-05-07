@@ -1,11 +1,11 @@
 #!/bin/bash
-#SBATCH --partition=kamiak
-#SBATCH --constraint=cascadelake
-##SBATCH --partition=rajagopalan
+##SBATCH --partition=kamiak
+##SBATCH --constraint=cascadelake
+#SBATCH --partition=rajagopalan
 #SBATCH --requeue
-#SBATCH --job-name=DL_Network2_NDVI_lag_or_delta # Job Name
-#SBATCH --time=7-00:00:00    # Wall clock time limit in Days-HH:MM:SS
-#SBATCH --mem=50GB 
+#SBATCH --job-name=GWR_formWeight_smart_trainP_train_percentage # Job Name
+#SBATCH --time=00-20:00:00   # Wall clock time limit in Days-HH:MM:SS
+#SBATCH --mem=100GB 
 #SBATCH --nodes=1            # Node count required for the job
 #SBATCH --ntasks-per-node=1  # Number of tasks to be launched per Node
 #SBATCH --ntasks=1           # Number of tasks per array job
@@ -13,8 +13,8 @@
 ####SBATCH --array=0-30000
 
 ###SBATCH -k o
-#SBATCH --output=/home/h.noorazar/NDVI_v_Weather/DL_models/error/DL_Network2_NDVI_lag_or_delta_o
-#SBATCH --error=/home/h.noorazar/NDVI_v_Weather/DL_models/error/DL_Network2_NDVI_lag_or_delta_e
+#SBATCH --output=/home/h.noorazar/NDVI_v_Weather/GWR/error/GWR_formWeight_smart_trainP_o
+#SBATCH --error=/home/h.noorazar/NDVI_v_Weather/GWR/error/GWR_formWeight_smart_trainP_e
 
 echo
 echo "--- We are now in $PWD ..."
@@ -33,8 +33,8 @@ echo
 ##### module load python3/3.5.0
 ##### module load python3/3.7.0
 ## I commented out the two following lines after adding source activate NDVI_v_weather
-# module load gcc/7.3.0
-# module load anaconda3
+module load gcc/7.3.0
+module load anaconda3
 
 # pip install shutup
 # pip install dtaidistance
@@ -60,9 +60,9 @@ echo "--------- continue on ---------"
 # Run python code for matrix
 # ----------------------------------------------------------------
 
-source activate NDVI_v_Weather
+# source activate NDVI_v_Weather
 
-python /home/h.noorazar/NDVI_v_Weather/DL_models/DL_Network2.py NDVI_lag_or_delta
+python /home/h.noorazar/NDVI_v_Weather/GWR/GWR_County_weight_QueenAdj_smart_kamiak.py 40
 
 echo Running time on host `hostname`
 echo End Time is `date`

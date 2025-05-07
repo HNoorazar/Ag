@@ -159,148 +159,17 @@ x_train_df, x_test_df, y_train_df, y_test_df = train_test_split(
     X, y, test_size=0.2, random_state=0, shuffle=True
 )
 
-# %%
-input_shape_ = X.shape[1]
-input_shape_
-
-# %%
-from tensorflow.keras.optimizers import Adam
-
-# %%
-x_train_df = x_train_df[:1000]
-y_train_df = y_train_df[:1000]
-
-# %%
-# %%time
-
-# Grid search
-param_grid = {
-    "model__l2_lambda": [0.001, 0.01],
-    "model__learning_rate": [0.001, 0.01],
-    "epochs": [10, 20, 50],
-    "batch_size": [32],  # optional
-}
-
-# Model builder
-def create_model(l2_lambda, learning_rate):
-    model = Sequential()
-    model.add(Dense(10, input_shape=(input_shape_,), activation="relu", kernel_regularizer=l2(l2_lambda)))
-    model.add(Dense(10, activation="relu", kernel_regularizer=l2(l2_lambda)))
-    model.add(Dense(1, activation="linear", kernel_regularizer=l2(l2_lambda)))
-    
-    model.compile(
-        loss="mean_squared_error",
-        optimizer=Adam(learning_rate=learning_rate),
-        metrics=["mean_squared_error"]
-    )
-    return model
-
-# Wrap with Scikit-learn compatible interface
-model = KerasRegressor(model=create_model, verbose=0)
-tf.random.set_seed(10)
-grid = GridSearchCV(estimator=model, param_grid=param_grid, cv=3)
-grid_result = grid.fit(x_train_df, y_train_df)
-
-print (grid_result.best_params_)
-
-# %%
-
-# %%
-# %%time
-# Model builder
-
-# Wrap with Scikit-learn compatible interface
-# model = KerasRegressor(model=create_model, verbose=0)
-model = KerasRegressor(build_fn=create_model, verbose=0)
-grid = GridSearchCV(estimator=model, param_grid=param_grid, cv=3)
-tf.random.set_seed(10) # setting seed here did not have any effect
-grid_result = grid.fit(x_train_df, y_train_df)
-
-print (grid_result.best_params_)
-
-# %%
-# %%time 
-
-for ii in np.arange(10):
-    SEED = 10
-    np.random.seed(SEED)
-    tf.random.set_seed(SEED)
-
-    def create_model(l2_lambda, learning_rate):
-        SEED = 10
-        np.random.seed(SEED)
-        tf.random.set_seed(SEED)
-        model = Sequential()
-        model.add(Dense(10, input_shape=(input_shape_,), activation="relu", kernel_regularizer=l2(l2_lambda)))
-        model.add(Dense(10, activation="relu", kernel_regularizer=l2(l2_lambda)))
-        model.add(Dense(1, activation="linear", kernel_regularizer=l2(l2_lambda)))
-
-        model.compile(
-            loss="mean_squared_error",
-            optimizer=Adam(learning_rate=learning_rate),
-            metrics=["mean_squared_error"]
-        )
-        return model
-
-    SEED = 10
-    np.random.seed(SEED)
-    tf.random.set_seed(SEED)
-
-    # Wrap with Scikit-learn compatible interface
-    model = KerasRegressor(model=create_model, verbose=0)
-    grid = GridSearchCV(estimator=model, param_grid=param_grid, cv=3)
-    grid_result = grid.fit(x_train_df, y_train_df)
-    print (grid_result.best_params_)
-
-
-# %%
-
-# %%
-
-# %%
-
-# %%
-
-# %%
-
-# %%
-# Check tensorflow version and keras version and sklearn and scikeras
-# and install the same on kamiak
-
-# %%
-import scikeras
-import tensorflow as tf
-import keras
-
-print(f"{tf.__version__ = }")
-print(f"{tf.version.VERSION = }")
-print (f"{keras.__version__ = }")
-
-print (f"{scikeras.__version__=}")
-
-
-# %%
-
-# %%
-
-# %%
-
-# %%
-
-# %%
-
-# %%
 
 # %%
 def create_model(l2_lambda):
     model = Sequential()
     model.add(Dense(25, activation="relu", kernel_regularizer=l2(l2_lambda)))
     model.add(Dense(10, activation="relu", kernel_regularizer=l2(l2_lambda)))
-    model.add(Dense(1, activation="relu", kernel_regularizer=l2(l2_lambda)))
-    optimizer = tf.keras.optimizers.Adam(learning_rate=learning_rate)
+    # May 6: chatGPT: last leyer do linear
+    model.add(Dense(1, activation="linear", kernel_regularizer=l2(l2_lambda)))
     model.compile(
         loss="mean_squared_error",
-        optimizer=optimizer,
+        optimizer="adam",
         metrics=["mean_squared_error", "R2Score"],
     )
     return model
@@ -317,7 +186,7 @@ param_grid = {
 
 seed = 7
 tf.random.set_seed(seed)
-grid = GridSearchCV(estimator=model, param_grid=param_grid, n_jobs=-1, cv=5)
+grid = GridSearchCV(estimator=model, param_grid=param_grid, n_jobs=-1, cv=3)
 grid_result = grid.fit(x_train_df, y_train_df)
 # %% [markdown]
 # From https://machinelearningmastery.com/grid-search-hyperparameters-deep-learning-models-python-keras/
@@ -326,8 +195,8 @@ grid_result = grid.fit(x_train_df, y_train_df)
 # load dataset
 dataset = np.loadtxt("/Users/hn/Desktop/pima-indians-diabetes.csv", delimiter=",")
 # split into input (X) and output (Y) variables
-X = dataset[:,0:8]
-Y = dataset[:,8]
+X = dataset[:, 0:8]
+Y = dataset[:, 8]
 # create model
 
 # %%
@@ -343,21 +212,31 @@ from tensorflow.keras.models import Sequential
 from tensorflow.keras.layers import Dense
 from tensorflow.keras.optimizers import SGD
 from scikeras.wrappers import KerasClassifier
+
+
 # Function to create model, required for KerasClassifier
 def create_model():
     # create model
     model = Sequential()
-    model.add(Dense(12, input_shape=(input_shape_,), activation='relu'))
-    model.add(Dense(1, activation='sigmoid'))
+    model.add(Dense(12, input_shape=(input_shape_,), activation="relu"))
+    model.add(Dense(1, activation="sigmoid"))
     return model
+
+
 # fix random seed for reproducibility
 seed = 7
 tf.random.set_seed(seed)
 
 # %%
 # %%time
-model = KerasClassifier(model=create_model, loss="binary_crossentropy", 
-                        optimizer="SGD", epochs=100, batch_size=10, verbose=0)
+model = KerasClassifier(
+    model=create_model,
+    loss="binary_crossentropy",
+    optimizer="SGD",
+    epochs=100,
+    batch_size=10,
+    verbose=0,
+)
 # define the grid search parameters
 learn_rate = [0.001, 0.01, 0.1, 0.2, 0.3]
 momentum = [0.0, 0.2, 0.4, 0.6, 0.8, 0.9]
@@ -366,9 +245,9 @@ grid = GridSearchCV(estimator=model, param_grid=param_grid, n_jobs=-1, cv=3)
 grid_result = grid.fit(X, Y)
 # summarize results
 print("Best: %f using %s" % (grid_result.best_score_, grid_result.best_params_))
-means = grid_result.cv_results_['mean_test_score']
-stds = grid_result.cv_results_['std_test_score']
-params = grid_result.cv_results_['params']
+means = grid_result.cv_results_["mean_test_score"]
+stds = grid_result.cv_results_["std_test_score"]
+params = grid_result.cv_results_["params"]
 for mean, stdev, param in zip(means, stds, params):
     print("%f (%f) with: %r" % (mean, stdev, param))
 

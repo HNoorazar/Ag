@@ -5,7 +5,7 @@
 #       extension: .py
 #       format_name: percent
 #       format_version: '1.3'
-#       jupytext_version: 1.16.1
+#       jupytext_version: 1.15.2
 #   kernelspec:
 #     display_name: Python 3 (ipykernel)
 #     language: python
@@ -93,7 +93,6 @@ NASS_downloads_state = data_dir_base + "/NASS_downloads_state/"
 mike_dir = data_dir_base + "Mike/"
 reOrganized_dir = data_dir_base + "reOrganized/"
 os.makedirs(reOrganized_dir, exist_ok=True)
-
 
 NDVI_weather_data_dir = research_db + "/NDVI_v_Weather/data/"
 
@@ -261,7 +260,6 @@ print(logs)
 
 # %%
 # %%time
-
 (x, y), (x_test, y_test) = keras.datasets.mnist.load_data()
 
 x_train = x[:-10000]

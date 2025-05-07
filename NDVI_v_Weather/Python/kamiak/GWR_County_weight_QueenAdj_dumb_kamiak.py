@@ -81,7 +81,7 @@ state_fips_west[:3]
 # ****************************************************************************************
 # ****************************************************************************************
 # %% [markdown]
-# **western meridian** saved data is already western side (```NDVI_v_Weather_dataPrep.ipynb```)
+# **western meridian** saved data is already western side (```dataPrep.ipynb```)
 WM_counties = county_fips_df[county_fips_df["EW_meridian"] == "W"]
 WM_counties = list(WM_counties["county_fips"])
 len(WM_counties)
@@ -371,7 +371,7 @@ export_ = {
     "weightMatrix": sparse_matrix,
     "x_train": x_train,  # for sake of knowing what's where
     "y_train": y_train,
-    "source_code": "NDVI_v_Weather_GWR_County_weight_dumb_kamiak",
+    "source_code": "GWR_County_weight_dumb_kamiak",
     "Author": "HN",
     "Date": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
 }
@@ -386,7 +386,7 @@ filename = (
 )
 export_ = {
     "weightMatrix": weightMatrix,
-    "source_code": "NDVI_v_Weather_GWR_County_weight_dumb_kamiak",
+    "source_code": "GWR_County_weight_dumb_kamiak",
     "Author": "HN",
     "Date": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
 }

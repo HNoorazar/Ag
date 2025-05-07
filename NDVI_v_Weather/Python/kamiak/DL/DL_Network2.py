@@ -1,4 +1,6 @@
 """
+This has architecture of the paper 
+
 Global Normalized Difference Vegetation Index forecasting from air 
 temperature, soil moisture and precipitation using a deep neural network
 
@@ -19,7 +21,6 @@ import os, os.path, pickle, sys
 
 from sklearn import preprocessing
 import tensorflow as tf
-import keras_tuner
 
 print(tf.__version__)
 print(tf.version.VERSION)
@@ -42,6 +43,7 @@ from keras.regularizers import l2
 from scikeras.wrappers import KerasRegressor
 from sklearn.model_selection import train_test_split, GridSearchCV
 from keras import backend as K
+from keras.optimizers import Adam
 
 sys.path.append("/home/h.noorazar/rangeland/")
 import rangeland_core as rc
@@ -54,12 +56,15 @@ import rangeland_core as rc
 ####################################################################################
 
 NDVI_lag_or_delta = sys.argv[1]  # let be either lag or delta
-architecture = sys.argv[2]  # let be either paper or Network2
+batch_or_not = sys.argv[2]  # withBatch or noBatch
 
 # do the following since walla walla has two parts and we have to use walla_walla in terminal
 print("Terminal Arguments are: ")
 print("NDVI_lag_or_delta= ", NDVI_lag_or_delta)
+print("batch_or_not= ", batch_or_not)  # withBatch or noBatch
 print("__________________________________________")
+SEED = 7
+cv_ = 3
 
 ######################################################################################
 ######################################################################################
@@ -118,18 +123,6 @@ state_name_fips = pd.merge(
 )
 state_name_fips.head(2)
 
-
-state_fips_SoI = state_name_fips[state_name_fips.state.isin(SoI_abb)].copy()
-state_fips_SoI.reset_index(drop=True, inplace=True)
-state_fips_SoI.head(2)
-
-
-state_fips_west = list(
-    state_fips_SoI[state_fips_SoI["EW_meridian"] == "W"]["state_fips"].values
-)
-state_fips_west[:3]
-
-
 NDVI_weather = pd.read_pickle(NDVI_weather_data_dir + "NDVI_weather.sav")
 NDVI_weather = NDVI_weather["NDVI_weather_input"]
 
@@ -171,10 +164,6 @@ x_train_df, x_test_df, y_train_df, y_test_df = train_test_split(
     X, y, test_size=0.2, random_state=0, shuffle=True
 )
 
-#### do a validation set for the KerasTuner.
-x_train_df, x_val_df, y_train_df, y_val_df = train_test_split(
-    x_train_df, y_train_df, test_size=0.2, random_state=0, shuffle=True
-)
 input_shape_ = x_train_df.shape[1]
 
 
@@ -186,7 +175,13 @@ input_shape_ = x_train_df.shape[1]
 #############
 #############
 #############
-def create_model(l2_lambda):
+np.random.seed(SEED)
+tf.random.set_seed(SEED)
+
+
+def create_model(l2_lambda, learning_rate=0.001):
+    np.random.seed(SEED)
+    tf.random.set_seed(SEED)
     model = Sequential()
     model.add(
         Dense(
@@ -200,143 +195,76 @@ def create_model(l2_lambda):
     model.add(Dense(50, activation="relu", kernel_regularizer=l2(l2_lambda)))
     model.add(Dense(25, activation="relu", kernel_regularizer=l2(l2_lambda)))
     model.add(Dense(10, activation="relu", kernel_regularizer=l2(l2_lambda)))
-    model.add(Dense(1, activation="relu", kernel_regularizer=l2(l2_lambda)))
+    # May 6: chatGPT: last leyer do linear
+    model.add(Dense(1, activation="linear", kernel_regularizer=l2(l2_lambda)))
+    """
+    Old!!! learning rate is not used. updated May 6, 2025 along with
+    last layers activation
+    # optimizer="adam",
+    """
     model.compile(
         loss="mean_squared_error",
-        optimizer="adam",
+        # optimizer="adam",
+        optimizer=Adam(learning_rate=learning_rate),
         metrics=["mean_squared_error", "R2Score"],
     )
     return model
 
 
-if architecture == "paper":
+np.random.seed(SEED)
+tf.random.set_seed(SEED)
+model = KerasRegressor(model=create_model, verbose=0)
 
-    def call_existing_code(epochs, learning_rate, l2_lambda):
-        model = Sequential()
-        model.add(
-            Dense(
-                250,
-                input_shape=(input_shape_,),
-                activation="relu",
-                kernel_regularizer=l2(l2_lambda),
-            )
-        )
-        model.add(Dense(200, activation="relu", kernel_regularizer=l2(l2_lambda)))
-        model.add(Dense(150, activation="relu", kernel_regularizer=l2(l2_lambda)))
-        model.add(Dense(100, activation="relu", kernel_regularizer=l2(l2_lambda)))
-        model.add(Dense(50, activation="relu", kernel_regularizer=l2(l2_lambda)))
-        model.add(Dense(25, activation="relu", kernel_regularizer=l2(l2_lambda)))
-        model.add(Dense(10, activation="relu", kernel_regularizer=l2(l2_lambda)))
-        model.add(Dense(1, activation="relu", kernel_regularizer=l2(l2_lambda)))
-        model.compile(
-            loss="mean_squared_error",
-            optimizer="adam",
-            metrics=["mean_squared_error", "R2Score"],
-        )
-        return model
+param_grid = {
+    "optimizer__learning_rate": [0.0001, 0.001, 0.01, 0.1],
+    "model__l2_lambda": [0.001, 0.01, 0.1],
+    "epochs": [10, 20, 50, 100],
+}
+param_grid = {
+    "model__learning_rate": [0.0001, 0.001, 0.01, 0.1],
+    "model__l2_lambda": [0.001, 0.01, 0.1],
+    "epochs": [10, 20, 50, 100],
+}
 
 
-if architecture == "Network2":
-
-    def call_existing_code(epochs, learning_rate, l2_lambda):
-        model = Sequential()
-        model.add(
-            Dense(
-                150,
-                input_shape=(input_shape_,),
-                activation="relu",
-                kernel_regularizer=l2(l2_lambda),
-            )
-        )
-        model.add(Dense(100, activation="relu", kernel_regularizer=l2(l2_lambda)))
-        model.add(Dense(50, activation="relu", kernel_regularizer=l2(l2_lambda)))
-        model.add(Dense(25, activation="relu", kernel_regularizer=l2(l2_lambda)))
-        model.add(Dense(10, activation="relu", kernel_regularizer=l2(l2_lambda)))
-        model.add(Dense(1, activation="relu", kernel_regularizer=l2(l2_lambda)))
-        model.compile(
-            loss="mean_squared_error",
-            optimizer="adam",
-            metrics=["mean_squared_error", "R2Score"],
-        )
-        return model
-
-
-def build_model(hp):
-    """
-    https://keras.io/keras_tuner/api/hyperparameters/
-    hp.Float("learning_rate", min_value=0.001, max_value=10, step=10, sampling="log")
-    When sampling="log", the step is multiplied between samples.
-    The possible values are [0.001, 0.01, 0.1, 1, 10].
-    """
-    epochs = hp.Int("epochs", min_value=10, max_value=30, step=10)
-    l2_lambda = hp.Float("L2s", min_value=0.001, max_value=10, step=10, sampling="log")
-    learning_rate = hp.Float(
-        "learning_rate", min_value=1e-4, max_value=1e-2, sampling="log"
+if batch_or_not == "withBatch":  # withBatch or noBatch
+    param_grid["batch_size"] = [16, 32, 64, 128]
+    filename = (
+        models_dir + "DL_" + NDVI_lag_or_delta + "cv_" + str(cv_) + "DL_Network2.sav"
     )
-    # call existing model-building code with the hyperparameter values.
-    model = call_existing_code(
-        epochs=epochs, learning_rate=learning_rate, l2_lambda=l2_lambda
+else:
+    filename = (
+        models_dir
+        + "DL_"
+        + NDVI_lag_or_delta
+        + "cv_"
+        + str(cv_)
+        + "DL_Network2_noBatchSize.sav"
     )
-    return model
 
 
+np.random.seed(SEED)
+tf.random.set_seed(SEED)
+grid = GridSearchCV(estimator=model, param_grid=param_grid, n_jobs=-1, cv=cv_)
+grid_result = grid.fit(x_train_df, y_train_df)
 #########################################################################################################
-#########
-#########    Search
-#########
-max_trials_ = 10
-executions_per_trial_ = 3
-print(f"{build_model(keras_tuner.HyperParameters()) = }")
-project_name_ = architecture + "_" + NDVI_lag_or_delta
-tuner = keras_tuner.RandomSearch(
-    hypermodel=build_model,
-    objective="val_loss",
-    max_trials=max_trials_,
-    executions_per_trial=executions_per_trial_,
-    overwrite=True,
-    directory=NDVI_weather_data_dir,
-    project_name=project_name_,
-)
-print("---------------------------------------------------------------------")
-tuner.search_space_summary()
-print("---------------------------------------------------------------------")
-tuner.search(x_train_df, y_train_df, validation_data=(x_val_df, y_val_df))
 
-
-# Get the top 2 models.
-models = tuner.get_best_models(num_models=1)
-best_model = models[0]
-print(best_model.summary())
-print("---------------------------------------------------------------------")
-print(tuner.results_summary())
-
-
-#########################################################################################################
-filename = (
-    models_dir
-    + "KerasTuner_"
-    + project_name_
-    + "_executions_per_trial_"
-    + str(executions_per_trial_)
-    + "_max_trials_"
-    + str(max_trials_)
-    + "best_model.sav"
-)
 
 export_ = {
-    "best_model": best_model,
-    "source_code": "KerasTuner",
+    "grid_result.cv_results_": grid_result.cv_results_,
+    "source_code": "DL_Network2",
     "Author": "HN",
     "Date": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
 }
 
 pickle.dump(export_, open(filename, "wb"))
 
+print("Best: %f using %s" % (grid_result.best_score_, grid_result.best_params_))
+
 
 final_time = datetime.now()
 print("Today's date:", date.today())
 print("Current Time =", final_time.strftime("%H:%M:%S"))
 print(
-    "it took the following to run the code (in hours): ",
-    (final_time - current_time).total_seconds() / 3600,
+    "it took the following to run the code (in hours): ", (b - a).total_seconds() / 3600
 )
