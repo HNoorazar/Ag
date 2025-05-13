@@ -60,9 +60,11 @@ from matplotlib import colormaps
 print (list(colormaps)[:4])
 
 # %%
+research_db = "/Users/hn/Documents/01_research_data/"
+common_data = research_db + "common_data/"
 
 # %%
-rangeland_bio_base = "/Users/hn/Documents/01_research_data/RangeLand_bio/"
+rangeland_bio_base = research_db + "/RangeLand_bio/"
 rangeland_bio_data = rangeland_bio_base + "Data/"
 min_bio_dir = rangeland_bio_data + "Min_Data/"
 
@@ -191,17 +193,13 @@ Yue_orig_inter_green_df = ANPP_MK_df[ANPP_MK_df["fid"].isin(list(intersection_yu
 union_set = green_original_notYue_FIDs.union(green_Yue_notoriginal_FIDs).union(intersection_yue_orig_FIDs)
 len(union_set) == len(YueGreen_notOrig_df) + len(OrigGreen_notYue_df) + len(Yue_orig_inter_green_df)
 
-# %%
-
-# %%
-
 # %% [markdown]
 # # Make some plots
 
 # %%
 
 # %%
-county_fips_dict = pd.read_pickle(rangeland_reOrganized + "county_fips.sav")
+county_fips_dict = pd.read_pickle(common_data + "county_fips.sav")
 
 county_fips = county_fips_dict["county_fips"]
 full_2_abb = county_fips_dict["full_2_abb"]
@@ -216,8 +214,8 @@ state_fips.head(2)
 
 # %%
 from shapely.geometry import Polygon
-# gdf = geopandas.read_file(rangeland_base +'cb_2018_us_state_500k.zip')
-gdf = geopandas.read_file(rangeland_bio_base +'cb_2018_us_state_500k')
+gdf = geopandas.read_file(common_data +'cb_2018_us_state_500k.zip')
+# gdf = geopandas.read_file(common_data +'cb_2018_us_state_500k')
 
 gdf.rename(columns={"STUSPS": "state"}, inplace=True)
 gdf = gdf[~gdf.state.isin(["PR", "VI", "AS", "GU", "MP"])]
@@ -370,7 +368,7 @@ lines = [Line2D([0], [0], color=c, linewidth=2, linestyle='-') for c in colors]
 plt.legend(lines, labels, frameon=False, loc="lower left", bbox_to_anchor=(0.02, 0.02))
 
 file_name = yue_plots + "greenYue_missedOriginal.png"
-plt.savefig(file_name, bbox_inches='tight', dpi=map_dpi_)
+# plt.savefig(file_name, bbox_inches='tight', dpi=map_dpi_)
 del(dots_DF)
 
 # %%
@@ -524,7 +522,7 @@ plt.suptitle("(extremes of " + a_metric + ")", fontsize=14, y=.95, color="red");
 # plt.tight_layout();
 # fig.subplots_adjust(top=0.8, bottom=0.08, left=0.082, right=0.981)
 file_name = yue_plots + "greenYue_extreme" + a_metric +".pdf"
-plt.savefig(file_name, bbox_inches='tight', dpi=map_dpi_)
+# plt.savefig(file_name, bbox_inches='tight', dpi=map_dpi_)
 del(a_metric, min_idx, max_idx, fid_min, fid_max)
 
 # %%
