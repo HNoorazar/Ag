@@ -8,7 +8,7 @@ import scipy
 from scipy.linalg import inv
 from geopy.distance import geodesic
 import tensorflow as tf
-
+from scipy import stats as scipy_stats
 
 """
 for whatever reason, the following 2 lines dont work
@@ -24,6 +24,7 @@ from keras.models import Sequential
 from keras.layers import Dense
 
 from keras import losses, optimizers, metrics
+from keras import backend as K
 
 """
 There are scipy.linalg.block_diag() and scipy.sparse.block_diag()
@@ -34,7 +35,78 @@ def rmse(y_true, y_pred):
     return tf.sqrt(tf.reduce_mean(tf.square(y_pred - y_true)))
 
 
-from keras import backend as K
+import numpy as np
+import statsmodels.api as sm
+
+
+def Gemini_chow_test(data, formula, split_point):
+    """
+    Performs the Chow test for structural break.
+
+    Args:
+        data (pd.DataFrame): DataFrame containing the data.
+        formula (str): Regression formula (e.g., "y ~ x1 + x2").
+        split_point (int): Index where the data is split.
+
+    Returns:
+        tuple: F-statistic and p-value of the Chow test.
+    """
+    # Split the data
+    data1 = data[:split_point]
+    data2 = data[split_point:]
+
+    # Fit regressions
+    model1 = sm.OLS.from_formula(formula, data1).fit()
+    model2 = sm.OLS.from_formula(formula, data2).fit()
+    model_combined = sm.OLS.from_formula(formula, data).fit()
+
+    # Calculate RSS
+    rss1 = model1.ssr
+    rss2 = model2.ssr
+    rss_combined = model_combined.ssr
+
+    # Calculate Chow statistic
+    k = len(model1.params)  # Number of coefficients
+    n1 = len(data1)
+    n2 = len(data2)
+    chow_stat = ((rss_combined - (rss1 + rss2)) / k) / (
+        (rss1 + rss2) / (n1 + n2 - 2 * k)
+    )
+
+    # Calculate p-value
+    p_value = 1 - scipy_stats.f.cdf(chow_stat, k, n1 + n2 - 2 * k)
+
+    return chow_stat, p_value
+
+
+def ChatGPT_chow_test(y, X, split_index):
+    # Ensure constant term
+    X = sm.add_constant(X)
+
+    # Full model
+    model_full = sm.OLS(y, X).fit()
+    rss_full = np.sum(model_full.resid**2)
+
+    # Split models
+    y1, X1 = y[:split_index], X[:split_index]
+    y2, X2 = y[split_index:], X[split_index:]
+
+    model1 = sm.OLS(y1, X1).fit()
+    model2 = sm.OLS(y2, X2).fit()
+
+    rss1 = np.sum(model1.resid**2)
+    rss2 = np.sum(model2.resid**2)
+
+    k = X.shape[1]  # number of parameters
+    n = len(y)
+
+    chow_num = (rss_full - (rss1 + rss2)) / k
+    chow_den = (rss1 + rss2) / (n - 2 * k)
+    chow_stat = chow_num / chow_den
+
+    p_value = 1 - scipy_stats.f.cdf(chow_stat, k, n - 2 * k)
+
+    return chow_stat, p_value
 
 
 def root_mean_squared_error(y_true, y_pred):

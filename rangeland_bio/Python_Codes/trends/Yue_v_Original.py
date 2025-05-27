@@ -41,12 +41,12 @@ from matplotlib import cm
 
 sys.path.append("/Users/hn/Documents/00_GitHub/Ag/rangeland/Python_Codes/")
 import rangeland_core as rc
+import rangeland_plot_core as rpc
 
+# importlib.reload(rc)
+# importlib.reload(rpc)
 
 # %%
-def plot_SF(SF, ax_, cmap_ = "Pastel1", col="EW_meridian"):
-    SF.plot(column=col, ax=ax_, alpha=1, cmap=cmap_, edgecolor='k', legend=False, linewidth=0.1)
-
 
 # %%
 dpi_, map_dpi_=300, 900
@@ -292,7 +292,7 @@ fig, ax = plt.subplots(1, 1, figsize=(2, 2), dpi=map_dpi_)
 ax.set_xticks([]); ax.set_yticks([])
 plt.title('Where are FIDs {}?'.format(list(mystery_FID_wNoState_in_SF)), y=.92)
 
-plot_SF(SF=visframe_mainLand, ax_=ax, col="EW_meridian", cmap_ = "Pastel2")
+rpc.plot_SF(SF=visframe_mainLand, ax_=ax, col="EW_meridian", cmap_ = "Pastel2")
 
 mystery_SF = Albers_SF[Albers_SF["fid"].isin(list(mystery_FID_wNoState_in_SF))]
 mystery_SF["geometry"].centroid.plot(ax=ax, markersize=.5)
@@ -353,7 +353,7 @@ fig, ax = plt.subplots(1, 1, dpi=map_dpi_) # figsize=(2, 2)
 ax.set_xticks([]); ax.set_yticks([])
 plt.title('greening locations by Yue, missed by original MK', y=0.98)
 
-plot_SF(SF=visframe_mainLand_west, ax_=ax, col="EW_meridian", cmap_ = "Pastel2")
+rpc.plot_SF(SF=visframe_mainLand_west, ax_=ax, col="EW_meridian", cmap_ = "Pastel2")
 dots_DF = SF_west_Yue_notOrig.copy()
 dots_DF["geometry"].centroid.plot(ax=ax, c=dots_DF['color'], markersize=.1)
 
@@ -600,7 +600,7 @@ plt.suptitle("(extremes of " + a_metric + ")", fontsize=15, y=.95, color="red");
 # plt.tight_layout();
 # fig.subplots_adjust(top=0.8, bottom=0.08, left=0.082, right=0.981)
 file_name = yue_plots + "greenYue_extreme" + a_metric +".pdf"
-plt.savefig(file_name, bbox_inches='tight', dpi=map_dpi_)
+# plt.savefig(file_name, bbox_inches='tight', dpi=map_dpi_)
 del(a_metric, min_idx, max_idx, fid_min, fid_max)
 
 # %%
@@ -752,7 +752,7 @@ plt.suptitle("random FIDs. Green by Yue. Dismissed by original", fontsize=13, y=
 # plt.tight_layout();
 # fig.subplots_adjust(top=0.8, bottom=0.08, left=0.082, right=0.981)
 file_name = yue_plots + "greenYue_ random.pdf"
-plt.savefig(file_name, bbox_inches='tight', dpi=map_dpi_)
+# plt.savefig(file_name, bbox_inches='tight', dpi=map_dpi_)
 
 # %%
 # drop trend so there is no bug later
