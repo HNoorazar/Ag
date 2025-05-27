@@ -161,6 +161,9 @@ print (f'{noTrend["trend"].unique()[0] = }')
 # %%
 
 # %%
+fig, ax = plt.subplots(1, 1, dpi=map_dpi_) # figsize=(2, 2)
+ax.set_xticks([]); ax.set_yticks([])
+plt.title('greening locations by Yue, missed by original MK', y=0.98)
 # %%time
 Albers_SF_name = bio_reOrganized + "Albers_BioRangeland_Min_Ehsan" # laptop
 Albers_SF = geopandas.read_file(Albers_SF_name)
@@ -550,8 +553,6 @@ file_name = breakpoint_plot_base + "BP1_years_all_and_green_map_norm_col.png"
 plt.savefig(file_name, bbox_inches='tight', dpi=map_dpi_)
 
 del(p1, p2, cax, cbar1)
-
-# %%
 
 # %%
 

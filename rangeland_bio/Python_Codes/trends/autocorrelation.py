@@ -147,7 +147,7 @@ SF_west = pd.merge(SF_west, ANPP_ACF1, on="fid", how="left")
 SF_west.head(2)
 
 # %%
-tick_legend_FontSize = 6
+tick_legend_FontSize = 12
 params = {"font.family": "Palatino",
           "legend.fontsize": tick_legend_FontSize * .8,
           "axes.labelsize":  tick_legend_FontSize * 1,
@@ -161,7 +161,7 @@ params = {"font.family": "Palatino",
           "ytick.left": True,
           "xtick.labelbottom": True,
           "ytick.labelleft": True,
-#          'axes.linewidth' : .05
+          'axes.linewidth' : .05
 }
 
 plt.rcParams["xtick.bottom"] = True
@@ -185,8 +185,8 @@ cc_ = max(min_col_, max_col_)
 norm_col = Normalize(vmin=-cc_, vmax=cc_, clip=True);
 
 # cmap = bwr or use 'seismic'
-cent_plt = SF_west["centroid"].plot(ax=ax, c=SF_west[y_var], 
-                                    norm=norm_col, markersize=0.1) # , cmap='seismic'
+cent_plt = SF_west["centroid"].plot(ax=ax, c=SF_west[y_var], # cmap='seismic',
+                                    norm=norm_col, markersize=0.1) 
 plt.tight_layout()
 
 ############# color bar
@@ -199,7 +199,7 @@ cbar1.set_label(r"autocorrelation with lag 1", labelpad=2)
 plt.title('autocorrelation with lag 1', y=0.98);
 
 # fig.subplots_adjust(top=0.91, bottom=0.01, left=0.01, right=0.981)
-file_name = ACF_plot_base + "ANPP_ACF1.png"
+file_name = ACF_plot_base + "ANPP_ACF1_zeroWhite.png" # ANPP_ACF1_zeroWhite or ANPP_ACF1
 plt.savefig(file_name, bbox_inches='tight', dpi=300)
 
 del(cent_plt, cax, cbar1)
