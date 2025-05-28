@@ -94,6 +94,11 @@ os.makedirs(B_breakpoint_TS_dir, exist_ok=True)
 os.makedirs(noTrend_breakpoint_TS_dir, exist_ok=True)
 
 # %%
+breakpoint_TS_sen_dir = breakpoint_plot_base + "breakpoints_TS_sensSlope/"
+os.makedirs(breakpoint_TS_sen_dir, exist_ok=True)
+
+
+# %%
 breakpoints_dir = rangeland_bio_data + "breakpoints/"
 
 # %%
@@ -102,15 +107,215 @@ ANPP = ANPP["bpszone_ANPP"]
 ANPP.head(2)
 
 # %%
-
-# %%
-# import importlib
-# importlib.reload(rc)
-# importlib.reload(rpc)
-
-# %%
 ANPP_breaks = pd.read_csv(breakpoints_dir + "ANPP_break_points.csv")
+ANPP_breaks = ANPP_breaks[ANPP_breaks["breakpoint_count"]>0]
+ANPP_breaks.reset_index(drop=True, inplace=True)
 ANPP_breaks.head(2)
+
+# %%
+bp_cols = ANPP_breaks['breakpoint_years'].str.split('_', expand=True)
+bp_cols.columns = [f'BP_{i+1}' for i in range(bp_cols.shape[1])]
+bp_cols = bp_cols.apply(pd.to_numeric, errors='coerce')
+ANPP_breaks = pd.concat([ANPP_breaks, bp_cols], axis=1)
+ANPP_breaks.head(2)
+
+# %%
+ANPP['year'] = ANPP['year'].astype(int)
+
+# %%
+print (ANPP_breaks.shape)
+ANPP_breaks['BP_1'] = ANPP_breaks['BP_1'].dropna().astype(int)
+print (ANPP_breaks.shape)
+
+# %%
+# %%time
+# Iterate through each row in ANPP_breaks
+results = []
+
+for _, row in ANPP_breaks.iterrows():
+    fid = row['fid']
+    bp_year = row['BP_1']
+    
+    # Filter ANPP by current fid
+    subset = ANPP[ANPP['fid'] == fid]
+    
+    # Separate before and after BP_1
+    before = subset[subset['year'] < bp_year]['mean_lb_per_acr']
+    after = subset[subset['year'] >= bp_year]['mean_lb_per_acr']
+    
+    # Apply Mann-Kendall test if sufficient data
+    result = {
+        'fid': fid,
+        'BP_1': bp_year,
+        'n_before': len(before),
+        'n_after': len(after),
+        'slope_before': None,
+        'slope_after': None,
+        'intercept_before': None,
+        'intercept_after': None,
+        'trend_before': None,
+        'trend_after': None
+    }
+    
+    if len(before) >= 3:
+        trend, _, _, _, _, _, _, slope, intercept = mk.original_test(before)
+        result['slope_before'] = slope.round(2)
+        result['trend_before'] = trend
+        result['intercept_before'] = intercept.round(2)
+    
+    if len(after) >= 3:
+        trend, _, _, _, _, _, _, slope, intercept = mk.original_test(after)
+        result['slope_after'] = slope.round(2)
+        result['trend_after'] = trend
+        result['intercept_after'] = intercept.round(2)
+    
+    results.append(result)
+
+# Create results DataFrame
+slope_results = pd.DataFrame(results)
+
+# %%
+fid_1_npp = ANPP[ANPP["fid"] == 1]
+fid_1_npp.head(2)
+
+# %%
+fid_1_npp_before = fid_1_npp[fid_1_npp["year"] < 1990]
+fid_1_npp_after  = fid_1_npp[fid_1_npp["year"] >= 1990]
+
+# %%
+mk.original_test(fid_1_npp_before["mean_lb_per_acr"].to_numpy())
+
+# %%
+trend, _, _, _, _, _, _, slope, intercept = mk.original_test(fid_1_npp_before["mean_lb_per_acr"].to_numpy())
+print (f"{trend = }, {slope = }")
+
+# %%
+trend, _, _, _, _, _, _, slope, intercept = mk.original_test(fid_1_npp_after["mean_lb_per_acr"].to_numpy())
+
+# %% [markdown]
+# ### plot TS of FID=1
+
+# %%
+y_var = "mean_lb_per_acr"
+
+# %%
+tick_legend_FontSize = 6
+params = {"font.family": "Palatino",
+          "legend.fontsize": tick_legend_FontSize * .8,
+          "axes.labelsize":  tick_legend_FontSize * 1,
+          "axes.titlesize":  tick_legend_FontSize * 1,
+          "xtick.labelsize": tick_legend_FontSize * .8,
+          "ytick.labelsize": tick_legend_FontSize * .8,
+          "axes.titlepad": 5,
+          'legend.handlelength': 2,
+          "axes.titleweight": 'bold',
+          'axes.linewidth' : .05,
+          'xtick.major.width': 0.1,
+          'ytick.major.width': 0.1,
+          'xtick.major.size': 2,
+          'ytick.major.size': 2,
+         }
+
+plt.rcParams["xtick.bottom"] = True
+plt.rcParams["ytick.left"] = True
+plt.rcParams["xtick.labelbottom"] = True
+plt.rcParams["ytick.labelleft"] = True
+plt.rcParams.update(params)
+
+# %%
+# axes.axline((ress_["BP_1"].item(), ress_["intercept_after"].item()), 
+#             slope=ress_["slope_after"].item(), 
+#             color='k', label='after')
+
+
+# %%
+a_fid = 1
+fig, axes = plt.subplots(1, 1, figsize=(4, 2), sharey=False, sharex=False, dpi=dpi_)
+axes.grid(axis='y', alpha=0.2, zorder=0);
+###################################
+df = ANPP[ANPP["fid"] == a_fid]
+ress_ = slope_results[slope_results["fid"] == a_fid]
+
+ymin, ymax = df[y_var].min(), df[y_var].max()
+y_ave = 0.5 * (ymin+ymax)
+
+axes.plot(df.year, df[y_var], linewidth=2, color="dodgerblue", zorder=3);
+
+break_yrs = ANPP_breaks[ANPP_breaks["fid"] == a_fid]["breakpoint_years"].iloc[0]
+if not (pd.isna(break_yrs)):
+    break_yrs = break_yrs.split("_")
+    break_yrs = [int(x) for x in break_yrs]
+
+    for brk_yr in break_yrs:
+        plt.axvline(x=brk_yr, color='r', linestyle='--', linewidth=1) # , label=f"{brk_yr}"
+
+x_break = ress_["BP_1"].item()
+x_start, x_end = 1984, 2023
+
+# Split data before and after breakpoint
+df_before = df[df["year"] <= x_break]
+df_after = df[df["year"] >= x_break]
+
+# Compute slope values
+slope_before = ress_["slope_before"].item()
+slope_after = ress_["slope_after"].item()
+
+# Compute (mean_x, mean_y) for each segment
+x_mean_before = df_before["year"].mean()
+y_mean_before = df_before[y_var].mean()
+
+x_mean_after = df_after["year"].mean()
+y_mean_after = df_after[y_var].mean()
+
+# Compute intercepts so the lines pass through the mean point
+intercept_before = y_mean_before - slope_before * x_mean_before
+intercept_after = y_mean_after - slope_after * x_mean_after
+
+# Generate x/y for plotting
+x_before = [x_start, x_break]
+y_before = [slope_before * x + intercept_before for x in x_before]
+
+x_after = [x_break, x_end]
+y_after = [slope_after * x + intercept_after for x in x_after]
+
+# Plot lines
+axes.plot(x_before, y_before, color='k', linestyle='--', linewidth=1,
+          label=f'slope = {slope_before} ({ress_["trend_before"].item()})')
+
+axes.plot(x_after, y_after, color='green', linestyle='--', linewidth=1,
+          label=f'slope = {slope_after} ({ress_["trend_after"].item()})')
+
+axes.set_ylim(ymin, ymax)
+
+axes.set_ylabel(r'$\mu_{NPP}$ (lb/acr)')
+axes.set_xlabel('year') #, fontsize=14
+axes.set_xticks(df['year'].iloc[::2]);
+axes.tick_params(axis='x', rotation=45)
+plt.legend();
+
+plt.tight_layout()
+
+file_name = breakpoint_TS_sen_dir + f"fid_{a_fid}_BP_and_SensSlopes.pdf"
+plt.savefig(file_name, dpi=dpi_)
+
+# %%
+slope_results.head(2)
+
+# %%
+filename = breakpoints_dir + "sensSlope_beforeAfter_BP1.sav"
+
+export_ = {
+    "sensSlope_beforeAfter_BP1": slope_results,
+    "source_code": "breakpoints_SenSlopes",
+    "Author": "HN",
+    "Date": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+}
+
+pickle.dump(export_, open(filename, 'wb'))
+
+# %%
+filename = breakpoints_dir + "sensSlope_beforeAfter_BP1.csv"
+slope_results.to_csv(filename, index=False)
 
 # %%
 # %%time
@@ -122,440 +327,44 @@ SF_west["centroid"] = SF_west["geometry"].centroid
 SF_west.head(2)
 
 # %%
-print (SF_west.shape)
-SF_west = pd.merge(SF_west, ANPP_breaks, on="fid", how="left")
-print (SF_west.shape)
+slope_results.head(2)
+
+# %%
+backup = slope_results.copy()
+
+# %%
+slope_results = backup.copy()
+
+# %%
+slope_results.loc[slope_results['trend_before'] =="increasing", 'trend_before'] = "G"
+slope_results.loc[slope_results['trend_before'] =="decreasing", 'trend_before'] = "B"
+slope_results.loc[slope_results['trend_before'] =="no trend", 'trend_before'] = "NT"
+
+slope_results.loc[slope_results['trend_after'] =="increasing", 'trend_after'] = "G"
+slope_results.loc[slope_results['trend_after'] =="decreasing", 'trend_after'] = "B"
+slope_results.loc[slope_results['trend_after'] =="no trend", 'trend_after'] = "NT"
 
 # %%
 
 # %%
-FIDs = SF_west["fid"]
-green_FIDs = list(SF_west[SF_west["trend"] == "increasing"]["fid"])
-brown_FIDs = list(SF_west[SF_west["trend"] == "decreasing"]["fid"])
-noTrend_FIDs = list(SF_west[SF_west["trend"] == "no trend"]["fid"])
-print (f"{len(green_FIDs) = }")
-print (f"{len(brown_FIDs) = }")
-print (f"{len(noTrend_FIDs) = }")
+slope_results["trendShift"] = slope_results["trend_before"] + "_" + slope_results["trend_after"]
+slope_results.head(2)
 
 # %%
-SF_west.head(2)
-
-# %%
-bp_cols = SF_west['breakpoint_years'].str.split('_', expand=True)
-bp_cols.columns = [f'BP_{i+1}' for i in range(bp_cols.shape[1])]
-bp_cols = bp_cols.apply(pd.to_numeric, errors='coerce')
-SF_west = pd.concat([SF_west, bp_cols], axis=1)
-SF_west.head(5)
-
-# %%
-
-# %%
-greening = SF_west[SF_west["trend"] == "increasing"].copy()
-browning = SF_west[SF_west["trend"] == "decreasing"].copy()
-noTrend = SF_west[SF_west["trend"] == "no trend"].copy()
-
-print (f'{greening["trend"].unique()[0] = }')
-print (f'{browning["trend"].unique()[0] = }')
-print (f'{noTrend["trend"].unique()[0] = }')
-
-# %%
-
-# %%
-fig, ax = plt.subplots(1, 1, dpi=map_dpi_) # figsize=(2, 2)
-ax.set_xticks([]); ax.set_yticks([])
-plt.title('greening locations by Yue, missed by original MK', y=0.98)
-# %%time
-Albers_SF_name = bio_reOrganized + "Albers_BioRangeland_Min_Ehsan" # laptop
-Albers_SF = geopandas.read_file(Albers_SF_name)
-Albers_SF.rename(columns=lambda x: x.lower().replace(' ', '_'), inplace=True)
-Albers_SF.rename(columns={"minstatsid": "fid", 
-                          "satae_max": "state_majority_area"}, inplace=True)
-
-Albers_SF["centroid"] = Albers_SF["geometry"].centroid
-Albers_SF.head(2)
+df = slope_results.groupby('trendShift').size().reset_index(name='count')
+print (df.sort_values("trendShift",))
 
 # %% [markdown]
-# ## Some stats
+# ## Do these stats only for greening locations
 
 # %%
-df = greening.groupby('breakpoint_count').size().reset_index(name='count')
-df
+green_fids = list(SF_west[SF_west["trend"] == "increasing"]["fid"])
 
 # %%
-tick_legend_FontSize = 9
-params = {"font.family": "Palatino",
-          "legend.fontsize": tick_legend_FontSize * .8,
-          "axes.labelsize":  tick_legend_FontSize * 1,
-          "axes.titlesize":  tick_legend_FontSize * 1,
-          "xtick.labelsize": tick_legend_FontSize * .6,
-          "ytick.labelsize": tick_legend_FontSize * .8,
-          "axes.titlepad": 5,
-          'legend.handlelength': 2,
-          "axes.titleweight": 'bold'}
-
-plt.rcParams["xtick.bottom"] = True
-plt.rcParams["ytick.left"] = True
-plt.rcParams["xtick.labelbottom"] = True
-plt.rcParams["ytick.labelleft"] = True
-plt.rcParams.update(params)
+slope_results_g = slope_results[slope_results["fid"].isin(green_fids)].copy()
 
 # %%
-sharey_ = False ### set axis limits to be identical or not
-
-fig, axes = plt.subplots(1, 3, figsize=(7, 3), sharey=sharey_, sharex=False, dpi=dpi_)
-
-df = greening.groupby('breakpoint_count').size().reset_index(name='count')
-axes[0].bar(df['breakpoint_count'], df['count'], color='skyblue', edgecolor='black', zorder=3);
-
-axes[0].set_ylabel('count')
-axes[0].set_title('greening locations', color="green", fontdict={'family': 'serif', 'weight': 'bold'})
-axes[0].set_xticks(df['breakpoint_count']);
-############################################################################################################
-###
-### browning
-df = browning.groupby('breakpoint_count').size().reset_index(name='count')
-axes[1].bar(df['breakpoint_count'], df['count'], color='skyblue', edgecolor='black', zorder=3);
-axes[1].set_title('browning locations', color="brown", fontdict={'family': 'serif', 'weight': 'bold'})
-axes[1].set_xticks(df['breakpoint_count']);
-
-############################################################################################################
-###
-### no trend
-df = noTrend.groupby('breakpoint_count').size().reset_index(name='count')
-axes[2].bar(df['breakpoint_count'], df['count'], color='skyblue', edgecolor='black', zorder=3);
-axes[2].set_title('no-trend locations', fontdict={'family': 'serif', 'weight': 'bold'})
-axes[2].set_xticks(df['breakpoint_count']);
-
-
-for ax in axes:
-    ax.tick_params(axis='y', length=0);
-    ax.tick_params(axis='x', length=0);
-    ax.set_xlabel('number of breakpoints')
-    ax.grid(axis='y', alpha=0.7, zorder=0);
-        
-if sharey_:
-    file_name = breakpoint_plot_base + "BP_count_trendBased_identicalScale.pdf"
-else:
-    file_name = breakpoint_plot_base + "BP_count_trendBased.pdf"
-
-plt.tight_layout()
-plt.savefig(file_name, dpi=dpi_)
-
-# %% [markdown]
-# ### Histogram of 1 breakpoints based on Year
-#
-# In the greening locations pick those with at least one breakpoint, and then pick the first year and plot histogram.
-
-# %%
-
-# %%
-tick_legend_FontSize = 13
-params = {"legend.fontsize": tick_legend_FontSize * .8,
-          "axes.labelsize":  tick_legend_FontSize * 1,
-          "axes.titlesize":  tick_legend_FontSize * 1,
-          "xtick.labelsize": tick_legend_FontSize * .8,
-          "ytick.labelsize": tick_legend_FontSize * .8,
-          "axes.titlepad": 5,
-          'legend.handlelength': 2,
-          "axes.titleweight": 'bold',
-          "font.family": "Palatino"}
-
-plt.rcParams["xtick.bottom"] = True
-plt.rcParams["ytick.left"] = True
-plt.rcParams["xtick.labelbottom"] = True
-plt.rcParams["ytick.labelleft"] = True
-plt.rcParams.update(params)
-
-# %% [markdown]
-# ## Distribution of first breakpoint
-
-# %%
-sharex_ = True
-sharey_ = False
-fig, axes = plt.subplots(3, 1, figsize=(8, 4), sharey=sharey_, sharex=sharex_, dpi=dpi_)
-##########################################################################################
-#####
-##### greening
-#####
-df = greening[greening["breakpoint_count"]>=1].copy()
-df = df.groupby('BP_1').size().reset_index(name='count')
-axes[0].bar(df['BP_1'], df['count'], color='skyblue', edgecolor='black', zorder=3);
-axes[0].set_title('greening locations', color='green', fontdict={'family': 'serif', 'weight': 'bold'})
-
-##########################################################################################
-#####
-##### browning
-#####
-df = browning[browning["breakpoint_count"]>=1].copy()
-df = df.groupby('BP_1').size().reset_index(name='count')
-axes[1].bar(df['BP_1'], df['count'], color='skyblue', edgecolor='black', zorder=3);
-axes[1].set_title('browning locations', color="brown", fontdict={'family': 'serif', 'weight': 'bold'})
-
-##########################################################################################
-#####
-##### no trend
-#####
-df = noTrend[noTrend["breakpoint_count"]>=1].copy()
-df = df.groupby('BP_1').size().reset_index(name='count')
-axes[2].bar(df['BP_1'], df['count'], color='skyblue', edgecolor='black', zorder=3);
-axes[2].set_title('no-trend locations', fontdict={'family': 'serif', 'weight': 'bold'})
-
-for ax in axes:
-    ax.tick_params(axis='y', length=0);
-    ax.tick_params(axis='x', length=0);
-    # ax.set_ylabel('count')
-    ax.grid(axis='y', alpha=0.7, zorder=0);
-
-fig.text(-.01, 0.55, 'count', va='center', rotation='vertical', fontsize=12)
-axes[2].set_xlabel('BP1 year')
-axes[2].tick_params(axis='x', rotation=45)
-
-
-if sharey_:
-    file_name = breakpoint_plot_base + "dist_BP1s_trendBased_identicalScale.pdf"
-else:
-    file_name = breakpoint_plot_base + "dist_BP1s_trendBased.pdf"
-
-plt.tight_layout()
-plt.savefig(file_name, dpi=dpi_, bbox_inches='tight')
-
-# %% [markdown]
-# ## Distribution of 2nd breakpoint
-
-# %%
-sharex_ = True
-sharey_ = False
-fig, axes = plt.subplots(3, 1, figsize=(8, 4), sharey=sharey_, sharex=sharex_, dpi=dpi_)
-##########################################################################################
-#####
-##### greening
-#####
-df = greening[greening["breakpoint_count"]>=2].copy()
-df = df.groupby('BP_2').size().reset_index(name='count')
-axes[0].bar(df['BP_2'], df['count'], color='skyblue', edgecolor='black', zorder=3);
-axes[0].set_title('greening locations', color='green', fontdict={'family': 'serif', 'weight': 'bold'})
-
-##########################################################################################
-#####
-##### browning
-#####
-df = browning[browning["breakpoint_count"]>=2].copy()
-df = df.groupby('BP_2').size().reset_index(name='count')
-axes[1].bar(df['BP_2'], df['count'], color='skyblue', edgecolor='black', zorder=3);
-axes[1].set_title('browning locations', color="brown", fontdict={'family': 'serif', 'weight': 'bold'})
-
-##########################################################################################
-#####
-##### no trend
-#####
-df = noTrend[noTrend["breakpoint_count"]>=2].copy()
-df = df.groupby('BP_2').size().reset_index(name='count')
-axes[2].bar(df['BP_2'], df['count'], color='skyblue', edgecolor='black', zorder=3);
-axes[2].set_title('no-trend locations', fontdict={'family': 'serif', 'weight': 'bold'})
-
-for ax in axes:
-    ax.tick_params(axis='y', length=0);
-    ax.tick_params(axis='x', length=0);
-    # ax.set_ylabel('count')
-    ax.grid(axis='y', alpha=0.7, zorder=0);
-
-fig.text(-.01, 0.55, 'count', va='center', rotation='vertical', fontsize=12)
-axes[2].set_xlabel('BP2 year')
-axes[2].tick_params(axis='x', rotation=45)
-
-if sharey_:
-    file_name = breakpoint_plot_base + "dist_BP2s_trendBased_identicalScale.pdf"
-else:
-    file_name = breakpoint_plot_base + "dist_BP2s_trendBased.pdf"
-
-plt.tight_layout()
-plt.savefig(file_name, dpi=dpi_, bbox_inches='tight')
-
-# %% [markdown]
-# ## Maps
-
-# %%
-y_var = "mean_lb_per_acr"
-
-# %%
-county_fips_dict = pd.read_pickle(common_data + "county_fips.sav")
-
-county_fips = county_fips_dict["county_fips"]
-full_2_abb = county_fips_dict["full_2_abb"]
-abb_2_full_dict = county_fips_dict["abb_2_full_dict"]
-abb_full_df = county_fips_dict["abb_full_df"]
-filtered_counties_29States = county_fips_dict["filtered_counties_29States"]
-SoI = county_fips_dict["SoI"]
-state_fips = county_fips_dict["state_fips"]
-
-state_fips = state_fips[state_fips.state != "VI"].copy()
-state_fips.head(2)
-
-# %%
-from shapely.geometry import Polygon
-gdf = geopandas.read_file(common_data +'cb_2018_us_state_500k.zip')
-# gdf = geopandas.read_file(common_data +'cb_2018_us_state_500k')
-
-gdf.rename(columns={"STUSPS": "state"}, inplace=True)
-gdf = gdf[~gdf.state.isin(["PR", "VI", "AS", "GU", "MP"])]
-gdf = pd.merge(gdf, state_fips[["EW_meridian", "state"]], how="left", on="state")
-
-# %%
-visframe = gdf.to_crs({'init':'epsg:5070'})
-visframe_mainLand = visframe[~visframe.state.isin(["AK", "HI"])].copy()
-
-visframe_mainLand_west = visframe[visframe.EW_meridian.isin(["W"])].copy()
-visframe_mainLand_west = visframe_mainLand_west[~visframe_mainLand_west.state.isin(["AK", "HI"])].copy()
-
-# %%
-tick_legend_FontSize = 12
-params = {"font.family": "Palatino",
-          "legend.fontsize": tick_legend_FontSize * .8,
-          "axes.labelsize":  tick_legend_FontSize * 1,
-          "axes.titlesize":  tick_legend_FontSize * 1,
-          "xtick.labelsize": tick_legend_FontSize * .8,
-          "ytick.labelsize": tick_legend_FontSize * .8,
-          "axes.titlepad": 10,
-          'legend.handlelength': 2,
-          "axes.titleweight": 'bold',
-          "xtick.bottom": True,
-          "ytick.left": True,
-          "xtick.labelbottom": True,
-          "ytick.labelleft": True,
-          'axes.linewidth' : .05
-}
-
-plt.rcParams["xtick.bottom"] = True
-plt.rcParams["ytick.left"] = True
-plt.rcParams["xtick.labelbottom"] = True
-plt.rcParams["ytick.labelleft"] = True
-plt.rcParams.update(params)
-
-# %% [markdown]
-# ### Color based on year that 1st breakpoint occurred
-
-# %%
-fig, ax = plt.subplots(1, 1, dpi=map_dpi_) # figsize=(2, 2)
-ax.set_xticks([]); ax.set_yticks([])
-
-rpc.plot_SF(SF=visframe_mainLand_west, ax_=ax, col="EW_meridian", cmap_ = custom_cmap_BW)
-SF_west_BP1 = SF_west[SF_west["breakpoint_count"]>=1].copy()
-cent_plt = SF_west_BP1["centroid"].plot(ax=ax, c=SF_west_BP1['BP_1'], markersize=.1);
-plt.tight_layout()
-
-############# color bar
-cax = ax.inset_axes([0.03, 0.18, 0.5, 0.03])
-# cbar1 = fig.colorbar(cent_plt.collections[1], ax=ax, orientation='vertical', shrink=0.5)
-cbar1 = fig.colorbar(cent_plt.collections[1], ax=ax, orientation='horizontal', shrink=0.3, cax=cax)
-cbar1.set_label(r"BP1 years", labelpad=2)
-
-#############
-plt.title('BP1 years', y=0.98);
-
-# fig.subplots_adjust(top=0.91, bottom=0.01, left=0.01, right=0.981)
-file_name = breakpoint_plot_base + "BP1_years_map.png"
-plt.savefig(file_name, bbox_inches='tight', dpi=map_dpi_)
-
-del(cent_plt, cax, cbar1)
-
-# %%
-
-# %%
-fig, ax = plt.subplots(1, 1, dpi=map_dpi_) # figsize=(2, 2)
-ax.set_xticks([]); ax.set_yticks([])
-
-rpc.plot_SF(SF=visframe_mainLand_west, ax_=ax, col="EW_meridian", cmap_ = custom_cmap_BW)
-SF_west_BP1 = SF_west[SF_west["breakpoint_count"]>=1].copy()
-
-min_col_ = SF_west_BP1['BP_1'].min()
-max_col_ = SF_west_BP1['BP_1'].max()
-norm_col = Normalize(vmin= min_col_, vmax = max_col_);
-
-
-cent_plt = SF_west_BP1["centroid"].plot(ax=ax, c=SF_west_BP1['BP_1'], markersize=.1, norm=norm_col);
-plt.tight_layout()
-
-
-############# color bar
-cax = ax.inset_axes([0.03, 0.18, 0.5, 0.03])
-# cbar1 = fig.colorbar(cent_plt.collections[1], ax=ax, orientation='vertical', shrink=0.5)
-cbar1 = fig.colorbar(cent_plt.collections[1], ax=ax, orientation='horizontal', shrink=0.3, cax=cax)
-cbar1.set_label(r"BP1 years", labelpad=2)
-
-#############
-plt.title('BP1 years', y=0.98);
-
-# fig.subplots_adjust(top=0.91, bottom=0.01, left=0.01, right=0.981)
-file_name = breakpoint_plot_base + "BP1_years_map_norm_col.png"
-# plt.savefig(file_name, bbox_inches='tight', dpi=map_dpi_)
-
-del(cent_plt, cax, cbar1)
-
-# %%
-tick_legend_FontSize = 10
-params = {"font.family": "Palatino",
-          "legend.fontsize": tick_legend_FontSize * .8,
-          "axes.labelsize":  tick_legend_FontSize * 1,
-          "axes.titlesize":  tick_legend_FontSize * 1,
-          "xtick.labelsize": tick_legend_FontSize * .8,
-          "ytick.labelsize": tick_legend_FontSize * .8,
-          "axes.titlepad": 10,
-          'legend.handlelength': 2,
-          "axes.titleweight": 'bold',
-          "xtick.bottom": True,
-          "ytick.left": True,
-          "xtick.labelbottom": True,
-          "ytick.labelleft": True,
-          'axes.linewidth' : .05
-}
-
-plt.rcParams["xtick.bottom"] = True
-plt.rcParams["ytick.left"] = True
-plt.rcParams["xtick.labelbottom"] = True
-plt.rcParams["ytick.labelleft"] = True
-plt.rcParams.update(params)
-
-
-# %%
-SF_west_BP1 = SF_west[SF_west["breakpoint_count"]>=1].copy()
-SF_west_BP1_green = SF_west_BP1[SF_west_BP1["trend"] == "increasing"].copy()
-
-min_col_ = SF_west_BP1['BP_1'].min()
-max_col_ = SF_west_BP1['BP_1'].max()
-norm_col = Normalize(vmin= min_col_, vmax = max_col_);
-
-fig, axes = plt.subplots(1, 2, figsize=(8, 4), sharex=True, sharey=True, dpi=map_dpi_,
-                         gridspec_kw={"hspace": 0.15, "wspace": -0.11})
-(ax1, ax2) = axes
-ax1.set_xticks([]); ax1.set_yticks([])
-ax2.set_xticks([]); ax2.set_yticks([])
-
-#############
-rpc.plot_SF(SF=visframe_mainLand_west, ax_=ax1, cmap_="Pastel1", col="EW_meridian")
-rpc.plot_SF(SF=visframe_mainLand_west, ax_=ax2, cmap_="Pastel1", col="EW_meridian")
-#############
-
-# p1 = SF_west_BP1.plot(column='BP_1', ax=ax1, cmap=cmap_G, norm=norm_col)
-p1 = SF_west_BP1["centroid"].plot(ax=ax1, c=SF_west_BP1['BP_1'], 
-                                  markersize=.1, norm=norm_col);
-ax1.set_title(r"BP1 years", y=0.98);
-#############
-p2 = SF_west_BP1_green["centroid"].plot(ax=ax2, c=SF_west_BP1_green['BP_1'], 
-                                        markersize=.1, norm=norm_col);
-ax2.set_title(r"BP1 years in greening locations", y=0.98);
-
-############# color bar
-cax = ax2.inset_axes([1.05, 0.3, 0.04, 0.4])
-cbar1=fig.colorbar(p1.get_children()[1], cax=cax, orientation='vertical');
-# cbar1.set_label(r"BP1 years", labelpad=2)
-
-file_name = breakpoint_plot_base + "BP1_years_all_and_green_map_norm_col.png"
-plt.savefig(file_name, bbox_inches='tight', dpi=map_dpi_)
-
-del(p1, p2, cax, cbar1)
-
-# %%
-
-# %%
+df = slope_results_g.groupby('trendShift').size().reset_index(name='count')
+print (df.sort_values("trendShift",))
 
 # %%

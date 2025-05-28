@@ -86,6 +86,8 @@ ANPP = ANPP["bpszone_ANPP"]
 ANPP.head(2)
 
 # %%
+print (ANPP.year.min())
+print (ANPP.year.max())
 
 # %%
 # Example usage:
@@ -170,7 +172,6 @@ plt.rcParams["xtick.labelbottom"] = True
 plt.rcParams["ytick.labelleft"] = True
 plt.rcParams.update(params)
 
-
 # %%
 y_var = "mean_lb_per_acr_lag1_autocorr"
 
@@ -185,7 +186,7 @@ cc_ = max(min_col_, max_col_)
 norm_col = Normalize(vmin=-cc_, vmax=cc_, clip=True);
 
 # cmap = bwr or use 'seismic'
-cent_plt = SF_west["centroid"].plot(ax=ax, c=SF_west[y_var], # cmap='seismic',
+cent_plt = SF_west["centroid"].plot(ax=ax, c=SF_west[y_var], #cmap='seismic',
                                     norm=norm_col, markersize=0.1) 
 plt.tight_layout()
 
@@ -193,13 +194,13 @@ plt.tight_layout()
 cax = ax.inset_axes([0.03, 0.18, 0.5, 0.03])
 # cbar1 = fig.colorbar(cent_plt.collections[1], ax=ax, orientation='vertical', shrink=0.5)
 cbar1 = fig.colorbar(cent_plt.collections[1], ax=ax, orientation='horizontal', shrink=0.3, cax=cax)
-cbar1.set_label(r"autocorrelation with lag 1", labelpad=2)
+cbar1.set_label(r"ACF1", labelpad=2)
 
 #############
-plt.title('autocorrelation with lag 1', y=0.98);
+plt.title('ACF1 for ANPP (1984-2023, no 2012)', y=0.98);
 
 # fig.subplots_adjust(top=0.91, bottom=0.01, left=0.01, right=0.981)
-file_name = ACF_plot_base + "ANPP_ACF1_zeroWhite.png" # ANPP_ACF1_zeroWhite or ANPP_ACF1
+file_name = ACF_plot_base + "ANPP_ACF1.png" # ANPP_ACF1_zeroWhite or ANPP_ACF1
 plt.savefig(file_name, bbox_inches='tight', dpi=300)
 
 del(cent_plt, cax, cbar1)

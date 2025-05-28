@@ -307,7 +307,6 @@ fig.text(-.01, 0.55, 'count', va='center', rotation='vertical', fontsize=12)
 axes[2].set_xlabel('BP1 year')
 axes[2].tick_params(axis='x', rotation=45)
 
-
 if sharey_:
     file_name = breakpoint_plot_base + "dist_BP1s_trendBased_identicalScale.pdf"
 else:
