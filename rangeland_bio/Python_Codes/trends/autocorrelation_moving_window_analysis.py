@@ -38,11 +38,6 @@ import rangeland_core as rc
 import rangeland_plot_core as rpc
 
 # %%
-import importlib;
-importlib.reload(rc);
-importlib.reload(rpc);
-
-# %%
 dpi_, map_dpi_=300, 900
 custom_cmap_coral = ListedColormap(['lightcoral', 'black'])
 custom_cmap_BW = ListedColormap(['white', 'black'])
@@ -63,60 +58,20 @@ rangeland_reOrganized = rangeland_base + "reOrganized/"
 bio_reOrganized = rangeland_bio_data + "reOrganized/"
 os.makedirs(bio_reOrganized, exist_ok=True)
 
-bio_plots = rangeland_bio_base + "plots/"
-os.makedirs(bio_plots, exist_ok=True)
-
-breakpoint_plot_base = bio_plots + "breakpoints/"
-os.makedirs(breakpoint_plot_base, exist_ok=True)
-
-breakpoint_TS_dir = breakpoint_plot_base + "breakpoints_TS/"
-os.makedirs(breakpoint_TS_dir, exist_ok=True)
-
-
-G_breakpoint_TS_dir = breakpoint_TS_dir + "/greening/"
-B_breakpoint_TS_dir = breakpoint_TS_dir + "/browning/"
-noTrend_breakpoint_TS_dir = breakpoint_TS_dir + "/notrend/"
-
-os.makedirs(G_breakpoint_TS_dir, exist_ok=True)
-os.makedirs(B_breakpoint_TS_dir, exist_ok=True)
-os.makedirs(noTrend_breakpoint_TS_dir, exist_ok=True)
-
 # %%
+bio_plots = rangeland_bio_base + "plots/"
 ACF_plot_base = bio_plots + "ACF1/"
 os.makedirs(ACF_plot_base, exist_ok=True)
+
+# %%
+ACF_data = rangeland_bio_data + "ACF1/"
+
+# %%
 
 # %%
 ANPP = pd.read_pickle(bio_reOrganized + "bpszone_ANPP_no2012.sav")
 ANPP = ANPP["bpszone_ANPP"]
 ANPP.head(2)
-
-# %%
-print (ANPP.year.min())
-print (ANPP.year.max())
-
-# %%
-# Example usage:
-data = [10, 12, 15, 13, 16, 18, 17]
-time_series = pd.Series(data)
-
-lag_1_acf = time_series.autocorr(lag=1)
-print(f"Lag-1 Autocorrelation: {lag_1_acf:.2f}")
-
-# %%
-ANPP_ACF1 = ANPP.groupby('fid')['mean_lb_per_acr'].apply(lambda x: x.autocorr(lag=1))
-ANPP_ACF1 = ANPP_ACF1.reset_index(name='mean_lb_per_acr_lag1_autocorr')
-ANPP_ACF1.head(5)
-
-# %%
-
-ANPP_ACF1_statLib = ANPP.groupby('fid')['mean_lb_per_acr'].apply(lambda x: 
-                                        acf(x.values, nlags=1, fft=False)[1] if len(x.dropna()) > 1 else np.nan)
-
-ANPP_ACF1_statLib = ANPP_ACF1_statLib.reset_index(name='mean_lb_per_acr_lag1_autocorr_statLib')
-ANPP_ACF1_statLib.head(5)
-
-# %% [markdown]
-# ### Make a spatial Map
 
 # %%
 county_fips_dict = pd.read_pickle(common_data + "county_fips.sav")
@@ -158,8 +113,49 @@ SF_west["centroid"] = SF_west["geometry"].centroid
 SF_west.head(2)
 
 # %%
-SF_west = pd.merge(SF_west, ANPP_ACF1, on="fid", how="left")
+print (ANPP.year.min())
+print (ANPP.year.max())
+
+# %% [markdown]
+# ## Read all rolling window ACFs
+
+# %%
+ACF_dict = {}
+for window_size in np.arange(5, 11):
+    key_ = f"rolling_autocorrelations_ws{window_size}"
+    f_name = ACF_data + key_ + ".sav"
+    ACF_df = pd.read_pickle(f_name)
+    ACF_df = ACF_df[key_]
+    key_ = f"ACF1_ws{window_size}"
+    ACF_dict[key_] = ACF_df
+
+# %% [markdown]
+# ### Compute all variances and plot them 
+
+# %%
+ACF_variances_dict = {}
+for a_key in ACF_dict.keys():
+    ws_com = a_key.split("_")[-1]
+    ACF_df = ACF_dict[a_key]
+    ACF_variance_df = ACF_df.groupby("fid")[f"autocorr_lag1_{ws_com}"].var()
+    ACF_variance_df = ACF_variance_df.reset_index(name=f'autocorr_lag1_{ws_com}_variance')
+    ACF_variances_dict[a_key + "_variances"] = ACF_variance_df
+    
+    SF_west = pd.merge(SF_west, ACF_variance_df, on="fid", how="left")
+
+# %%
+ACF_variances_dict["ACF1_ws5_variances"].head(2)
+
+# %%
+ACF_variances_dict["ACF1_ws10_variances"].head(2)
+
+# %%
 SF_west.head(2)
+
+# %%
+
+# %%
+ACF_variances_dict.keys()
 
 # %%
 tick_legend_FontSize = 12
@@ -186,74 +182,41 @@ plt.rcParams["ytick.labelleft"] = True
 plt.rcParams.update(params)
 
 # %%
-y_var = "mean_lb_per_acr_lag1_autocorr"
 
 # %%
-fig, ax = plt.subplots(1, 1, dpi=map_dpi_) # figsize=(2, 2)
-ax.set_xticks([]); ax.set_yticks([])
-rpc.plot_SF(SF=visframe_mainLand_west, ax_=ax, col="EW_meridian", cmap_=custom_cmap_BW)
-
-min_col_ = np.abs(SF_west[y_var].min())
-max_col_ = np.abs(SF_west[y_var].max())
-cc_ = max(min_col_, max_col_)
-norm_col = Normalize(vmin=-cc_, vmax=cc_, clip=True);
-
-# cmap = bwr or use 'seismic'
-cent_plt = SF_west["centroid"].plot(ax=ax, c=SF_west[y_var], #cmap='seismic',
-                                    norm=norm_col, markersize=0.1) 
-plt.tight_layout()
-
-############# color bar
-cax = ax.inset_axes([0.03, 0.18, 0.5, 0.03])
-# cbar1 = fig.colorbar(cent_plt.collections[1], ax=ax, orientation='vertical', shrink=0.5)
-cbar1 = fig.colorbar(cent_plt.collections[1], ax=ax, orientation='horizontal', shrink=0.3, cax=cax)
-cbar1.set_label(r"ACF1", labelpad=2)
-
-#############
-plt.title('ACF1 for ANPP (1984-2023, no 2012)', y=0.98);
-
-# fig.subplots_adjust(top=0.91, bottom=0.01, left=0.01, right=0.981)
-file_name = ACF_plot_base + "ANPP_ACF1.png" # ANPP_ACF1_zeroWhite or ANPP_ACF1
-plt.savefig(file_name, bbox_inches='tight', dpi=300)
-
-del(cent_plt, cax, cbar1)
 
 # %%
-SF_west.head(2)
+print(SF_west[y_var].min())
+print(SF_west[y_var].max())
 
 # %%
-SF_west[SF_west["mean_lb_per_acr_lag1_autocorr"] < 0]["mean_lb_per_acr_lag1_autocorr"].max()
+y_var = "autocorr_lag1_ws5_variance"
 
 # %%
-SF_west[SF_west["mean_lb_per_acr_lag1_autocorr"] < 0]["mean_lb_per_acr_lag1_autocorr"].min()
+for ws in np.arange(5, 11):
+    y_var = f"autocorr_lag1_ws{ws}_variance"
+    
+    fig, ax = plt.subplots(1, 1, dpi=map_dpi_) # figsize=(2, 2)
+    ax.set_xticks([]); ax.set_yticks([])
+    rpc.plot_SF(SF=visframe_mainLand_west, ax_=ax, col="EW_meridian", cmap_=custom_cmap_BW)
 
-# %%
-# Sample data for a single fid
-df = pd.DataFrame({
-    'mean_lb_per_acr': [100, 1, 3, 4, 10, 0]
-})
+    # cmap = bwr or 'seismic'
+    cent_plt = SF_west["centroid"].plot(ax=ax, c=SF_west[y_var], markersize=0.1) 
+    plt.tight_layout()
 
-# Rolling autocorrelation function using pandas' autocorr
-def rolling_autocorr(series, lag=1):
-    if series.nunique() > 1:  # autocorr undefined for constant values
-        return series.autocorr(lag=lag)
-    else:
-        return np.nan
+    ############# color bar
+    cax = ax.inset_axes([0.03, 0.18, 0.5, 0.03])
+    cbar1 = fig.colorbar(cent_plt.collections[1], ax=ax, orientation='horizontal', shrink=0.3, cax=cax)
+    cbar1.set_label(f'$\sigma$(ACF1$_{{ws={ws}}}$)', labelpad=2)
 
-# Apply rolling autocorrelation with window=3 and lag=1
-df['autocorr_lag1'] = df['mean_lb_per_acr'].rolling(window=3).apply(lambda x: rolling_autocorr(x, lag=1), 
-                                                                    raw=False)
+    #############
 
-# %%
-df
+    plt.title(f'variance of ACF1 time series w. window size {ws}', y=0.98);
 
-# %%
-df['mean_lb_per_acr'][1:4].autocorr(lag=1)
-
-# %%
-df['mean_lb_per_acr'][1:4]
-
-# %%
+    file_name = ACF_plot_base + f"variance_of_ACF1_ws{ws}.png" # ANPP_ACF1_zeroWhite or ANPP_ACF1
+    plt.savefig(file_name, bbox_inches='tight', dpi=300)
+    plt.close()
+    del(cent_plt, cax, cbar1)
 
 # %%
 

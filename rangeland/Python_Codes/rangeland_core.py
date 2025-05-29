@@ -31,6 +31,99 @@ There are scipy.linalg.block_diag() and scipy.sparse.block_diag()
 """
 
 
+def rolling_autocorr_df_prealloc(df, y_var="mean_lb_per_acr", window_size=5, lag=1):
+    # Step 1: Count how many total windows we'll need
+    total_windows = 0
+    for _, group in df.groupby("fid"):
+        years = sorted(group["year"].unique())
+        total_windows += max(0, len(years) - window_size + 1)
+
+    # Step 2: Preallocate an empty DataFrame
+    corr_col_name = f"autocorr_lag{lag}_ws{window_size}"
+    columns = ["fid", "years", corr_col_name]
+    dtype_map = {
+        "fid": "Int64",
+        "years": "str",
+        corr_col_name: "float",
+    }
+
+    preallocated_df = pd.DataFrame(
+        {
+            col: pd.Series(index=range(total_windows), dtype=dtype)
+            for col, dtype in dtype_map.items()
+        }
+    )
+
+    # Step 3: Populate DataFrame by index
+    idx = 0
+    for fid, group in df.groupby("fid"):
+        group = group.sort_values("year").reset_index(drop=True)
+        years = group["year"].tolist()
+
+        for i in range(len(years) - window_size + 1):
+            window_years = years[i : i + window_size]
+            window_data = group[group["year"].isin(window_years)]
+
+            if window_data["year"].nunique() == window_size:
+                values = window_data[y_var]
+                autocorr = values.autocorr(lag=lag) if values.nunique() > 1 else np.nan
+
+                preallocated_df.loc[idx] = {
+                    "fid": fid,
+                    "years": "_".join(map(str, window_years)),
+                    corr_col_name: autocorr,
+                }
+                idx += 1
+
+    # Step 4: Truncate to actual number of rows (if some skipped)
+    return preallocated_df.iloc[:idx].reset_index(drop=True)
+
+
+def rolling_autocorr(df, y_var="mean_lb_per_acr", window_size=5, lag=1):
+    """
+    Compute rolling autocorrelation (using pandas .autocorr()) for each FID and year window.
+
+    Parameters:
+        df (pd.DataFrame): Input DataFrame with columns ['fid', 'year', y_var].
+        window_size (int): Number of years in each window.
+        lag (int): Lag at which to compute autocorrelation (typically 1).
+
+    Returns:
+        pd.DataFrame: Resulting DataFrame with rolling autocorrelation per window.
+    """
+    results = []
+
+    for fid, group in df.groupby("fid"):
+        group = group.sort_values("year").reset_index(drop=True)
+        years = group["year"].tolist()
+
+        for i in range(len(years) - window_size + 1):
+            window_years = years[i : i + window_size]
+            window_data = group[group["year"].isin(window_years)]
+
+            if len(window_data) == window_size:
+                values = window_data[y_var]
+                if values.nunique() > 1:
+                    autocorr = values.autocorr(lag=lag)
+
+                    ## we can replace the line above with
+                    ## from statsmodels.tsa.stattools import acf
+                    ## acf_vals = acf(values, nlags=lag, fft=False)
+                    ## autocorr = acf_vals[lag]
+                else:
+                    autocorr = np.nan
+
+                results.append(
+                    {
+                        "fid": fid,
+                        "years": "_".join(map(str, window_years)),
+                        f"autocorr_lag{lag}_ws{window_size}": autocorr,
+                    }
+                )
+
+    return pd.DataFrame(results)
+
+
 def rmse(y_true, y_pred):
     return tf.sqrt(tf.reduce_mean(tf.square(y_pred - y_true)))
 

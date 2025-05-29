@@ -12,6 +12,11 @@
 #     name: python3
 # ---
 
+# %% [markdown]
+#
+#
+# # <span style="color:red">Moved to Kamiak.</span>
+
 # %%
 import warnings
 warnings.filterwarnings("ignore")
@@ -24,7 +29,7 @@ import pymannkendall as mk
 
 from scipy import stats
 import scipy.stats as scipy_stats
-
+from statsmodels.tsa.stattools import acf
 import geopandas
 
 import matplotlib
@@ -58,27 +63,11 @@ rangeland_reOrganized = rangeland_base + "reOrganized/"
 bio_reOrganized = rangeland_bio_data + "reOrganized/"
 os.makedirs(bio_reOrganized, exist_ok=True)
 
-bio_plots = rangeland_bio_base + "plots/"
-os.makedirs(bio_plots, exist_ok=True)
-
-breakpoint_plot_base = bio_plots + "breakpoints/"
-os.makedirs(breakpoint_plot_base, exist_ok=True)
-
-breakpoint_TS_dir = breakpoint_plot_base + "breakpoints_TS/"
-os.makedirs(breakpoint_TS_dir, exist_ok=True)
-
-
-G_breakpoint_TS_dir = breakpoint_TS_dir + "/greening/"
-B_breakpoint_TS_dir = breakpoint_TS_dir + "/browning/"
-noTrend_breakpoint_TS_dir = breakpoint_TS_dir + "/notrend/"
-
-os.makedirs(G_breakpoint_TS_dir, exist_ok=True)
-os.makedirs(B_breakpoint_TS_dir, exist_ok=True)
-os.makedirs(noTrend_breakpoint_TS_dir, exist_ok=True)
+# %%
 
 # %%
-ACF_plot_base = bio_plots + "ACF1/"
-os.makedirs(ACF_plot_base, exist_ok=True)
+ACF_data = rangeland_bio_data + "ACF1/"
+os.makedirs(ACF_data, exist_ok=True)
 
 # %%
 ANPP = pd.read_pickle(bio_reOrganized + "bpszone_ANPP_no2012.sav")
@@ -98,9 +87,9 @@ lag_1_acf = time_series.autocorr(lag=1)
 print(f"Lag-1 Autocorrelation: {lag_1_acf:.2f}")
 
 # %%
-ANPP_ACF1 = ANPP.groupby('fid')['mean_lb_per_acr'].apply(lambda x: x.autocorr(lag=1))
-ANPP_ACF1 = ANPP_ACF1.reset_index(name='mean_lb_per_acr_lag1_autocorr')
-ANPP_ACF1.head(3)
+# ANPP_ACF1 = ANPP.groupby('fid')['mean_lb_per_acr'].apply(lambda x: x.autocorr(lag=1))
+# ANPP_ACF1 = ANPP_ACF1.reset_index(name='mean_lb_per_acr_lag1_autocorr')
+# ANPP_ACF1.head(3)
 
 # %%
 ANPP_years = list(ANPP["year"].unique())
@@ -120,25 +109,64 @@ for a_fid in ANPP_FIDs:
         print (a_fid)
 
 # %%
+ANPP.head(2)
 
 # %%
 
 # %%
+df = ANPP[ANPP["fid"] == 1]
+df.groupby('fid')['mean_lb_per_acr'].apply(lambda x: x.autocorr(lag=1))
 
 # %%
-# since 2012 is missing. we have to do sth about it: use right pointer!
-for a_fid in ANPP_FIDs:
-    curr_fid = ANPP[ANPP["fid"] == a_fid]
-    curr_yrs = curr_fid["year"].unique()
-    len_curr_yrs = len(curr_yrs)
-    left_pointer = 0
-    
-    curr_df_window = curr_fid[curr_fid["year"]]
-    while right_pointer
+df["mean_lb_per_acr"].autocorr(lag=1)
 
 # %%
-curr_fid["year"].unique()
+acf(df["mean_lb_per_acr"].values, nlags=1, fft=False, adjusted=True)
+
+# %%
+acf(df["mean_lb_per_acr"].values, nlags=1, fft=False, adjusted=False)
+
+# %%
+acf(df["mean_lb_per_acr"].values, nlags=1, fft=False)
+
+# %% [markdown]
+# # Moved to Kamiak
+
+# %%
+import importlib;
+importlib.reload(rc);
+importlib.reload(rpc);
+
+# %%
+# %%time
+all_ACF1s_2 = {}
+for ws in np.arange(5, 11):
+    ACF1s_window = rc.rolling_autocorr_df_prealloc(df=ANPP, y_var="mean_lb_per_acr", window_size=ws, lag=1)
+    all_ACF1s_2[f"autocorrs_ws{ws}"] = ACF1s_window
+    print (ws)
+
+# %%
+ACF_data = rangeland_bio_data + "ACF1/"
+os.makedirs(ACF_data, exist_ok=True)
+
+# %%
+# filename = ACF_data + "rolling_autocorrelations.sav"
+
+# export_ = {
+#     "rolling_autocorrelations": all_ACF1s_2,
+#     "source_code": "autocorrelation_moving_window",
+#     "Author": "HN",
+#     "Date": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+# }
+
+# pickle.dump(export_, open(filename, 'wb'))
 
 # %%
 
 # %%
+# # %%time
+
+# all_ACF1s = {}
+# for ws in np.arange(5, 11):
+#     ACF1s_window = rc.rolling_autocorr(df=ANPP, y_var="mean_lb_per_acr", window_size=ws, lag=1)
+#     all_ACF1s[f"autocorrs_ws{ws}"] = ACF1s_window

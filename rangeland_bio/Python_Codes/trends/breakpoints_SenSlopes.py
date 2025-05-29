@@ -51,6 +51,11 @@ import rangeland_plot_core as rpc
 
 
 # %%
+import importlib;
+importlib.reload(rc);
+importlib.reload(rpc);
+
+# %%
 dpi_, map_dpi_=300, 900
 custom_cmap_coral = ListedColormap(['lightcoral', 'black'])
 custom_cmap_BW = ListedColormap(['white', 'black'])
@@ -245,15 +250,14 @@ break_yrs = ANPP_breaks[ANPP_breaks["fid"] == a_fid]["breakpoint_years"].iloc[0]
 if not (pd.isna(break_yrs)):
     break_yrs = break_yrs.split("_")
     break_yrs = [int(x) for x in break_yrs]
-
     for brk_yr in break_yrs:
         plt.axvline(x=brk_yr, color='r', linestyle='--', linewidth=1) # , label=f"{brk_yr}"
 
-x_break = ress_["BP_1"].item()
+x_break = break_yrs[0]
 x_start, x_end = 1984, 2023
 
 # Split data before and after breakpoint
-df_before = df[df["year"] <= x_break]
+df_before = df[df["year"] < x_break]
 df_after = df[df["year"] >= x_break]
 
 # Compute slope values
@@ -296,10 +300,102 @@ plt.legend();
 plt.tight_layout()
 
 file_name = breakpoint_TS_sen_dir + f"fid_{a_fid}_BP_and_SensSlopes.pdf"
-plt.savefig(file_name, dpi=dpi_)
+plt.savefig(file_name, dpi=300)
 
 # %%
 slope_results.head(2)
+
+# %%
+a_fid = 1
+y_var = "mean_lb_per_acr"  # Define the y-variable name
+
+fig, axes = plt.subplots(1, 1, figsize=(4, 2), sharey=False, sharex=False, dpi=dpi_)
+axes.grid(axis='y', alpha=0.2, zorder=0)
+
+# Filter data for the current fid
+df = ANPP[ANPP["fid"] == a_fid]
+ress_ = slope_results[slope_results["fid"] == a_fid]
+
+# Get y-axis limits
+ymin, ymax = df[y_var].min(), df[y_var].max()
+axes.set_ylim(ymin, ymax)
+
+# Plot actual data
+axes.plot(df.year, df[y_var], linewidth=2, color="dodgerblue", zorder=3)
+
+# Plot vertical lines for breakpoints (if available)
+break_yrs = ANPP_breaks[ANPP_breaks["fid"] == a_fid]["breakpoint_years"].iloc[0]
+if not pd.isna(break_yrs):
+    break_yrs = [int(x) for x in break_yrs.split("_")]
+    for brk_yr in break_yrs:
+        axes.axvline(x=brk_yr, color='r', linestyle='--', linewidth=1)
+
+# Define time range
+x_start, x_end = 1984, 2023
+x_break = break_yrs[0]
+
+# Split data before and after breakpoint
+df_before = df[df["year"] < x_break]
+df_after = df[df["year"] >= x_break]
+
+# Get slope values
+slope_before = ress_["slope_before"].item()
+slope_after = ress_["slope_after"].item()
+
+# Get y-value at the breakpoint year
+y_break = df[df["year"] == x_break][y_var].mean()
+
+# Compute intercepts so both lines pass through the breakpoint
+intercept_before = y_break - slope_before * x_break
+intercept_after = y_break - slope_after * x_break
+
+# Generate x/y for plotting
+x_before = [x_start, x_break]
+y_before = [slope_before * x + intercept_before for x in x_before]
+
+x_after = [x_break, x_end]
+y_after = [slope_after * x + intercept_after for x in x_after]
+
+# Plot trend lines
+axes.plot(x_before, y_before, color='k', linestyle='--', linewidth=1,
+          label=f'slope = {slope_before:.2f} ({ress_["trend_before"].item()})')
+axes.plot(x_after, y_after, color='green', linestyle='--', linewidth=1,
+          label=f'slope = {slope_after:.2f} ({ress_["trend_after"].item()})')
+
+# Formatting
+axes.set_ylabel(r'$\mu_{NPP}$ (lb/acr)')
+axes.set_xlabel('year')
+axes.set_xticks(df['year'].iloc[::2])
+axes.tick_params(axis='x', rotation=45)
+axes.legend()
+plt.tight_layout()
+
+# Save the plot
+file_name = breakpoint_TS_sen_dir + f"fid_{a_fid}_BP_and_SensSlopes.pdf"
+# plt.savefig(file_name, dpi=dpi_)
+# plt.close()
+
+
+# %%
+a_fid = 1
+df = ANPP[ANPP["fid"] == a_fid]
+x_break = ress_["BP_1"].item()
+
+# Split data before and after breakpoint
+df_before = df[df["year"] < x_break]
+df_after = df[df["year"] >= x_break]
+
+# %%
+mk.original_test(df_before[y_var])
+
+# %%
+mk.original_test(df_after[y_var])
+
+# %%
+print (f"{slope_before = }, {intercept_before = }")
+print (f"{slope_after = }, {intercept_after = }")
+
+# %%
 
 # %%
 filename = breakpoints_dir + "sensSlope_beforeAfter_BP1.sav"
