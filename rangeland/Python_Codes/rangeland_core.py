@@ -9,6 +9,7 @@ from scipy.linalg import inv
 from geopy.distance import geodesic
 import tensorflow as tf
 from scipy import stats as scipy_stats
+import pymannkendall as mk
 
 """
 for whatever reason, the following 2 lines dont work
@@ -29,6 +30,35 @@ from keras import backend as K
 """
 There are scipy.linalg.block_diag() and scipy.sparse.block_diag()
 """
+
+
+def compute_mk_by_fid(df: pd.DataFrame, groupby_: str, value_col: str) -> pd.DataFrame:
+    """
+    Apply Mann-Kendall test grouped by 'fid' for a given value column.
+
+    Parameters:
+    - df (pd.DataFrame): Input dataframe with 'fid' and value_col.
+    - value_col (str): Column name on which to apply MK test.
+
+    Returns:
+    - pd.DataFrame: Results with trend, p-value, and slope for each fid.
+    """
+
+    def apply_mk(group):
+        """applies MK test to a given group
+        (in our case a time-series for a given FID)
+
+        Returns the result as pd.Series.
+
+        When we use it via .apply() function,
+        we'll automatically have a dataframe.
+        """
+        result = mk.original_test(group[value_col])
+        return pd.Series(
+            {"trend": result.trend, "p_value": result.p, "slope": result.slope}
+        )
+
+    return df.groupby(groupby_).apply(apply_mk).reset_index()
 
 
 def rolling_autocorr_df_prealloc(df, y_var="mean_lb_per_acr", window_size=5, lag=1):
