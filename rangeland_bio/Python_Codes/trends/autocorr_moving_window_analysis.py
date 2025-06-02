@@ -121,6 +121,13 @@ print (ANPP.year.max())
 # ## Read all rolling window ACFs
 
 # %%
+window_size = 5
+key_ = f"rolling_autocorrelations_ws{window_size}"
+f_name = ACF_data + key_ + ".sav"
+ACF_df = pd.read_pickle(f_name)
+ACF_df
+
+# %%
 ACF_dict = {}
 for window_size in np.arange(5, 11):
     key_ = f"rolling_autocorrelations_ws{window_size}"
@@ -279,6 +286,19 @@ ACF_trends_MK_df.head(2)
 SF_west = pd.merge(SF_west, ACF_trends_MK_df, how="left", on="fid")
 
 # %%
+# %%time
+f_name = rangeland_bio_data + 'SF_west_movingACF1s.shp.zip'
+
+SF_west_2write = SF_west.copy()
+SF_west_2write["centroid"] = SF_west_2write["centroid"].astype(str)
+
+# SF_west_2write.drop(columns=["centroid"], inplace=True) # it does not like 2 geometries!
+SF_west_2write.to_file(filename=f_name, driver='ESRI Shapefile')
+del(SF_west_2write)
+
+# %%
+
+# %%
 y_var = "trend_ws5"
 
 # %%
@@ -333,7 +353,7 @@ print(SF_west[y_var].max())
 # ### Fix the color bar so that for numerical columns, plots are comparable
 
 # %%
-del(print (min_, max_, cc_))
+del(min_, max_, cc_)
 
 # %%
 min_ = np.inf
@@ -399,28 +419,125 @@ for ws in np.arange(5, 11):
 # %%
 
 # %%
+
+# %%
+tick_legend_FontSize = 12
+params = {"font.family": "Palatino",
+          "legend.fontsize": tick_legend_FontSize * .2, # this does not work below
+          "axes.labelsize":  tick_legend_FontSize * 1,
+          "axes.titlesize":  tick_legend_FontSize * 1.1,
+          "xtick.labelsize": tick_legend_FontSize * .8,
+          "ytick.labelsize": tick_legend_FontSize * .8,
+          "axes.titlepad": 10,
+          'legend.handlelength': 2,
+          "axes.titleweight": 'bold',
+          "xtick.bottom": True,
+          "ytick.left": True,
+          "xtick.labelbottom": True,
+          "ytick.labelleft": True,
+          'axes.linewidth' : .05
+}
+
+plt.rcParams["xtick.bottom"] = True
+plt.rcParams["ytick.left"] = True
+plt.rcParams["xtick.labelbottom"] = True
+plt.rcParams["ytick.labelleft"] = True
+plt.rcParams.update(params)
+
+# %%
 y_var = "slope_ws7"
 
-fig, ax = plt.subplots(2, 2, dpi=map_dpi_, 
-                       gridspec_kw={'hspace': 0.02, 'wspace': -.1})
+fig, ax = plt.subplots(1, 2, dpi=map_dpi_, gridspec_kw={'hspace': 0.02, 'wspace': 0.05})
 
-ax[0][0].set_xticks([]); ax[0][0].set_yticks([]);
-ax[0][1].set_xticks([]); ax[0][1].set_yticks([]);
-ax[1][0].set_xticks([]); ax[1][0].set_yticks([]);
-ax[1][1].set_xticks([]); ax[1][1].set_yticks([]);
+ax[0].set_xticks([]); ax[0].set_yticks([]);
+ax[1].set_xticks([]); ax[1].set_yticks([]);
+# ax[1][0].set_xticks([]); ax[1][0].set_yticks([]);
+# ax[1][1].set_xticks([]); ax[1][1].set_yticks([]);
+
+rpc.plot_SF(SF=visframe_mainLand_west, ax_=ax[0], col="EW_meridian", cmap_=custom_cmap_BW)
+cent_plt00 = SF_west["centroid"].plot(ax=ax[0], c=SF_west[y_var], markersize=0.1, cmap='viridis');
+# SF_west["centroid"].plot(ax=ax[0][1], c=SF_west[y_var], markersize=0.1, cmap="plasma");
+# SF_west["centroid"].plot(ax=ax[1][1], c=SF_west[y_var], markersize=0.1, cmap="inferno");
+rpc.plot_SF(SF=visframe_mainLand_west, ax_=ax[1], col="EW_meridian", cmap_=custom_cmap_BW)
+cent_plt10 = SF_west["centroid"].plot(ax=ax[1], c=SF_west[y_var], markersize=0.1);
+
+cax = ax[0].inset_axes([0.03, 0.18, 0.5, 0.03])
+cbar00 = fig.colorbar(cent_plt00.collections[1], ax=ax[0], orientation='horizontal', shrink=0.3, cax=cax)
+cbar00.ax.tick_params(labelsize=tick_legend_FontSize*0.6)
+cbar00.set_label(f"Sen's slope (virdis cmap)", labelpad=2, fontsize=tick_legend_FontSize * .6)
+
+cax = ax[1].inset_axes([0.03, 0.18, 0.5, 0.03])
+cbar1 = fig.colorbar(cent_plt10.collections[1], ax=ax[1], orientation='horizontal', shrink=0.3, cax=cax)
+cbar1.ax.tick_params(labelsize=tick_legend_FontSize*0.6)
+cbar1.set_label(f"Sen's slope (default color)", labelpad=2, fontsize=tick_legend_FontSize * .6)
+
+
 plt.tight_layout()
-
-SF_west["centroid"].plot(ax=ax[0][0], c=SF_west[y_var], markersize=0.1, cmap='viridis');
-SF_west["centroid"].plot(ax=ax[0][1], c=SF_west[y_var], markersize=0.1, cmap="plasma");
-SF_west["centroid"].plot(ax=ax[1][1], c=SF_west[y_var], markersize=0.1, cmap="inferno");
-SF_west["centroid"].plot(ax=ax[1][0], c=SF_west[y_var], markersize=0.1);
-
-plt.tight_layout()
-
 # plt.subplots_adjust(hspace=0, wspace=0)
-
-fig.suptitle(f'(MK) trend of ACF1 time-series w. window size 7', y=0.93);
-file_name = ACF_plot_base + f"sensSlope_trend_of_ACF1_{y_var}_colorMaps.png"
+fig.suptitle(f'(MK) trend of ACF1 time-series w. window size 7', y=0.82);
+file_name = ACF_plot_base + f"sensSlope_ACF1_{y_var}_colorMaps.png"
 plt.savefig(file_name, bbox_inches='tight', dpi=300)
+
+# %%
+
+# %%
+# Create the figure and axes
+fig, ax = plt.subplots(1, 2, dpi=map_dpi_, gridspec_kw={'hspace': 0.02, 'wspace': 0.05})
+
+# Removing ticks from both subplots
+ax[0].set_xticks([]); ax[0].set_yticks([]);
+ax[1].set_xticks([]); ax[1].set_yticks([]);
+
+# Plotting the data with original colormap (don't change the color normalization)
+rpc.plot_SF(SF=visframe_mainLand_west, ax_=ax[0], col="EW_meridian", cmap_=custom_cmap_BW)
+rpc.plot_SF(SF=visframe_mainLand_west, ax_=ax[1], col="EW_meridian", cmap_=custom_cmap_BW)
+
+cent_plt00 = SF_west["centroid"].plot(ax=ax[0], c=SF_west[y_var], markersize=0.1, cmap='viridis')
+cent_plt10 = SF_west["centroid"].plot(ax=ax[1], c=SF_west[y_var], markersize=0.1)
+##########################################################################################
+###############
+############### default map setting
+###############
+cax10 = ax[1].inset_axes([0.03, 0.18, 0.5, 0.03])  # Define a new inset axis for the second color bar
+cbar10 = fig.colorbar(cent_plt10.collections[1], ax=ax[1], orientation='horizontal', shrink=0.3, cax=cax10)
+
+tick_labels = cbar10.get_ticks()
+cbar10.set_ticklabels(tick_labels)
+
+cbar10.set_label(f"Sen's slope (default cmap)", labelpad=2, fontsize=tick_legend_FontSize * 0.6)
+cbar10.ax.tick_params(labelsize=tick_legend_FontSize * .6)
+
+##########################################################################################
+###############
+############### virdis map setting
+###############
+# Adding colorbar for the first plot (ax[0]) with custom normalization for legend only
+cax_00 = ax[0].inset_axes([0.03, 0.18, 0.5, 0.03])
+cbar00 = fig.colorbar(cent_plt00.collections[1], ax=ax[0], orientation='horizontal', shrink=0.3, cax=cax_00)
+
+# Keep color bar the same but adjust tick labels to reflect the original data range
+# Get the default tick locations (in normalized space)
+# ticks = cbar00.get_ticks()
+# min_ = SF_west[y_var].min()
+# max_ = SF_west[y_var].max()
+# tick_labels = [round(min_ + (tick * (max_ - min_)), 2) for tick in ticks]
+
+# Set the tick labels to the original data values
+# cbar00.set_ticks(ticks)  # Set the locations of the ticks
+cbar00.set_ticklabels(tick_labels)
+
+cbar00.set_label(f"Sen's slope (viridis cmap)", labelpad=2, fontsize=tick_legend_FontSize * .6)
+cbar00.ax.tick_params(labelsize=tick_legend_FontSize * .6)
+
+##########################################################################################
+############### 
+############### # Adjust layout and title
+plt.tight_layout()
+fig.suptitle(f'(MK) trend of ACF1 time-series w. window size 7', y=0.82)
+
+# Optionally save the plot
+file_name = ACF_plot_base + f"sensSlope_ACF1_{y_var}_colorMaps_tickIdent.png"
+plt.savefig(file_name, bbox_inches='tight', dpi=300)
+plt.show()
 
 # %%
