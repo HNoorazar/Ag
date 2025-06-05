@@ -68,6 +68,8 @@ ts_list <- anpp[, {
 anpp_subset <- as.data.frame(anpp[anpp$fid == 1])
 anpp_subset <- subset(anpp_subset, select = mean_lb_per_acr)
 
+subset_data <- matrix(anpp[anpp$fid == a_fid]$mean_lb_per_acr)
+
 ## bdstest_ews() only accepts dataframe with one column!
 ## It may complain there is no column Y in the dataframe, but
 ## it will complain regardless of existence of Y or not. ONLY
@@ -94,9 +96,7 @@ bdstest_ews(anpp_subset, ARMAoptim=FALSE, ARMAorder=c(1,0),
 ddjnonparam_ews_ = ddjnonparam_ews(matrix(anpp[anpp$fid == 1]$mean_lb_per_acr), 
                                    bandwidth = 0.6, na = 500, logtransform = TRUE, interpolate = FALSE)
 
-
 unique_fids <- unique(anpp$fid)
-
 
 # Initialize an empty list to store results
 ddjnonparam_ews_results_list <- list()
@@ -109,6 +109,7 @@ for(a_fid in unique_fids) {
   # Apply the function and store the result
   output <- ddjnonparam_ews(matrix(subset_data), 
                             bandwidth = 0.6, na = 500, logtransform = TRUE, interpolate = FALSE)
+
   graphics.off()
   
   # Store the results (flatten the list into a named vector)
@@ -129,11 +130,11 @@ for(a_fid in unique_fids) {
 #######              generic_ews
 #######  This one is nice
 #######
-subset_data <- anpp[anpp$fid == a_fid]$mean_lb_per_acr
 generic_ews_out <- generic_ews(matrix(subset_data), winsize = 50,
                                detrending = c("no", "gaussian", "loess", "linear", "first-diff"),
                                bandwidth = NULL, span = NULL, degree = NULL,
                                logtransform = FALSE, interpolate = FALSE, AR_n = FALSE, powerspectrum = FALSE)
+
 
 
 generic_ews_results_list <- list()
@@ -157,7 +158,6 @@ for(a_fid in unique_fids) {
 #######              livpotential_ews 
 #######      not too bad. and does not plot nothing.
 #######
-subset_data <- anpp[anpp$fid == a_fid]$mean_lb_per_acr
 livpotential_ews_out <- livpotential_ews(matrix(subset_data), std = 1, bw = "nrd",
                                                 weights = c(), grid.size = NULL, detection.threshold = 1,
                                                 bw.adjust = 1, density.smoothing = 0, detection.limit = 1)
@@ -169,7 +169,6 @@ livpotential_ews_out <- livpotential_ews(matrix(subset_data), std = 1, bw = "nrd
 #######              movpotential_ews 
 #######      
 #######
-subset_data <- anpp[anpp$fid == a_fid]$mean_lb_per_acr
 movpotential_ews_ews_out <- movpotential_ews(matrix(subset_data), param = NULL, bw = "nrd",
                                              bw.adjust = 1, detection.threshold = 0.1, std = 1,
                                              grid.size = 50, plot.cutoff = 0.5, plot.contours = TRUE,
@@ -245,3 +244,87 @@ for(p in 0:5){
 }
 
 best_order
+
+
+
+
+
+
+
+graphics.off()
+while (dev.cur() > 1) {dev.off()}
+
+
+
+
+# # differencing is supposed to kill non-stationaryness
+# differenced_ <- diff(subset_data)
+# adf.test(matrix(differenced_))
+
+
+# arimaorder_ in the following line came from arimaorder_ <- arimaorder(arima_model)
+what_is_this <- arima(differenced_data, order = arimaorder_, include.mean = FALSE)
+
+fit <- auto.arima(differenced_)
+fitted_what_is_this <- fitted(fit)
+
+
+acf(differenced_)
+pacf(differenced_)
+
+
+## plot 2 vectors in one figure
+plot(differenced_, type = "l", col = "blue", lwd = 2)
+lines(fitted_what_is_this, type = "l", col = "red", lwd = 2)
+
+
+
+options(device = "quartz")
+
+dev.new()
+qda_ews_out <- qda_ews(differenced_)
+png(paste0(plot_dir, "page%d.png"))
+plot(1)
+plot(2)
+plot(3)
+graphics.off()
+while (dev.cur() > 1) {dev.off()}
+
+dev.new()
+qda_ews_out <- qda_ews(differenced_)
+
+qda_ews_out <- qda_ews(differenced_)
+pdf(paste0(plot_dir, "page%d.pdf"), onefile=FALSE)
+plot(1)
+graphics.off()
+while (dev.cur() > 1) {dev.off()}
+
+
+qda_ews_out <- qda_ews(differenced_)
+pdf(paste0(plot_dir, "page%d.pdf"), onefile=FALSE)
+plot(2)
+graphics.off()
+while (dev.cur() > 1) {dev.off()}
+
+
+qda_ews_out <- qda_ews(differenced_)
+pdf(paste0(plot_dir, "page%d.pdf"), onefile=FALSE)
+plot(3)
+graphics.off()
+while (dev.cur() > 1) {dev.off()}
+
+
+
+
+############
+pdf(paste0(plot_dir, "page%d.pdf"), onefile=FALSE)
+qda_ews_out <- qda_ews(differenced_)
+plot(1)
+plot(2)
+plot(3)
+graphics.off()
+while (dev.cur() > 1) {dev.off()}
+
+
+
+quartz.save(plot(1), type = "pdf", device = dev.cur(), dpi = 100)

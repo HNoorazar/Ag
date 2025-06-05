@@ -1,0 +1,8 @@
+#!/bin/bash
+
+cd /home/h.noorazar/rangeland_bio/ewrs_R/qsubs
+
+for ewr_func in ddjnonparam generic livpotential movpotential qda sensitivity
+do
+sbatch ./q_ewr_$ewr_func.sh
+done
