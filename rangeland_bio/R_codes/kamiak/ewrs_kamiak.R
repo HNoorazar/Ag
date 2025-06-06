@@ -311,6 +311,7 @@ if (ewr_type == "ddjnonparam"){
       # Determine the Appropriate Order (p, d, q):
       # arimaorder_ <- arimaorder(arima_model)
       d <- arimaorder(arima_model)[2]
+      print (paste0("line 314 FID: ", a_fid, ", d: ", d))
 
       if (d == 0) {
         graphics.off()
@@ -399,12 +400,14 @@ if (ewr_type == "ddjnonparam"){
       wd_dir <- paste(dir_base, "plots/earlyWarnings", ewr_type, paste0("fid", a_fid), sep="/")
       if (dir.exists(file.path(wd_dir)) == F) {dir.create(path = file.path(wd_dir), recursive = T)}
       setwd(wd_dir)
-      # Subset the data for the current fid
+      
       subset_data <- matrix(anpp[anpp$fid == a_fid]$mean_lb_per_acr)
       graphics.off()
       while (dev.cur() > 1) {dev.off()}
       # output_fig <- tempfile(fileext = ".pdf")
       # pdf(output_fig)
+      print (paste0("line 409 FID: ", a_fid, ", d: ", d))
+
       output <- sensitivity_ews(subset_data, 
                                 indicator = c("ar1", "sd", "acf1", "sk", "kurt", "cv", "returnrate", "densratio"),
                                 detrending = c("no", "gaussian", "loess", "linear", "first-diff"), 
