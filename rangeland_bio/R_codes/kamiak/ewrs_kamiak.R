@@ -136,8 +136,7 @@ if (ewr_type == "ddjnonparam"){
     anpp_subset <- subset(anpp_subset, select=mean_lb_per_acr)
     
     # Apply the function and store the result
-    graphics.off()
-    while (dev.cur() > 1) {dev.off()}
+    graphics.off(); while (dev.cur() > 1) {dev.off()}
 
     # output_fig_1 <- tempfile(fileext = "1.pdf")
     # pdf(output_fig_1)
@@ -147,8 +146,7 @@ if (ewr_type == "ddjnonparam"){
     # pdf(output_fig_3)
 
     output <- ddjnonparam_ews(anpp_subset, bandwidth = 0.6, na = 500, logtransform = TRUE, interpolate = FALSE)
-    graphics.off()
-    while (dev.cur() > 1) {dev.off()}
+    graphics.off(); while (dev.cur() > 1) {dev.off()}
     
     # Store the results (flatten the list into a named vector)
     ddjnonparam_ews_results_list[[as.character(a_fid)]] <- output
@@ -171,19 +169,15 @@ if (ewr_type == "ddjnonparam"){
       subset_data <- matrix(anpp[anpp$fid == a_fid]$mean_lb_per_acr)
       
       # Apply the function and store the result
-      graphics.off()
-      while (dev.cur() > 1) {dev.off()}
+      graphics.off(); while (dev.cur() > 1) {dev.off()}
       # output_fig <- tempfile(fileext = ".pdf")
       # pdf(output_fig)
       output <- generic_ews(subset_data, winsize = 50,
                             detrending = c("no", "gaussian", "loess", "linear", "first-diff"),
                             bandwidth = NULL, span = NULL, degree = NULL,
                             logtransform = FALSE, interpolate = FALSE, AR_n = FALSE, powerspectrum = FALSE)
-      # pdf(tempfile(fileext = paste0(a_fid, ".pdf")))
-      # pdf(file = paste0(a_fid, ".pdf"))
       pdf(tempfile(fileext = paste0("fid", a_fid, ".pdf")))
-      graphics.off()
-      while (dev.cur() > 1) {dev.off()}
+      graphics.off(); while (dev.cur() > 1) {dev.off()}
       generic_ews_results_list[[as.character(a_fid)]] <- output
 
       for (detrending_ in c("no", "gaussian", "loess", "linear", "first-diff")){
@@ -191,8 +185,7 @@ if (ewr_type == "ddjnonparam"){
         if (dir.exists(file.path(wd_dir)) == F) {dir.create(path = file.path(wd_dir), recursive = T)}
         setwd(wd_dir)
 
-        graphics.off()
-        while (dev.cur() > 1) {dev.off()}
+        graphics.off(); while (dev.cur() > 1) {dev.off()}
         # output_fig <- tempfile(fileext = ".pdf")
         # pdf(output_fig)
         output <- generic_ews(subset_data, winsize = 50,
@@ -200,8 +193,7 @@ if (ewr_type == "ddjnonparam"){
                               bandwidth = NULL, span = NULL, degree = NULL,
                               logtransform = FALSE, interpolate = FALSE, AR_n = FALSE, powerspectrum = FALSE)
         pdf(tempfile(fileext = paste0("fid", a_fid, "_", detrending_, ".pdf")))
-        graphics.off()
-        while (dev.cur() > 1) {dev.off()}
+        graphics.off(); while (dev.cur() > 1) {dev.off()}
         generic_ews_results_list_separate[[paste(detrending_, as.character(a_fid), sep="_")]] <- output
       }
     }
@@ -220,21 +212,18 @@ if (ewr_type == "ddjnonparam"){
       if (dir.exists(file.path(wd_dir)) == F) {dir.create(path = file.path(wd_dir), recursive = T)}
       setwd(wd_dir)
 
-      # Subset the data for the current fid
       subset_data <- matrix(anpp[anpp$fid == a_fid]$mean_lb_per_acr)
       
       # Apply the function and store the result
-      graphics.off()
-      while (dev.cur() > 1) {dev.off()}
+      graphics.off(); while (dev.cur() > 1) {dev.off()}
       # output_fig <- tempfile(fileext = ".pdf")
       # pdf(output_fig)
       output <- livpotential_ews(subset_data, std = 1, bw = "nrd",
                                  weights = c(), # optional weights in ksdensity (used by movpotentials)
                                  grid.size = NULL, detection.threshold = 1,
                                  bw.adjust = 1, density.smoothing = 0, detection.limit = 1)
-      pdf(tempfile(fileext = ".pdf"))
-      graphics.off()
-      while (dev.cur() > 1) {dev.off()}
+      pdf(tempfile(fileext = paste0("fid", a_fid, ".pdf")))
+      graphics.off(); while (dev.cur() > 1) {dev.off()}
       livpotential_ews_results_list[[as.character(a_fid)]] <- output
       
     }
@@ -252,12 +241,8 @@ if (ewr_type == "ddjnonparam"){
       if (dir.exists(file.path(wd_dir)) == F) {dir.create(path = file.path(wd_dir), recursive = T)}
       setwd(wd_dir)
 
-      # Subset the data for the current fid
       subset_data <- matrix(anpp[anpp$fid == a_fid]$mean_lb_per_acr)
-      
-      # Apply the function and store the result
-      graphics.off()
-      while (dev.cur() > 1) {dev.off()}
+      graphics.off(); while (dev.cur() > 1) {dev.off()}
       # output_fig <- tempfile(fileext = ".pdf")
       # pdf(output_fig)
       output <- movpotential_ews(subset_data, 
@@ -271,156 +256,49 @@ if (ewr_type == "ddjnonparam"){
                                  plot.contours = TRUE,
                                  binwidth = 0.2,
                                  bins = NULL)
-      pdf(tempfile(fileext = ".pdf"))      
-      graphics.off()
-      while (dev.cur() > 1) {dev.off()}
+      pdf(tempfile(fileext = paste0("fid", a_fid, ".pdf"))) 
+      graphics.off(); while (dev.cur() > 1) {dev.off()}
       
       plot_ = output["plot"][[1]]
       output = output["res"][[1]]
       movpotential_ews_results_list[[as.character(a_fid)]] <- output
     }
     saveRDS(movpotential_ews_results_list, file = paste0(out_dir, "movpotential_ews_results_list", ".rds"))
-  } else if (ewr_type == "qda"){
-    ########################################################
-    #######
-    #######   Quick Detection Analysis for Generic Early Warning Signals     
-    #######  This one throws an error: 
-    #######  Error in arima(nsmY, order = c(ij, 0, jj), include.mean = FALSE) : non-stationary AR part from CSS
-
-    # 1. we need to check if it is stationary
-    # 2. we need to make it stationaty if it is not. (by differencing)
-    # 3. determine the Appropriate Order (p, d, q):
-    # 4. Do we need apply the qda_ews() to differenced time-series?
-    #    or do we need to use differenced time-series to fid arima() model?
-
-    qda_ews_results_list <- list()
+  } else if (ewr_type == "qda_separate"){
     qda_ews_results_list_separate <- list()
-
     for (a_fid in FIDs) {
-      wd_dir <- paste(dir_base, "plots/earlyWarnings", ewr_type, paste0("fid", a_fid), sep="/")
-      if (dir.exists(file.path(wd_dir)) == F) {dir.create(path = file.path(wd_dir), recursive = T)}
-      setwd(wd_dir)
-
-      # Subset the data for the current fid
       subset_data <- matrix(anpp[anpp$fid == a_fid]$mean_lb_per_acr)
-      
-      # Apply the function and store the result
-      # check if differencing is needed
-      arima_model <- auto.arima(subset_data, seasonal = FALSE)
-
-      # Determine the Appropriate Order (p, d, q):
-      # arimaorder_ <- arimaorder(arima_model)
-      d <- arimaorder(arima_model)[2]
-      print (paste0("line 314 FID: ", a_fid, ", d: ", d))
-
-      if (d == 0) {
-        graphics.off()
-        while (dev.cur() > 1) {dev.off()}
-        # output_fig <- tempfile(fileext = ".pdf")
-        # pdf(output_fig)
-        output <- qda_ews(subset_data, param = NULL, winsize = 10,
-                          detrending = c("no", "gaussian", "linear", "first-diff"),
-                          bandwidth = NULL, boots = 100, s_level = 0.05, cutoff = 0.05, 
-                          detection.threshold = 0.002, grid.size = 10, logtransform = FALSE, interpolate = FALSE
-                         )
-        pdf(tempfile(fileext = ".pdf"))
-        graphics.off()
-        while (dev.cur() > 1) {dev.off()}
-      } else {
-        differenced_data <- diff(subset_data, differences = d)
-        graphics.off()
-        while (dev.cur() > 1) {dev.off()}
-        # output_fig <- tempfile(fileext = ".pdf")
-        # pdf(output_fig)
-        output <- qda_ews(differenced_data, param = NULL, winsize = 10,
-                          detrending = c("no", "gaussian", "linear", "first-diff"),
-                          bandwidth = NULL, boots = 100, s_level = 0.05, cutoff = 0.05, 
-                          detection.threshold = 0.002, grid.size = 10, logtransform = FALSE, interpolate = FALSE
-                          )
-        pdf(tempfile(fileext = ".pdf"))
-        graphics.off()
-        while (dev.cur() > 1) {dev.off()}
-      }
-      graphics.off()
-      while (dev.cur() > 1) {dev.off()}
-      text_out <- list(indicators = output$indicators, trend = output$trends)
-      qda_ews_results_list[[as.character(a_fid)]] <- text_out
-
-
       for (detrending_ in c("no", "gaussian", "linear", "first-diff")){
+        print (paste0("line 272 FID: ", a_fid, ", detrending_:", detrending_))
         wd_dir <- paste(dir_base, "plots/earlyWarnings", ewr_type, paste0("fid", a_fid), detrending_, sep="/")
         if (dir.exists(file.path(wd_dir)) == F) {dir.create(path = file.path(wd_dir), recursive = T)}
         setwd(wd_dir)
-        if (d == 0) {
-          graphics.off()
-          while (dev.cur() > 1) {dev.off()}
-          # output_fig <- tempfile(fileext = ".pdf")
-          # pdf(output_fig)
-          output <- qda_ews(subset_data, param = NULL, winsize = 10,
-                            detrending = detrending_,
-                            bandwidth = NULL, boots = 100, s_level = 0.05, cutoff = 0.05, 
-                            detection.threshold = 0.002, grid.size = 10, logtransform = FALSE, interpolate = FALSE
-                           )
-          pdf(tempfile(fileext = ".pdf"))
-          graphics.off()
-          while (dev.cur() > 1) {dev.off()}
-        } else {
-          graphics.off()
-          while (dev.cur() > 1) {dev.off()}
-          # output_fig <- tempfile(fileext = ".pdf")
-          # pdf(output_fig)
-          differenced_data <- diff(subset_data, differences = d)
-          output <- qda_ews(differenced_data, param = NULL, winsize = 10,
-                            detrending = detrending_,
-                            bandwidth = NULL, boots = 100, s_level = 0.05, cutoff = 0.05, 
-                            detection.threshold = 0.002, grid.size = 10, logtransform = FALSE, interpolate = FALSE
-                            )
-          pdf(tempfile(fileext = ".pdf"))
-          graphics.off()
-          while (dev.cur() > 1) {dev.off()}
-        }
-        graphics.off()
-        while (dev.cur() > 1) {dev.off()}
-        text_out <- list(indicators = output$indicators, trend = output$trends)
-        qda_ews_results_list_separate[[paste(detrending_, as.character(a_fid), sep="_")]] <- output
-      }
-    }
-    saveRDS(qda_ews_results_list, file = paste0(out_dir, "qda_ews_results_list", ".rds"))
-    saveRDS(qda_ews_results_list_separate, file = paste0(out_dir, "qda_ews_results_list_separate", ".rds"))
-  } else if (ewr_type == "sensitivity"){
-    ########################################################
-    #######
-    #######  sensitivity_ews
-    #######  
-    #######
-    sensitivity_ews_all <- list()
-    sensitivity_ews_separate <- list()
 
+        graphics.off(); while (dev.cur() > 1) {dev.off()}
+        try({pdf(tempfile(fileext = ".pdf"))
+             graphics.off(); while (dev.cur() > 1) {dev.off()}
+             output <- qda_ews(subset_data, param = NULL, winsize = 10,
+                               detrending = detrending_,
+                               bandwidth = NULL, boots = 100, s_level = 0.05, cutoff = 0.05, 
+                               detection.threshold = 0.002, grid.size = 10, logtransform = FALSE, interpolate = FALSE)
+             text_out <- list(indicators = output$indicators, trend = output$trends)
+             qda_ews_results_list_separate[[paste(detrending_, as.character(a_fid), sep="_")]] <- output
+             pdf(tempfile(fileext = paste0("fid", a_fid, "_detrending_" , detrending_, ".pdf")))
+             graphics.off(); while (dev.cur() > 1) {dev.off()}
+            }, silent = TRUE)
+        graphics.off(); while (dev.cur() > 1) {dev.off()}
+          }
+    }
+    saveRDS(qda_ews_results_list_separate, file = paste0(out_dir, "qda_ews_results_list_separate", ".rds"))
+  } else if (ewr_type == "sensitivity_separate"){
+    sensitivity_ews_separate <- list()
     for (a_fid in FIDs) {
-      wd_dir <- paste(dir_base, "plots/earlyWarnings", ewr_type, paste0("fid", a_fid), sep="/")
-      if (dir.exists(file.path(wd_dir)) == F) {dir.create(path = file.path(wd_dir), recursive = T)}
-      setwd(wd_dir)
+      # wd_dir <- paste(dir_base, "plots/earlyWarnings", ewr_type, paste0("fid", a_fid), sep="/")
+      # if (dir.exists(file.path(wd_dir)) == F) {dir.create(path = file.path(wd_dir), recursive = T)}
+      # setwd(wd_dir)
       
       subset_data <- matrix(anpp[anpp$fid == a_fid]$mean_lb_per_acr)
-      graphics.off()
-      while (dev.cur() > 1) {dev.off()}
-      # output_fig <- tempfile(fileext = ".pdf")
-      # pdf(output_fig)
-      print (paste0("line 409 FID: ", a_fid, ", d: ", d))
-
-      output <- sensitivity_ews(subset_data, 
-                                indicator = c("ar1", "sd", "acf1", "sk", "kurt", "cv", "returnrate", "densratio"),
-                                detrending = c("no", "gaussian", "loess", "linear", "first-diff"), 
-                                winsizerange = c(25, 75), incrwinsize = 25,
-                                bandwidthrange = c(5, 100), spanrange = c(5, 100), 
-                                degree = NULL, 
-                                incrbandwidth = 20, incrspanrange = 10, 
-                                logtransform = FALSE, interpolate = FALSE)
-      pdf(tempfile(fileext = ".pdf"))
-      graphics.off()
-      while (dev.cur() > 1) {dev.off()}
-      sensitivity_ews_all[[as.character(a_fid)]] <- output
-
+      ###
       ### run for each indicator and deterending separately.
       ### 
       for (indicator_ in c("ar1", "sd", "acf1", "sk", "kurt", "cv", "returnrate", "densratio")){
@@ -428,27 +306,51 @@ if (ewr_type == "ddjnonparam"){
           wd_dir <- paste(dir_base, "plots/earlyWarnings", ewr_type, paste0("fid", a_fid), paste(indicator_, detrending_, sep="_"), sep="/")
           if (dir.exists(file.path(wd_dir)) == F) {dir.create(path = file.path(wd_dir), recursive = T)}
           setwd(wd_dir)
-          # Apply the function and store the result
-          graphics.off()
-          while (dev.cur() > 1) {dev.off()}
-          # output_fig <- tempfile(fileext = ".pdf")
-          # pdf(output_fig)
-          output <- sensitivity_ews(subset_data, 
-                                    indicator = indicator_,
-                                    detrending = detrending_, 
-                                    winsizerange = c(25, 75), incrwinsize = 25,
-                                    bandwidthrange = c(5, 100), spanrange = c(5, 100), 
-                                    degree = NULL, 
-                                    incrbandwidth = 20, incrspanrange = 10, 
-                                    logtransform = FALSE, interpolate = FALSE)
-          pdf(tempfile(fileext = ".pdf"))
-          graphics.off()
-          while (dev.cur() > 1) {dev.off()}
-          sensitivity_ews_separate[[paste(indicator_, detrending_, as.character(a_fid), sep="_")]] <- output
+        
+          graphics.off(); while (dev.cur() > 1) {dev.off()}
+          try({output <- sensitivity_ews(subset_data, indicator = indicator_, detrending = detrending_, 
+                                         winsizerange = c(25, 75), incrwinsize = 25,
+                                         bandwidthrange = c(5, 100), spanrange = c(5, 100), 
+                                         degree = NULL, incrbandwidth = 20, incrspanrange = 10, 
+                                         logtransform = FALSE, interpolate = FALSE)
+              pdf(tempfile(fileext = paste0("fid", a_fid, "_indicator_", indicator_,"_detrending_" , detrending_, ".pdf")))
+              graphics.off(); while (dev.cur() > 1) {dev.off()}
+              sensitivity_ews_separate[[paste("fid", as.character(a_fid), indicator_, detrending_, sep="_")]] <- output
+              }, silent = TRUE)
         }
       }
     }
-    saveRDS(sensitivity_ews_all, file = paste0(out_dir, "sensitivity_ews_all", ".rds"))
     saveRDS(sensitivity_ews_separate, file = paste0(out_dir, "sensitivity_ews_separate", ".rds"))
   }
 
+
+##
+## d==0 is not a guarantee for being stationary!! we need to learn more.
+## more over, if d==0, then (assuming that would mean stationary, then detrending argument should be set to "no")
+## strange thing detrending = c("no", "gaussian", "linear", "first-diff") works. but detrending = c("gaussian", "linear", "first-diff")
+## complains and asks for argument of length 1. So, let us get rid of d==0 and do deterending things one at a time 
+## and see if it works.
+##
+
+# check if differencing is needed. Determine the Appropriate Order (p, d, q):
+# arima_model <- auto.arima(subset_data, seasonal = FALSE)
+# d_arimaOrder <- arimaorder(arima_model)[2]
+# if (d == 0) { # in this case differencing is not needed. so, detrending must be no.
+#   ##### 
+#   ##### even if d=0 is not a a guarantee for stationary. So, let us get rid of this 
+#   #### here and only do separate!
+#   #####
+#   # wd_dir <- paste(dir_base, "plots/earlyWarnings", ewr_type, paste0("fid", a_fid), "noDetrending", sep="/")
+#   # if (dir.exists(file.path(wd_dir)) == F) {dir.create(path = file.path(wd_dir), recursive = T)}
+#   # setwd(wd_dir)
+#   # graphics.off(); while (dev.cur() > 1) {dev.off()}
+#   # output <- qda_ews(subset_data, param = NULL, winsize = 10,
+#   #                   detrending = "no",
+#   #                   bandwidth = NULL, boots = 100, s_level = 0.05, cutoff = 0.05, 
+#   #                   detection.threshold = 0.002, grid.size = 10, logtransform = FALSE, interpolate = FALSE
+#   #                  )
+#   # text_out <- list(indicators = output$indicators, trend = output$trends)
+#   # qda_ews_results_list_separate[[paste(detrending_, as.character(a_fid), sep="_")]] <- output
+#   # pdf(tempfile(fileext = ".pdf")); graphics.off(); while (dev.cur() > 1) {dev.off()}
+#   } else {
+# differenced_data <- diff(subset_data, differences = d) # we are doing first_diff below.

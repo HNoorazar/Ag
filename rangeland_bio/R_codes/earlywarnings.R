@@ -1,4 +1,4 @@
-install.packages("earlywarnings")
+# install.packages("earlywarnings")
 
 
 ####################################
@@ -16,7 +16,7 @@ library(data.table)
 library(earlywarnings)
 library(dplyr)
 library(ggmap) # loads ggplot2
-
+library(forecast)
 ###################################################################
 ###################################################################
 ####
