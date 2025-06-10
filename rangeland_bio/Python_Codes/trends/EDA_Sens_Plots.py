@@ -40,6 +40,7 @@ from matplotlib import cm
 
 sys.path.append("/Users/hn/Documents/00_GitHub/Ag/rangeland/Python_Codes/")
 import rangeland_core as rc
+import rangeland_plot_core as rcp
 
 # %%
 dpi_, map_dpi_=300, 900
@@ -129,7 +130,6 @@ state_fips.head(2)
 # %%
 from shapely.geometry import Polygon
 gdf = geopandas.read_file(common_data +'cb_2018_us_state_500k.zip')
-
 
 gdf.rename(columns={"STUSPS": "state"}, inplace=True)
 gdf = gdf[~gdf.state.isin(["PR", "VI", "AS", "GU", "MP"])]
@@ -365,7 +365,7 @@ ax1.set_title("Sen's slope is robust to outliers")
 # plt.tight_layout();
 fig.subplots_adjust(top=0.91, bottom=0.08, left=0.082, right=0.981)
 file_name = bio_plots + "robustSensSlope.pdf"
-plt.savefig(file_name)
+# plt.savefig(file_name)
 
 # %%
 np.sort(ANPP_MK_df.loc[ANPP_MK_df["trend_yue"] == "increasing", "sens_slope"])[:10]
@@ -459,13 +459,12 @@ cent_plt = Albers_SF_west.plot(column='sens_slope', ax=ax, legend=False,
                                cmap = cm.get_cmap('RdYlGn'), norm=norm1)
 
 # first two arguments are x and y of the legend 
-# on the left side of it. The last two are length and width 
-# of the bar
+# on the left side of it. The last two are length and width of the bar
 cax = ax.inset_axes([0.08, 0.18, 0.45, 0.03])
 cbar1 = fig.colorbar(cent_plt.collections[1], ax=ax, orientation='horizontal', shrink=0.3, 
                      cmap=cm.get_cmap('RdYlGn'), norm=norm1, cax=cax)
-cbar1.set_label(r"Sen's slope", labelpad=1)
-plt.title("Sen's slope - all locations")
+cbar1.set_label(r"Sen's slope", labelpad=1, fontdict={'family': 'serif', 'weight': 'normal'})
+plt.title("Sen's slope - all locations", fontdict={'family': 'serif', 'weight': 'bold'})
 
 # plt.tight_layout()
 # fig.subplots_adjust(top=0.91, bottom=0.01, left=-0.1, right=1)
@@ -473,6 +472,64 @@ file_name = bio_plots + "sensSlopes_centerColorBar.png"
 plt.savefig(file_name, bbox_inches='tight', dpi=map_dpi_)
 
 del(cent_plt, cax, cbar1, norm1, min_max)
+
+# %%
+fig, ax = plt.subplots(1, 1, figsize=(2, 2), sharex=True, sharey=True, dpi=map_dpi_)
+ax.set_xticks([]); ax.set_yticks([])
+
+min_max = max(np.abs(Albers_SF_west['sens_slope'].min()), np.abs(Albers_SF_west['sens_slope'].max()))
+norm1 = Normalize(vmin = -min_max, vmax = min_max, clip=True)
+
+rcp.plot_SF(SF=visframe_mainLand_west, ax_=ax, col="EW_meridian", cmap_=custom_cmap_BW)
+
+cent_plt = Albers_SF_west.plot(column='sens_slope', ax=ax, legend=False, cmap=cm.get_cmap('RdYlGn'), norm=norm1)
+
+# first two arguments are x and y of the legend 
+# on the left side of it. The last two are length and width of the bar
+cax = ax.inset_axes([0.08, 0.18, 0.45, 0.03])
+cbar1 = fig.colorbar(cent_plt.collections[1], ax=ax, orientation='horizontal', shrink=0.3, 
+                     cmap=cm.get_cmap('RdYlGn'), norm=norm1, cax=cax)
+
+cbar1.set_label(r"Sen's slope", labelpad=1, fontdict={'family': 'serif', 'weight': 'normal'})
+plt.title("Sen's slope - all locations", fontdict={'family': 'serif', 'weight': 'bold'})
+
+# plt.tight_layout()
+# fig.subplots_adjust(top=0.91, bottom=0.01, left=-0.1, right=1)
+file_name = bio_plots + "sensSlopes_centerColorBar_whiteBG.png"
+plt.savefig(file_name, bbox_inches='tight', dpi=map_dpi_)
+
+del(cent_plt, cax, cbar1, norm1, min_max)
+
+# %%
+
+# %%
+fig, ax = plt.subplots(1, 1, figsize=(2, 2), sharex=True, sharey=True, dpi=map_dpi_)
+ax.set_xticks([]); ax.set_yticks([])
+
+min_max = max(np.abs(Albers_SF_west['sens_slope'].min()), np.abs(Albers_SF_west['sens_slope'].max()))
+norm1 = Normalize(vmin = -min_max, vmax = min_max, clip=True)
+
+rcp.plot_SF(SF=visframe_mainLand_west, ax_=ax, col="EW_meridian", cmap_=custom_cmap_BW)
+
+cent_plt = Albers_SF_west.plot(column='sens_slope', ax=ax, legend=False, cmap='seismic', norm=norm1)
+
+# first two arguments are x and y of the legend 
+# on the left side of it. The last two are length and width of the bar
+cax = ax.inset_axes([0.08, 0.18, 0.45, 0.03])
+cbar1 = fig.colorbar(cent_plt.collections[1], ax=ax, orientation='horizontal', shrink=0.3, norm=norm1, cax=cax)
+# cbar1 = fig.colorbar(cent_plt.collections[1], ax=ax, orientation='horizontal', shrink=0.3, cax=cax)
+
+cbar1.set_label(r"Sen's slope", labelpad=1, fontdict={'family': 'serif', 'weight':'normal'})
+plt.title("Sen's slope - all locations", fontdict={'family': 'serif', 'weight': 'bold'})
+
+# plt.tight_layout()
+# fig.subplots_adjust(top=0.91, bottom=0.01, left=-0.1, right=1)
+file_name = bio_plots + "sensSlopes_centerColorBar_divergeRB.png"
+plt.savefig(file_name, bbox_inches='tight', dpi=map_dpi_)
+
+del(cent_plt, cax, cbar1, norm1, min_max)
+
+# %%
 
 # %%
 
@@ -494,8 +551,7 @@ cent_plt = Matt_df.plot(column='sens_slope', ax=ax, legend=False,
                                cmap = cm.get_cmap('RdYlGn'), norm=norm1)
 
 # first two arguments are x and y of the legend 
-# on the left side of it. The last two are length and width 
-# of the bar
+# on the left side of it. The last two are length and width of the bar
 cax = ax.inset_axes([0.08, 0.18, 0.45, 0.03])
 cbar1 = fig.colorbar(cent_plt.collections[1], ax=ax, orientation='horizontal', shrink=0.3, 
                      cmap=cm.get_cmap('RdYlGn'), norm=norm1, cax=cax)
@@ -505,7 +561,7 @@ plt.title("Sen's slope > " + str(sens_thresh), y=.97)
 # plt.tight_layout()
 # fig.subplots_adjust(top=0.91, bottom=0.01, left=-0.1, right=1)
 file_name = bio_plots + "/for_Matt/" + "sensSlopes_GE" + str(sens_thresh) + "_centerColorBar.png"
-plt.savefig(file_name, bbox_inches='tight', dpi=map_dpi_)
+# plt.savefig(file_name, bbox_inches='tight', dpi=map_dpi_)
 
 del(cent_plt, cax, cbar1, norm1, min_max)
 
@@ -545,7 +601,7 @@ plt.title("Sen's slope - greening locations")
 
 # fig.subplots_adjust(top=0.91, bottom=0.01, left=0.01, right=0.981)
 file_name = bio_plots + "greening_sensSlope.png"
-plt.savefig(file_name, bbox_inches='tight', dpi=map_dpi_)
+# plt.savefig(file_name, bbox_inches='tight', dpi=map_dpi_)
 
 del(cent_plt, cax, cbar1)
 
@@ -626,7 +682,7 @@ axes.set_title(r"greening trends (median_ANPP_change_as_perc > 0)", y=0.97)
 
 fig.subplots_adjust(top=0.91, bottom=0.01, left=0.01, right=0.981, hspace=0.05, wspace=0.05)
 file_name = bio_plots + "medianNPP_percChange.png"
-plt.savefig(file_name, bbox_inches='tight', dpi=map_dpi_)
+# plt.savefig(file_name, bbox_inches='tight', dpi=map_dpi_)
 
 del(plot_s, cax, cbar1)
 
@@ -653,7 +709,7 @@ axes.set_title(r"greening trends (median_ANPP_change_as_perc > 0)", y=0.97)
 
 fig.subplots_adjust(top=0.91, bottom=0.01, left=0.01, right=0.981, hspace=0.05, wspace=0.05)
 file_name = bio_plots + "medianNPP_percChange_GreenCmap.png"
-plt.savefig(file_name, bbox_inches='tight', dpi=map_dpi_)
+# plt.savefig(file_name, bbox_inches='tight', dpi=map_dpi_)
 del(plot_s, cax, cbar1)
 
 # %%
@@ -686,7 +742,6 @@ rcp.plot_SF(SF=visframe_mainLand_west, ax_=ax1, col="EW_meridian", cmap_=ListedC
 rcp.plot_SF(SF=visframe_mainLand_west, ax_=ax2, col="EW_meridian", cmap_=ListedColormap(['dodgerblue', 'white']))
 ###############################################################
 p1 = Albers_SF_west.plot(column='sens_slope', legend=False, ax=ax1, cmap = cm.get_cmap('RdYlGn'))
-
 cax1 = ax1.inset_axes([0.03, 0.18, 0.5, 0.03])
 cbar1 = fig.colorbar(p1.collections[1], ax=ax1, orientation='horizontal', shrink=0.3, 
                      cmap=cm.get_cmap('RdYlGn'), cax=cax1)
@@ -707,7 +762,7 @@ cbar2.set_label(r"Sen's slope", labelpad=1)
 # plt.show();
 fig.subplots_adjust(top=0.91, bottom=0.01, left=0.01, right=0.981, hspace=0.01, wspace=-0.2)
 file_name = bio_plots + "sensSlopes_2colorbars.png"
-plt.savefig(file_name, bbox_inches='tight', dpi=map_dpi_)
+# plt.savefig(file_name, bbox_inches='tight', dpi=map_dpi_)
 
 del(p1, p2, cax2, cax1, cbar1, cbar2, norm1, min_max)
 
@@ -746,7 +801,7 @@ fig.colorbar(p1.get_children()[1], cax=cax, orientation='vertical')
 # plt.show();
 
 file_name = bio_plots + "Spearman_tau.png"
-plt.savefig(file_name, bbox_inches='tight', dpi=map_dpi_);
+# plt.savefig(file_name, bbox_inches='tight', dpi=map_dpi_);
 
 del(p1, p2, cax, norm_col, min_col_, max_col_)
 

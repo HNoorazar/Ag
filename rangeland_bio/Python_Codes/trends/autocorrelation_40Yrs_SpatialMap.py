@@ -191,7 +191,7 @@ y_var = "mean_lb_per_acr_lag1_autocorr"
 # %%
 fig, ax = plt.subplots(1, 1, dpi=map_dpi_) # figsize=(2, 2)
 ax.set_xticks([]); ax.set_yticks([])
-rpc.plot_SF(SF=visframe_mainLand_west, ax_=ax, col="EW_meridian", cmap_=custom_cmap_BW)
+rpc.plot_SF(SF=visframe_mainLand_west, ax_=ax, col="EW_meridian", cmap_=f)
 
 min_col_ = np.abs(SF_west[y_var].min())
 max_col_ = np.abs(SF_west[y_var].max())
