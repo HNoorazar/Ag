@@ -269,7 +269,7 @@ df = pd.DataFrame({'mean_lb_per_acr': [100, 1, 3, 4, 10, 0]})
 
 # Rolling autocorrelation function using pandas' autocorr
 def rolling_autocorr(series, lag=1):
-    if series.nunique() > 1:  # autocorr undefined for constant values
+    if len(series.dropna()) ## series.nunique() > 1:  # autocorr undefined for constant values. but what if it is 1 2 1 1 1
         return series.autocorr(lag=lag)
     else:
         return np.nan

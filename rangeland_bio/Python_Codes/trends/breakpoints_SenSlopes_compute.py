@@ -402,7 +402,7 @@ filename = breakpoints_dir + "sensSlope_beforeAfter_BP1.sav"
 
 export_ = {
     "sensSlope_beforeAfter_BP1": slope_results,
-    "source_code": "breakpoints_SenSlopes",
+    "source_code": "breakpoints_SenSlopes_compute",
     "Author": "HN",
     "Date": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
 }

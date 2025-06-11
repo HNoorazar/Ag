@@ -73,6 +73,4 @@ ACF1s_window.to_csv(filename, index=False)
 
 
 end_time = time.time()
-print(end_time - start_time)
-
 print("it took {:.0f} minutes to run this code.".format((end_time - start_time) / 60))

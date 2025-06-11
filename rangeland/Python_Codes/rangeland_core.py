@@ -96,7 +96,10 @@ def rolling_autocorr_df_prealloc(df, y_var="mean_lb_per_acr", window_size=5, lag
 
             if window_data["year"].nunique() == window_size:
                 values = window_data[y_var]
-                autocorr = values.autocorr(lag=lag) if values.nunique() > 1 else np.nan
+                # autocorr = values.autocorr(lag=lag) if values.nunique() > 1 else np.nan
+                autocorr = (
+                    values.autocorr(lag=lag) if len(values.dropna()) > 1 else np.nan
+                )
 
                 preallocated_df.loc[idx] = {
                     "fid": fid,
@@ -133,7 +136,8 @@ def rolling_autocorr(df, y_var="mean_lb_per_acr", window_size=5, lag=1):
 
             if len(window_data) == window_size:
                 values = window_data[y_var]
-                if values.nunique() > 1:
+                # if values.nunique() > 1:
+                if len(values) > 1:
                     autocorr = values.autocorr(lag=lag)
 
                     ## we can replace the line above with

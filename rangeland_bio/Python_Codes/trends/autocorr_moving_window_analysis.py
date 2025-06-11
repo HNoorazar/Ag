@@ -562,3 +562,10 @@ plt.show()
 # %%
 
 # %%
+import time
+start_time = time.time()
+end_time = time.time()
+print("it took {:.0f} minutes to run this code.".format((end_time - start_time) / 60))
+
+
+# %%
