@@ -266,7 +266,7 @@ ax.set_xticks([]); ax.set_yticks([])
 min_max = max(np.abs(Albers_SF_west[y_var].min()), np.abs(Albers_SF_west[y_var].max()))
 norm1 = Normalize(vmin=-min_max, vmax=min_max, clip=True)
 
-rcp.plot_SF(SF=visframe_mainLand_west, ax_=ax, col="EW_meridian", cmap_=ListedColormap(['green', 'white']))
+rcp.plot_SF(SF=visframe_mainLand_west, ax_=ax, col="EW_meridian", cmap_=ListedColormap(['green', 'grey']))
 
 # cent_plt = Albers_SF_west["centroid"].plot(ax=ax, c=Albers_SF_west[y_var], cmap='seismic',
 #                                            norm=norm1, markersize=0.1)
@@ -282,7 +282,7 @@ plt.title("ANPP variance", fontdict={'family':'serif', 'weight':'bold'});
 
 # plt.tight_layout()
 # fig.subplots_adjust(top=0.91, bottom=0.01, left=-0.1, right=1)
-file_name = bio_plots + "ANPP_40Yr_variance_divergeRB.png"
+file_name = bio_plots + "ANPP_40Yr_variance_divergeRB_GrnBG.png"
 plt.savefig(file_name, bbox_inches='tight', dpi=map_dpi_)
 
 del(cent_plt, cax, cbar1, norm1, min_max)

@@ -54,7 +54,9 @@ print (list(colormaps)[:4])
 # %%
 
 # %%
-rangeland_bio_base = "/Users/hn/Documents/01_research_data/RangeLand_bio/"
+research_db = "/Users/hn/Documents/01_research_data/"
+common_data = research_db + "common_data/"
+rangeland_bio_base = research_db + "RangeLand_bio/"
 rangeland_bio_data = rangeland_bio_base + "Data/"
 # min_bio_dir = rangeland_bio_data + "Min_Data/"
 min_bio_dir_v11 = rangeland_bio_data + "Min_Data_v1.1/"
@@ -69,7 +71,7 @@ bio_plots = rangeland_bio_base + "plots/"
 os.makedirs(bio_plots, exist_ok=True)
 
 # %%
-county_fips_dict = pd.read_pickle(rangeland_reOrganized + "county_fips.sav")
+county_fips_dict = pd.read_pickle(common_data + "county_fips.sav")
 
 county_fips = county_fips_dict["county_fips"]
 full_2_abb = county_fips_dict["full_2_abb"]
@@ -191,7 +193,8 @@ Albers_SF.plot(column='EW_meridian', categorical=True, legend=True);
 # %%
 from shapely.geometry import Polygon
 
-gdf = geopandas.read_file(rangeland_base +'cb_2018_us_state_500k.zip')
+# gdf = geopandas.read_file(rangeland_base +'cb_2018_us_state_500k.zip')
+gdf = geopandas.read_file(common_data +'cb_2018_us_state_500k.zip')
 
 gdf.rename(columns={"STUSPS": "state"}, inplace=True)
 gdf = gdf[~gdf.state.isin(["PR", "VI", "AS", "GU", "MP"])]
@@ -327,7 +330,7 @@ print (ANPP_MK_df.shape)
 ANPP_MK_df.head(3)
 ##### z: normalized test statistics
 ##### Tau: Kendall Tau
-MK_test_cols = ["sens_slope", "Tau", "MK_score",
+MK_test_cols = ["sens_slope", "sens_intercept", "Tau", "MK_score",
                 "trend", "p", "var_s",
                 "trend_yue", "p_yue", "var_s_yue",
                 "trend_yue_lag0", "p_yue_lag0", "var_s_yue_lag0",
@@ -363,7 +366,7 @@ for a_FID in ANPP_MK_df["fid"].unique():
     Spearman, p_Spearman = stats.spearmanr(year_TS, ANPP_TS) # Spearman's rank
     
     # Update dataframe by MK result
-    L_ = [slope, Tau, MK_score, 
+    L_ = [slope, intercept, Tau, MK_score, 
           trend,        p,        var_s,
           trend_u,      p_u,      var_s_u, 
           trend_u_lag0, p_u_lag0, var_s_u_lag0,
@@ -375,7 +378,7 @@ for a_FID in ANPP_MK_df["fid"].unique():
     
     ANPP_MK_df.loc[ANPP_MK_df["fid"]==a_FID, MK_test_cols] = L_
     
-    del(slope, Tau, MK_score)
+    del(slope, intercept, Tau, MK_score)
     del(trend, p, var_s)
     del(trend_u, p_u, var_s_u)
     del(trend_u_lag0, p_u_lag0, var_s_u_lag0)
@@ -386,7 +389,7 @@ for a_FID in ANPP_MK_df["fid"].unique():
     del(L_, ANPP_TS, year_TS)
     
 # Round the columns to 6-decimals
-for a_col in ["sens_slope", "Tau", "MK_score",
+for a_col in ["sens_slope", "sens_slope", "Tau", "MK_score",
               "p", "var_s",
               "p_yue"     , "var_s_yue",
               "p_yue_lag0", "var_s_yue_lag0",
@@ -445,7 +448,7 @@ len(ANPP_MK_df) - (len(spearman_increase_pval5) + len(spearman_decrease_pval5))
 Albers_SF.head(2)
 
 # %%
-some_col = ["fid", "sens_slope", "trend", 'trend_yue','p_yue', 'trend_rao', 'p_rao',
+some_col = ["fid", "sens_slope", "sens_intercept", "trend", 'trend_yue','p_yue', 'trend_rao', 'p_rao',
             "Tau", "Spearman", "p_Spearman",
             "medians_diff_ANPP", "medians_diff_slope_ANPP", "median_ANPP_change_as_perc"]
 
@@ -454,6 +457,10 @@ Albers_SF.head(2)
 
 Albers_SF["centroid"] = Albers_SF["geometry"].centroid
 Albers_SF.head(2)
+
+# %%
+
+# %%
 
 # %%
 filename = bio_reOrganized + "ANPP_MK_Spearman_no2012.sav"
@@ -471,5 +478,11 @@ Albers_SF_noCentroid.drop(columns=["centroid"], inplace=True)
 f_name = bio_reOrganized + 'Albers_SF_west_ANPP_MK_Spearman_no2012.shp.zip'
 Albers_SF_noCentroid.to_file(filename=f_name, driver='ESRI Shapefile')
 
+
+# %%
+Albers_SF_noCentroid.columns
+
+# %%
+ANPP_MK_df.head(2)
 
 # %%

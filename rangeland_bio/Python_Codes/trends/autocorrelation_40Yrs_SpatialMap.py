@@ -191,7 +191,7 @@ y_var = "mean_lb_per_acr_lag1_autocorr"
 # %%
 fig, ax = plt.subplots(1, 1, dpi=map_dpi_) # figsize=(2, 2)
 ax.set_xticks([]); ax.set_yticks([])
-rpc.plot_SF(SF=visframe_mainLand_west, ax_=ax, col="EW_meridian", cmap_=f)
+rpc.plot_SF(SF=visframe_mainLand_west, ax_=ax, col="EW_meridian", cmap_=ListedColormap(['white', 'green']))
 
 min_col_ = np.abs(SF_west[y_var].min())
 max_col_ = np.abs(SF_west[y_var].max())
@@ -199,8 +199,44 @@ cc_ = max(min_col_, max_col_)
 norm_col = Normalize(vmin=-cc_, vmax=cc_, clip=True);
 
 # cmap = bwr or use 'seismic'
-cent_plt = SF_west["centroid"].plot(ax=ax, c=SF_west[y_var], #cmap='seismic',
-                                    norm=norm_col, markersize=0.1) 
+# cent_plt = SF_west["centroid"].plot(ax=ax, c=SF_west[y_var], #cmap='seismic',
+#                                     norm=norm_col, markersize=0.1) 
+cent_plt = SF_west.plot(column=y_var, ax=ax, legend=False, cmap='seismic', norm=norm_col)
+
+plt.tight_layout()
+
+############# color bar
+cax = ax.inset_axes([0.03, 0.18, 0.5, 0.03])
+# cbar1 = fig.colorbar(cent_plt.collections[1], ax=ax, orientation='vertical', shrink=0.5)
+cbar1 = fig.colorbar(cent_plt.collections[1], ax=ax, orientation='horizontal', shrink=0.3, cax=cax)
+cbar1.set_label(r"ACF1", labelpad=2)
+
+#############
+plt.title('ACF1 for ANPP (1984-2023, no 2012)', y=0.98);
+
+# fig.subplots_adjust(top=0.91, bottom=0.01, left=0.01, right=0.981)
+file_name = ACF_plot_base + "ANPP_ACF1_zeroWhite_poly.png" # ANPP_ACF1_zeroWhite or ANPP_ACF1
+plt.savefig(file_name, bbox_inches='tight', dpi=300)
+
+del(cent_plt, cax, cbar1)
+
+# %%
+
+# %%
+fig, ax = plt.subplots(1, 1, dpi=map_dpi_) # figsize=(2, 2)
+ax.set_xticks([]); ax.set_yticks([])
+rpc.plot_SF(SF=visframe_mainLand_west, ax_=ax, col="EW_meridian", cmap_=ListedColormap(['white', 'green']))
+
+min_col_ = np.abs(SF_west[y_var].min())
+max_col_ = np.abs(SF_west[y_var].max())
+cc_ = max(min_col_, max_col_)
+norm_col = Normalize(vmin=-cc_, vmax=cc_, clip=True);
+
+# cmap = bwr or use 'seismic'
+# cent_plt = SF_west["centroid"].plot(ax=ax, c=SF_west[y_var], #cmap='seismic',
+#                                     norm=norm_col, markersize=0.1) 
+cent_plt = SF_west.plot(column=y_var, ax=ax, legend=False, norm=norm_col)
+
 plt.tight_layout()
 
 ############# color bar
@@ -229,9 +265,7 @@ SF_west[SF_west["mean_lb_per_acr_lag1_autocorr"] < 0]["mean_lb_per_acr_lag1_auto
 
 # %%
 # Sample data for a single fid
-df = pd.DataFrame({
-    'mean_lb_per_acr': [100, 1, 3, 4, 10, 0]
-})
+df = pd.DataFrame({'mean_lb_per_acr': [100, 1, 3, 4, 10, 0]})
 
 # Rolling autocorrelation function using pandas' autocorr
 def rolling_autocorr(series, lag=1):

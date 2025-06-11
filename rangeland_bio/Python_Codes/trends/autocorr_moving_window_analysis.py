@@ -208,6 +208,7 @@ norm_col = Normalize(vmin=-cc_, vmax=cc_, clip=True);
 print (min_, max_, cc_)
 
 # %%
+# %%time
 for ws in np.arange(5, 11):
     y_var = f"autocorr_lag1_ws{ws}_variance"
     
@@ -217,7 +218,9 @@ for ws in np.arange(5, 11):
 
     ############# plot centroids with color of certain column
     # cmap = bwr or 'seismic'
-    cent_plt = SF_west["centroid"].plot(ax=ax, c=SF_west[y_var], markersize=0.1, norm=norm_col)
+#     cent_plt = SF_west["centroid"].plot(ax=ax, c=SF_west[y_var], markersize=0.1, norm=norm_col)
+#     cent_plt = SF_west.plot(column=y_var, ax=ax, legend=False, norm=norm_col)
+    cent_plt = SF_west.plot(column=y_var, ax=ax, legend=False, cmap='seismic', norm=norm_col)
     plt.tight_layout()
 
     ##### color bar
@@ -373,6 +376,7 @@ print (min_, max_, cc_)
 # %%
 
 # %%
+# %%time
 for ws in np.arange(5, 11):
     for type_ in ['categ', 'slope']:
         fig, ax = plt.subplots(1, 1, dpi=map_dpi_) # figsize=(2, 2)
@@ -388,19 +392,21 @@ for ws in np.arange(5, 11):
                                                'fontsize': 8,            # Shrink the font size
                                                'borderaxespad': 0.5,     # Padding between legend and plot
                                               });
+            
             file_name = ACF_plot_base + f"Categorical_MKTrend_of_ACF1_ws{ws}.png"
 
         else:
             y_var = f"slope_ws{ws}"
             print ("numerical:  ", y_var)
-            cent_plt = SF_west["centroid"].plot(ax=ax, c=SF_west[y_var], markersize=0.1, norm=norm_col)
+#             cent_plt = SF_west["centroid"].plot(ax=ax, c=SF_west[y_var], markersize=0.1, norm=norm_col)
+            cent_plt = SF_west.plot(column=y_var, ax=ax, legend=False, cmap='seismic', norm=norm_col)
             
             ############# color bar
             cax = ax.inset_axes([0.03, 0.18, 0.5, 0.03])
             cbar1 = fig.colorbar(cent_plt.collections[1], ax=ax, orientation='horizontal', shrink=0.3, cax=cax)
             cbar1.set_label(f'trend of ACF1$_{{ws={ws}}}$', labelpad=2)
             
-            file_name = ACF_plot_base + f"sensSlope_trend_of_ACF1_ws{ws}.png"
+            file_name = ACF_plot_base + f"sensSlope_of_ACF1_ws{ws}.png"
             del(cax, cbar1)
 
         plt.tight_layout()
@@ -445,6 +451,13 @@ plt.rcParams["ytick.labelleft"] = True
 plt.rcParams.update(params)
 
 # %%
+SF_west.columns
+
+# %%
+SF_west[y_var] = pd.to_numeric(SF_west[y_var], errors='coerce')
+
+# %%
+## colormap virdis does not work for polygons!
 y_var = "slope_ws7"
 
 fig, ax = plt.subplots(1, 2, dpi=map_dpi_, gridspec_kw={'hspace': 0.02, 'wspace': 0.05})
@@ -476,7 +489,9 @@ plt.tight_layout()
 # plt.subplots_adjust(hspace=0, wspace=0)
 fig.suptitle(f'(MK) trend of ACF1 time-series w. window size 7', y=0.82);
 file_name = ACF_plot_base + f"sensSlope_ACF1_{y_var}_colorMaps.png"
-plt.savefig(file_name, bbox_inches='tight', dpi=300)
+# plt.savefig(file_name, bbox_inches='tight', dpi=300)
+
+# %%
 
 # %%
 
@@ -492,8 +507,10 @@ ax[1].set_xticks([]); ax[1].set_yticks([]);
 rpc.plot_SF(SF=visframe_mainLand_west, ax_=ax[0], col="EW_meridian", cmap_=custom_cmap_BW)
 rpc.plot_SF(SF=visframe_mainLand_west, ax_=ax[1], col="EW_meridian", cmap_=custom_cmap_BW)
 
-cent_plt00 = SF_west["centroid"].plot(ax=ax[0], c=SF_west[y_var], markersize=0.1, cmap='viridis')
-cent_plt10 = SF_west["centroid"].plot(ax=ax[1], c=SF_west[y_var], markersize=0.1)
+# cent_plt00 = SF_west["centroid"].plot(ax=ax[0], c=SF_west[y_var], markersize=0.1, cmap='viridis')
+# cent_plt10 = SF_west["centroid"].plot(ax=ax[1], c=SF_west[y_var], markersize=0.1)
+cent_plt00 = SF_west.plot(ax=ax[0], c=SF_west[y_var], cmap='viridis')
+cent_plt10 = SF_west.plot(ax=ax[1], c=SF_west[y_var])
 ##########################################################################################
 ###############
 ############### default map setting
@@ -539,5 +556,9 @@ fig.suptitle(f'(MK) trend of ACF1 time-series w. window size 7', y=0.82)
 file_name = ACF_plot_base + f"sensSlope_ACF1_{y_var}_colorMaps_tickIdent.png"
 plt.savefig(file_name, bbox_inches='tight', dpi=300)
 plt.show()
+
+# %%
+
+# %%
 
 # %%

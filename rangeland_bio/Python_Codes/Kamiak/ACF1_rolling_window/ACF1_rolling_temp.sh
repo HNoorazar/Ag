@@ -13,8 +13,8 @@
 ####SBATCH --array=0-30000
 
 ###SBATCH -k o
-#SBATCH --output=/home/h.noorazar/rangeland_bio/rolling_ACF1/error/ACF1_rolling_window_size.o
-#SBATCH  --error=/home/h.noorazar/rangeland_bio/rolling_ACF1/error/ACF1_rolling_window_size.e
+#SBATCH --output=/home/h.noorazar/rangeland_bio/rolling_ACF1/error/ACF1_rolling_window_size_y_.o
+#SBATCH  --error=/home/h.noorazar/rangeland_bio/rolling_ACF1/error/ACF1_rolling_window_size_y_.e
 echo
 echo "--- We are now in $PWD, running an R script ..."
 echo
@@ -57,8 +57,10 @@ echo "--------- continue on ---------"
 # Run python code for matrix
 # ----------------------------------------------------------------
 
-python /home/h.noorazar/rangeland_bio/rolling_ACF1/ACF1_rolling.py window_size
+python /home/h.noorazar/rangeland_bio/rolling_ACF1/ACF1_rolling.py window_size y_
 
+
+echo Time is `date`
 echo
 echo "----- DONE -----"
 echo

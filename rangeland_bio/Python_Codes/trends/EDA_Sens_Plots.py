@@ -530,6 +530,31 @@ plt.savefig(file_name, bbox_inches='tight', dpi=map_dpi_)
 del(cent_plt, cax, cbar1, norm1, min_max)
 
 # %%
+fig, ax = plt.subplots(1, 1, figsize=(2, 2), sharex=True, sharey=True, dpi=map_dpi_)
+ax.set_xticks([]); ax.set_yticks([])
+
+min_max = max(np.abs(Albers_SF_west['sens_slope'].min()), np.abs(Albers_SF_west['sens_slope'].max()))
+norm1 = Normalize(vmin = -min_max, vmax = min_max, clip=True)
+
+rcp.plot_SF(SF=visframe_mainLand_west, ax_=ax, col="EW_meridian", cmap_=ListedColormap(['grey', 'white']))
+
+cent_plt = Albers_SF_west.plot(column='sens_slope', ax=ax, legend=False, cmap='seismic', norm=norm1)
+
+# first two arguments are x and y of the legend 
+# on the left side of it. The last two are length and width of the bar
+cax = ax.inset_axes([0.08, 0.18, 0.45, 0.03])
+cbar1 = fig.colorbar(cent_plt.collections[1], ax=ax, orientation='horizontal', shrink=0.3, norm=norm1, cax=cax)
+# cbar1 = fig.colorbar(cent_plt.collections[1], ax=ax, orientation='horizontal', shrink=0.3, cax=cax)
+
+cbar1.set_label(r"Sen's slope", labelpad=1, fontdict={'family': 'serif', 'weight':'normal'})
+plt.title("Sen's slope - all locations", fontdict={'family': 'serif', 'weight': 'bold'})
+
+# plt.tight_layout()
+# fig.subplots_adjust(top=0.91, bottom=0.01, left=-0.1, right=1)
+file_name = bio_plots + "sensSlopes_centerColorBar_divergeRB_GBG.png"
+plt.savefig(file_name, bbox_inches='tight', dpi=map_dpi_)
+
+del(cent_plt, cax, cbar1, norm1, min_max)
 
 # %%
 

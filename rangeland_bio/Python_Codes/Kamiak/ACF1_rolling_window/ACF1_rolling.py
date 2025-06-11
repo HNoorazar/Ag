@@ -9,11 +9,23 @@ import os, os.path, pickle, sys
 import pyproj
 import geopandas
 from geopy.distance import geodesic
+
+# do not do import datetime. if you do it this way, datetime.now() wont work
+# then you have ot do datetime.datetime.now()
 from datetime import datetime
+from datetime import date
+import time
+
 
 sys.path.append("/home/h.noorazar/rangeland/")
 import rangeland_core as rc
 
+start_time = time.time()
+#####################################################################################
+ws = int(sys.argv[1])
+y_ = str(sys.argv[2])
+# y_ = "mean_lb_per_acr"
+#####################################################################################
 #####################################################################################
 #####################################################################################
 
@@ -30,22 +42,25 @@ NDVI_weather_data_dir = NDVI_weather_base + "data/"
 ACF_data = rangeland_bio_data + "ACF1/"
 os.makedirs(ACF_data, exist_ok=True)
 #####################################################################################
-ANPP = pd.read_pickle(bio_reOrganized + "bpszone_ANPP_no2012.sav")
-ANPP = ANPP["bpszone_ANPP"]
+# ANPP = pd.read_pickle(bio_reOrganized + "bpszone_ANPP_no2012.sav")
+# ANPP = ANPP["bpszone_ANPP"]
+ANPP = pd.read_pickle(bio_reOrganized + "bpszone_ANPP_no2012_detrended.sav")
+ANPP = ANPP["ANPP_no2012_detrended"]
+
 ANPP.head(2)
 
-#####################################################################################
-ws = int(sys.argv[1])
+if y_ == "first_diff":
+    ANPP.dropna(subset=[y_], inplace=True)
+    ANPP.reset_index(drop=True, inplace=True)
 
-#####################################################################################
-y_ = "mean_lb_per_acr"
 ACF1s_window = rc.rolling_autocorr_df_prealloc(df=ANPP, y_var=y_, window_size=ws, lag=1)
 
 ws_str = str(ws)
-filename = ACF_data + f"rolling_autocorrelations_ws{ws_str}.sav"
+fnamePref = f"rolling_autocorrelations_ws{ws_str}_{y_}"
+filename = ACF_data + fnamePref + ".sav"
 
 export_ = {
-    f"rolling_autocorrelations_ws{ws_str}": ACF1s_window,
+    f"rolling_autocorrelations_ws{ws_str}_{y_}": ACF1s_window,
     "source_code": "ACF1_rolling from Kamiak",
     "Author": "HN",
     "Date": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
@@ -53,5 +68,11 @@ export_ = {
 
 pickle.dump(export_, open(filename, "wb"))
 
-filename = ACF_data + f"rolling_autocorrelations_ws{ws_str}.csv"
+filename = ACF_data + fnamePref + ".csv"
 ACF1s_window.to_csv(filename, index=False)
+
+
+end_time = time.time()
+print(end_time - start_time)
+
+print("it took {:.0f} minutes to run this code.".format((end_time - start_time) / 60))
