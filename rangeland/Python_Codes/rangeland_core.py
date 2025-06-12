@@ -32,6 +32,51 @@ There are scipy.linalg.block_diag() and scipy.sparse.block_diag()
 """
 
 
+def rolling_variance_df_prealloc(df, y_var="mean_lb_per_acr", window_size=5):
+    # Step 1: Count how many total windows we'll need
+    total_windows = 0
+    for _, group in df.groupby("fid"):
+        years = sorted(group["year"].unique())
+        total_windows += max(0, len(years) - window_size + 1)
+
+    # Step 2: Preallocate an empty DataFrame
+    var_col_name = f"variance_ws{window_size}"
+    columns = ["fid", "years", var_col_name]
+    dtype_map = {"fid": "Int64", "years": "str", var_col_name: "float"}
+
+    preallocated_df = pd.DataFrame(
+        {
+            col: pd.Series(index=range(total_windows), dtype=dtype)
+            for col, dtype in dtype_map.items()
+        }
+    )
+
+    # Step 3: Populate DataFrame by index
+    idx = 0
+    for fid, group in df.groupby("fid"):
+        group = group.sort_values("year").reset_index(drop=True)
+        years = group["year"].tolist()
+
+        for i in range(len(years) - window_size + 1):
+            window_years = years[i : i + window_size]
+            window_data = group[group["year"].isin(window_years)]
+
+            # is the following necessary? (can it be violated? and if does, then what?)
+            if len(window_data["year"]) == window_size:
+                values = window_data[y_var]
+                variance_ = values.var() if len(values.dropna()) > 1 else np.nan
+
+                preallocated_df.loc[idx] = {
+                    "fid": fid,
+                    "years": "_".join(map(str, window_years)),
+                    var_col_name: variance_,
+                }
+                idx += 1
+
+    # Step 4: Truncate to actual number of rows (if some skipped)
+    return preallocated_df.iloc[:idx].reset_index(drop=True)
+
+
 def compute_mk_by_fid(df: pd.DataFrame, groupby_: str, value_col: str) -> pd.DataFrame:
     """
     Apply Mann-Kendall test grouped by 'fid' for a given value column.
@@ -94,11 +139,13 @@ def rolling_autocorr_df_prealloc(df, y_var="mean_lb_per_acr", window_size=5, lag
             window_years = years[i : i + window_size]
             window_data = group[group["year"].isin(window_years)]
 
-            if window_data["year"].nunique() == window_size:
+            # if window_data["year"].nunique() == window_size:
+            if len(window_data["year"]) == window_size:
                 values = window_data[y_var]
-                # autocorr = values.autocorr(lag=lag) if values.nunique() > 1 else np.nan
                 autocorr = (
-                    values.autocorr(lag=lag) if len(values.dropna()) > 1 else np.nan
+                    values.autocorr(lag=lag)
+                    if values.dropna().nunique() > 1
+                    else np.nan
                 )
 
                 preallocated_df.loc[idx] = {
@@ -136,8 +183,8 @@ def rolling_autocorr(df, y_var="mean_lb_per_acr", window_size=5, lag=1):
 
             if len(window_data) == window_size:
                 values = window_data[y_var]
-                # if values.nunique() > 1:
-                if len(values) > 1:
+                if values.dropna().nunique() > 1:  # .dropna() is new
+                    # if len(values) > 1:
                     autocorr = values.autocorr(lag=lag)
 
                     ## we can replace the line above with
