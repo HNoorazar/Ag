@@ -48,11 +48,15 @@ import rangeland_core as rc
 import rangeland_plot_core as rcp
 
 # %%
-dpi_, map_dpi_=300, 900
+dpi_, map_dpi_=300, 500
 custom_cmap_coral = ListedColormap(['lightcoral', 'black'])
 custom_cmap_BW = ListedColormap(['white', 'black'])
 cmap_G = cm.get_cmap('Greens') # 'PRGn', 'YlGn'
-cmap_R = cm.get_cmap('Reds') 
+cmap_R = cm.get_cmap('Reds')
+
+fontdict_normal = fontdict={'family':'serif', 'weight':'normal'}
+fontdict_bold = fontdict={'family':'serif', 'weight':'bold'}
+inset_axes_     = [0.1, 0.13, 0.45, 0.03]
 
 # %%
 research_db = "/Users/hn/Documents/01_research_data/"
@@ -163,13 +167,13 @@ ANPP.head(2)
 
 # %%
 max_senSlope_fid = Albers_SF_west.loc[Albers_SF_west['sens_slope'].idxmax(), 'fid']
+min_senSlope_fid = Albers_SF_west.loc[Albers_SF_west['sens_slope'].idxmin(), 'fid']
 
 # %%
 a_fid = max_senSlope_fid
 fig, axes = plt.subplots(2, 1, figsize=(10, 3), sharex=True, sharey=False, dpi=dpi_,
                         gridspec_kw={"hspace": 0.15, "wspace": 0.05});
 (ax1, ax2) = axes
-
 df = ANPP[ANPP.fid == a_fid]
 interc_ = df['sens_intercept'].unique().item()
 senSlope_ = slope=df['sens_slope'].unique().item()
@@ -273,8 +277,8 @@ ax1.plot(df["year"], df['mean_lb_per_acr'], c="dodgerblue", lw=3, label="ANPP");
 ax1.plot(df["year"], df['anpp_senPred'], c="red", lw=3, label=r"$\widehat{ANPP}(Sens)$");
 
 
-linReg_slope = regression_df[regression_df.fid==max_senSlope_fid]["linReg_slope"].item()
-linReg_intercept = regression_df[regression_df.fid==max_senSlope_fid]["linReg_intercept"].item()
+linReg_slope = regression_df[regression_df.fid==a_fid]["linReg_slope"].item()
+linReg_intercept = regression_df[regression_df.fid==a_fid]["linReg_intercept"].item()
 
 initial_x = df["year"].min()
 initial_y = linReg_intercept + df["year"].min() * linReg_slope
@@ -288,13 +292,10 @@ ax2.plot(df["year"], df['anpp_detrendDiff'], c="y", lw=3, label="first-diff");
 ax1.set_xlim(df["year"].min()-1, df["year"].max()+1)
 ax1.legend(loc='best'); ax2.legend(loc='best');
 
-fig.text(0.04, 0.5, r'$\mu_{NPP}$ (lb/acr)', va='center', rotation='vertical', 
-         fontdict={'family':'serif', 'weight':'normal'});
-
-ax2.set_xlabel('year', fontdict={'family':'serif', 'weight':'normal'});
+fig.text(0.04, 0.5, r'$\mu_{NPP}$ (lb/acr)', va='center', rotation='vertical', fontdict=fontdict_normal);
+ax2.set_xlabel('year', fontdict=fontdict_normal);
 ax2.set_xticks(df['year'].iloc[::2]);
 ax2.tick_params(axis='x', rotation=45)
-
 
 state_ = Albers_SF_west[Albers_SF_west.fid==a_fid]["state_majority_area"].item()
 ax1.set_title(f"FID: {a_fid} ({state_})", fontdict={'family': 'serif', 'weight': 'bold'})
@@ -304,6 +305,53 @@ plt.savefig(file_name, bbox_inches='tight', dpi=dpi_)
 
 # %%
 ANPP.head(2)
+
+# %%
+unique_FIDs = list(ANPP.fid.unique())
+
+# %%
+ANPP[ANPP['fid'] == min_senSlope_fid]['sens_slope'].unique()
+
+# %%
+a_fid = unique_FIDs[15200] # 1527 # 25863 1527 282 min_senSlope_fid
+fig, axes = plt.subplots(2, 1, figsize=(10, 6), sharex=True, sharey=False, dpi=dpi_);
+(ax1, ax2) = axes
+ax1.grid(axis='y', alpha=0.7, zorder=0); ax2.grid(axis='y', alpha=0.7, zorder=0);
+
+df = ANPP[ANPP.fid == a_fid]
+interc_ = df['sens_intercept'].unique().item()
+senSlope_ = slope=df['sens_slope'].unique().item()
+ax1.plot(df["year"], df['mean_lb_per_acr'], c="dodgerblue", lw=3, label="ANPP");
+ax1.plot(df["year"], df['anpp_senPred'], c="red", lw=3, label=r"$\widehat{ANPP}(Sens)$");
+
+linReg_slope = regression_df[regression_df.fid==a_fid]["linReg_slope"].item()
+linReg_intercept = regression_df[regression_df.fid==a_fid]["linReg_intercept"].item()
+
+initial_x = df["year"].min()
+initial_y = linReg_intercept + df["year"].min() * linReg_slope
+ax1.axline(xy1=(initial_x, initial_y), slope=linReg_slope, c='k', ls="--", lw=1.5, label='lin. reg. line')
+###############################################################################################
+ax2.plot(df["year"], df['anpp_detrendSens'], c="red", lw=3, label="Sen's detrended");
+ax2.plot(df["year"], df['anpp_detrendLinReg'], c="k", ls="--", lw=1.5, label="Lin. Reg. detrended");
+ax2.plot(df["year"], df['anpp_detrendDiff'], c="y", lw=3, label="first-diff");
+
+ax1.set_xlim(df["year"].min()-1, df["year"].max()+1)
+ax1.legend(loc='best'); ax2.legend(loc='best');
+
+fig.text(0.04, 0.5, r'$\mu_{NPP}$ (lb/acr)', va='center', rotation='vertical', fontdict=fontdict_normal);
+ax2.set_xlabel('year', fontdict=fontdict_normal);
+ax2.set_xticks(df['year'].iloc[::2]);
+ax2.tick_params(axis='x', rotation=45)
+
+state_ = Albers_SF_west[Albers_SF_west.fid==a_fid]["state_majority_area"].item()
+ax1.set_title(f"FID: {a_fid} ({state_})", fontdict={'family': 'serif', 'weight': 'bold'})
+
+file_name = bio_plots + f"fid_{a_fid}_anpp_dtrend.pdf"
+plt.savefig(file_name, bbox_inches='tight', dpi=dpi_)
+
+# %%
+
+# %%
 
 # %%
 

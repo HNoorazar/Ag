@@ -56,6 +56,10 @@ custom_cmap_BW = ListedColormap(['white', 'black'])
 cmap_G = cm.get_cmap('Greens') # 'PRGn', 'YlGn'
 cmap_R = cm.get_cmap('Reds') 
 
+fontdict_normal = fontdict={'family':'serif', 'weight':'normal'}
+fontdict_bold = fontdict={'family':'serif', 'weight':'bold'}
+inset_axes_     = [0.1, 0.13, 0.45, 0.03]
+
 # %%
 from matplotlib import colormaps
 print (list(colormaps)[:4])
@@ -215,14 +219,16 @@ cent_plt = Albers_SF_west.plot(column=y_var, ax=ax, legend=False, cmap='seismic'
 
 # first two arguments are x and y of the legend 
 # on the left side of it. The last two are length and width of the bar
-cax = ax.inset_axes([0.08, 0.18, 0.45, 0.03])
+cax = ax.inset_axes(inset_axes_)
 cbar1 = fig.colorbar(cent_plt.collections[1], ax=ax, orientation='horizontal', shrink=0.3, 
                      cmap=cm.get_cmap('RdYlGn'), norm=norm1, cax=cax)
-cbar1.set_label(r'$\Delta(Ss_{BP1})$', labelpad=1, fontdict={'family':'serif', 'weight':'normal'});
-plt.title("Sen's slope diff. after and before BP1", 
-          fontdict={'family':'serif', 'weight':'bold'});
+cbar1.set_label(r'$\Delta(Ss_{BP1})$', labelpad=1, fontdict=fontdict_normal);
+plt.title("Sen's slope diff. after and before BP1", fontdict=fontdict_bold);
 
-# plt.tight_layout()
+plt.tight_layout()
+# on overleaf, a sublot looked slightly higher than another. lets see if this fixes it
+ax.set_aspect('equal', adjustable='box')
+
 # fig.subplots_adjust(top=0.91, bottom=0.01, left=-0.1, right=1)
 file_name = bio_plots + "senSlopeDelta_BP1_divergeRB_GrnBG.png"
 plt.savefig(file_name, bbox_inches='tight', dpi=map_dpi_)
@@ -247,13 +253,14 @@ cent_plt = Albers_SF_west.plot(column=y_var, ax=ax, legend=False, cmap='seismic'
 
 # first two arguments are x and y of the legend 
 # on the left side of it. The last two are length and width of the bar
-cax = ax.inset_axes([0.08, 0.18, 0.45, 0.03])
+cax = ax.inset_axes(inset_axes_)
 cbar1 = fig.colorbar(cent_plt.collections[1], ax=ax, orientation='horizontal', shrink=0.3, 
                      cmap=cm.get_cmap('RdYlGn'), norm=norm1, cax=cax)
-cbar1.set_label(r'$\Delta(Ss_{BP1})$', labelpad=1, fontdict={'family':'serif', 'weight':'normal'});
-plt.title("Sen's slope diff. after and before BP1", 
-          fontdict={'family':'serif', 'weight':'bold'});
-
+cbar1.set_label(r'$\Delta(Ss_{BP1})$', labelpad=1, fontdict=fontdict_normal);
+plt.title("Sen's slope diff. after and before BP1", fontdict=fontdict_bold);
+# on overleaf, a sublot looked slightly higher than
+# another. lets see if this fixes it
+ax.set_aspect('equal', adjustable='box')
 # plt.tight_layout()
 # fig.subplots_adjust(top=0.91, bottom=0.01, left=-0.1, right=1)
 file_name = bio_plots + "senSlopeDelta_BP1_divergeRB_grey.png"

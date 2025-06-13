@@ -46,7 +46,12 @@ custom_cmap_coral = ListedColormap(['lightcoral', 'black'])
 custom_cmap_BW = ListedColormap(['white', 'black'])
 custom_cmap_GrayW = ListedColormap(['gray', 'black'])
 cmap_G = cm.get_cmap('Greens') # 'PRGn', 'YlGn'
-cmap_R = cm.get_cmap('Reds') 
+cmap_R = cm.get_cmap('Reds')
+
+fontdict_normal = fontdict={'family':'serif', 'weight':'normal'}
+fontdict_bold = fontdict={'family':'serif', 'weight':'bold'}
+
+inset_axes_     = [0.1, 0.13, 0.45, 0.03]
 
 # %%
 research_db = "/Users/hn/Documents/01_research_data/"
@@ -221,7 +226,7 @@ for type_ in ['slope']: # 'categ',
             last_part = re.search(r'anpp_.*', col).group(0)
             last_part = last_part.replace("anpp", "ANPP").replace("_", " ")
 
-            file_name = variance_plot_base + f"Categorical_MK{col}.png"
+            file_name = ddd + f"Categorical_MK{col}.png"
             plt.title(f'(MK) trend of variance time-series (window size {ws}, {last_part})', y=0.98);
             plt.close()
             try:
@@ -247,7 +252,11 @@ for type_ in ['slope']: # 'categ',
             cax = ax.inset_axes([0.03, 0.18, 0.5, 0.03])
             cbar1 = fig.colorbar(cent_plt.collections[1], ax=ax, orientation='horizontal', shrink=0.3, cax=cax)
             cbar1.set_label(fr'slope of $\sigma^2_{{ws={ws}}}$', labelpad=2)
-            
+            plt.tight_layout()
+            # on overleaf, a sublot looked slightly higher than
+            # another. lets see if this fixes it
+            ax.set_aspect('equal', adjustable='box')
+
             plt.title(f"slope of variance time-series (window size {ws}, {last_part})", y=0.98);
             file_name = outdir + f"{col}.png"
             plt.savefig(file_name, bbox_inches='tight', dpi=map_dpi_)
@@ -257,7 +266,7 @@ for type_ in ['slope']: # 'categ',
                 del(cent_plt, cax, cbar1, ws, last_part, file_name)
             except:
                 pass
-            plt.tight_layout()
+            
     #############
 
 # %%
@@ -289,7 +298,11 @@ for col in slope_cols:
     cax = ax.inset_axes([0.03, 0.18, 0.5, 0.03])
     cbar1 = fig.colorbar(cent_plt.collections[1], ax=ax, orientation='horizontal', shrink=0.3, cax=cax)
     cbar1.set_label(fr'slope of $\sigma^2_{{ws={ws}}}$', labelpad=2)
-
+    plt.tight_layout()
+    # on overleaf, a sublot looked slightly higher than
+    # another. lets see if this fixes it
+    ax.set_aspect('equal', adjustable='box')
+    
     plt.title(f"slope of variance time-series (window size {ws}, {last_part})", y=0.98);
     file_name = outdir + f"indiv_cbar_{col}.png"
     plt.savefig(file_name, bbox_inches='tight', dpi=map_dpi_)
@@ -299,7 +312,7 @@ for col in slope_cols:
         del(cent_plt, cax, cbar1, ws, last_part, file_name)
     except:
         pass
-    plt.tight_layout()
+    
 
 #############
 
@@ -312,70 +325,75 @@ for col in slope_cols:
 # ## one variable at a time. outliers separated.
 
 # %%
+outdir = variance_plot_base + "slope/individual_colorbar_outliers/"
+os.makedirs(outdir, exist_ok=True)
+
+# %%
+
+# %%
+
+# %%
+
+# %%
 
 # %%
 # # %%time
+for y_var in slope_cols:
+    print (y_var)
+    fig, ax = plt.subplots(1, 2, dpi=map_dpi_, gridspec_kw={'hspace': 0.02, 'wspace': 0.05})
+    ax[0].set_xticks([]); ax[0].set_yticks([]);
+    ax[1].set_xticks([]); ax[1].set_yticks([]);
 
-# curr_out_dir = variance_plot_base + "outliers/"
-# os.makedirs(curr_out_dir, exist_ok=True)
-# curr_out_dir
+    # Plotting the data with original colormap (don't change the color normalization)
+    rpc.plot_SF(SF=visframe_mainLand_west, ax_=ax[0], col="EW_meridian", cmap_=custom_cmap_GrayW)
+    rpc.plot_SF(SF=visframe_mainLand_west, ax_=ax[1], col="EW_meridian", cmap_=custom_cmap_GrayW)
 
-# for y_var in delta_ratio_cols:
-#     print (y_var)
-#     fig, ax = plt.subplots(1, 2, dpi=map_dpi_, gridspec_kw={'hspace': 0.02, 'wspace': 0.05})
-#     ax[0].set_xticks([]); ax[0].set_yticks([]);
-#     ax[1].set_xticks([]); ax[1].set_yticks([]);
+    df = SF_west.copy()
+    df.dropna(subset=[y_var], inplace=True)
 
-#     # Plotting the data with original colormap (don't change the color normalization)
-#     rpc.plot_SF(SF=visframe_mainLand_west, ax_=ax[0], col="EW_meridian", cmap_=custom_cmap_GrayW)
-#     rpc.plot_SF(SF=visframe_mainLand_west, ax_=ax[1], col="EW_meridian", cmap_=custom_cmap_GrayW)
+    perc_ = 10 / 100
+    lower_bound = df[y_var].quantile(perc_)
+    upper_bound = df[y_var].quantile(1 - perc_)
 
-#     df = Albers_SF_west.copy()
-#     df.dropna(subset=[y_var], inplace=True)
+    # Filter rows between 10th and 90th percentile (inclusive)
+    filtered_between = df[(df[y_var] >= lower_bound) & (df[y_var] <= upper_bound)]
+    filtered_outside = df[(df[y_var] < lower_bound) | (df[y_var] > upper_bound)]
 
-#     perc_ = 5 / 100
-#     lower_bound = df[y_var].quantile(perc_)
-#     upper_bound = df[y_var].quantile(1 - perc_)
+    ############
+    min_max0 = max(np.abs(filtered_between[y_var].min()), np.abs(filtered_between[y_var].max()))
+    min_max1 = max(np.abs(filtered_outside[y_var].min()), np.abs(filtered_outside[y_var].max()))
 
-#     # Filter rows between 10th and 90th percentile (inclusive)
-#     filtered_between = df[(df[y_var] >= lower_bound) & (df[y_var] <= upper_bound)]
-#     filtered_outside = df[(df[y_var] < lower_bound) | (df[y_var] > upper_bound)]
+    norm0 = Normalize(vmin= -min_max0, vmax=min_max0, clip=True)
+    norm1 = Normalize(vmin= -min_max1, vmax=min_max1, clip=True)
 
-#     ############
-#     min_max0 = max(np.abs(filtered_between[y_var].min()), np.abs(filtered_between[y_var].max()))
-#     min_max1 = max(np.abs(filtered_outside[y_var].min()), np.abs(filtered_outside[y_var].max()))
+    cent_plt0 = filtered_between.plot(ax=ax[0], column=y_var, legend=False, cmap='seismic', norm=norm0)
+    cent_plt1 = filtered_outside.plot(ax=ax[1], column=y_var, legend=False, cmap='seismic', norm=norm1)
+
+    cax0 = ax[0].inset_axes(inset_axes_)
+    cax1 = ax[1].inset_axes(inset_axes_)
+
+    ws = re.search(r'ws(\d+)', y_var).group(1)
+    last_part = re.search(r'anpp.*', y_var).group(0)
+    last_part = last_part.replace("anpp", "ANPP").replace("_", " ")
+
+    cbar0 = fig.colorbar(cent_plt0.collections[1], ax=ax[0], norm=norm0, cax=cax0,
+                         cmap=cm.get_cmap('RdYlGn'), shrink=0.3, orientation='horizontal')
+
+    cbar1 = fig.colorbar(cent_plt1.collections[1], ax=ax[1], norm=norm1, cax=cax1,
+                         cmap=cm.get_cmap('RdYlGn'), shrink=0.3, orientation='horizontal')
+
+    cbar0.set_label(fr'slope of $\sigma^2_{{ws={ws}}}$', labelpad=2, fontdict=fontdict_normal)
+    cbar1.set_label(fr'slope of $\sigma^2_{{ws={ws}}}$', labelpad=2, fontdict=fontdict_normal)
+
+    t_ = y_var.replace("mean_lb_per_acr", 'anpp').split("_")[-1]
+    fig.suptitle(f"slope of variance time-series (window size {ws}, {last_part})", y=0.82);
+    plt.tight_layout()    
+    t_ = y_var.replace("mean_lb_per_acr", 'anpp')
     
-#     norm0 = Normalize(vmin= -min_max0, vmax=min_max0, clip=True)
-#     norm1 = Normalize(vmin= -min_max1, vmax=min_max1, clip=True)
-    
-#     cent_plt0 = filtered_between.plot(ax=ax[0], column=y_var, legend=False, cmap='seismic', norm=norm0)
-#     cent_plt1 = filtered_outside.plot(ax=ax[1], column=y_var, legend=False, cmap='seismic', norm=norm1)
+    file_name = outdir + t_ + "_divergeRB_greyBG.png"
+    plt.savefig(file_name, bbox_inches='tight', dpi=map_dpi_)
+    plt.close()
+    del(cent_plt0, cent_plt1, cax0, cax1, cbar0, cbar1, norm0, norm1, min_max0, min_max1,
+        filtered_between, filtered_outside)
 
-#     cax0 = ax[0].inset_axes([0.08, 0.18, 0.45, 0.03])
-#     cax1 = ax[1].inset_axes([0.08, 0.18, 0.45, 0.03])
-    
-#     cbar0 = fig.colorbar(cent_plt0.collections[1], ax=ax[0], norm=norm0, cax=cax0,
-#                          cmap=cm.get_cmap('RdYlGn'), shrink=0.3, orientation='horizontal')
-    
-#     cbar1 = fig.colorbar(cent_plt1.collections[1], ax=ax[1], norm=norm1, cax=cax1,
-#                          cmap=cm.get_cmap('RdYlGn'), shrink=0.3, orientation='horizontal')
-
-#     if "delta" in y_var:
-#         cbar0.set_label(r'$\Delta(ACF1_{BP1})$', labelpad=1, fontdict=fontdict_normal);
-#         cbar1.set_label(r'$\Delta(ACF1_{BP1})$', labelpad=1, fontdict=fontdict_normal);
-#         pre_title = "diff."
-#     elif "ratio" in y_var:
-#         cbar0.set_label(r'$ratio(ACF1_{BP1})$', labelpad=1, fontdict=fontdict_normal);
-#         cbar1.set_label(r'$ratio(ACF1_{BP1})$', labelpad=1, fontdict=fontdict_normal;
-#         pre_title = "ratio"
-    
-#     t_ = y_var.replace("mean_lb_per_acr", 'anpp').split("_")[-1]
-#     # plt.title(f"ACF1 {pre_title} after and before BP1", fontdict={'family':'serif', 'weight':'bold'});
-#     fig.suptitle(f"ACF1-{pre_title} after and before BP1 ({t_})", y=0.82, fontdict={'family':'serif'});
-    
-#     t_ = y_var.replace("mean_lb_per_acr", 'anpp')
-#     file_name = curr_out_dir + t_ + "_BP1_divergeRB_greyBG.png"
-#     plt.savefig(file_name, bbox_inches='tight', dpi=map_dpi_)
-#     plt.close()
-#     del(cent_plt0, cent_plt1, cax0, cax1, cbar0, cbar1, norm0, norm1, min_max0, min_max1,
-#         filtered_between, filtered_outside)
+# %%

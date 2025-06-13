@@ -55,7 +55,11 @@ custom_cmap_coral = ListedColormap(['lightcoral', 'black'])
 custom_cmap_BW = ListedColormap(['white', 'black'])
 custom_cmap_GrayW = ListedColormap(['gray', 'black'])
 cmap_G = cm.get_cmap('Greens') # 'PRGn', 'YlGn'
-cmap_R = cm.get_cmap('Reds') 
+cmap_R = cm.get_cmap('Reds')
+
+fontdict_normal = fontdict={'family':'serif', 'weight':'normal'}
+fontdict_bold = fontdict={'family':'serif', 'weight':'bold'}
+inset_axes_     = [0.1, 0.13, 0.45, 0.03]
 
 # %%
 from matplotlib import colormaps
@@ -265,8 +269,8 @@ for a_pattern in patterns:
     cent_plt1 = df1.plot(ax=ax[1], column=y_vars[1], legend=False, cmap='seismic', norm=norm1)
 
 
-    cax0 = ax[0].inset_axes([0.08, 0.18, 0.45, 0.03])
-    cax1 = ax[1].inset_axes([0.08, 0.18, 0.45, 0.03])
+    cax0 = ax[0].inset_axes(inset_axes_)
+    cax1 = ax[1].inset_axes(inset_axes_)
     
     cbar0 = fig.colorbar(cent_plt0.collections[1], ax=ax[0], norm=norm0, cax=cax0,
                          orientation='horizontal', shrink=0.3, cmap=cm.get_cmap('RdYlGn'))
@@ -328,8 +332,8 @@ for y_var in delta_ratio_cols:
     cent_plt0 = filtered_between.plot(ax=ax[0], column=y_var, legend=False, cmap='seismic', norm=norm0)
     cent_plt1 = filtered_outside.plot(ax=ax[1], column=y_var, legend=False, cmap='seismic', norm=norm1)
 
-    cax0 = ax[0].inset_axes([0.08, 0.18, 0.45, 0.03])
-    cax1 = ax[1].inset_axes([0.08, 0.18, 0.45, 0.03])
+    cax0 = ax[0].inset_axes(inset_axes_); 
+    cax1 = ax[1].inset_axes(inset_axes_)
     
     cbar0 = fig.colorbar(cent_plt0.collections[1], ax=ax[0], norm=norm0, cax=cax0,
                          cmap=cm.get_cmap('RdYlGn'), shrink=0.3, orientation='horizontal')

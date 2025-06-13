@@ -25,9 +25,50 @@ from scipy import stats
 import scipy.stats as scipy_stats
 from statsmodels.tsa.stattools import acf
 
+import matplotlib
+import matplotlib.pyplot as plt
+
+
 sys.path.append("/Users/hn/Documents/00_GitHub/Ag/rangeland/Python_Codes/")
 import rangeland_core as rc
 import rangeland_plot_core as rpc
+
+# %%
+dpi_, map_dpi_=300, 500
+
+# %% [markdown]
+# # Toy Example for up and down.
+
+# %%
+v = np.array([100] * 5 + [-100] * 5)
+v_alternate = np.array([100, -100] * 5)
+
+# %%
+
+# %%
+fig, axes = plt.subplots(1, 1, figsize=(10, 3), sharex=True, sharey=False, dpi=dpi_,
+                        gridspec_kw={"hspace": 0.15, "wspace": 0.05});
+
+
+axes.plot(v,           color="dodgerblue", linewidth=3, label="a");
+axes.plot(v_alternate, color="red"       , linewidth=3, label="alternate");
+
+
+# axes.legend(loc='best');
+
+# %%
+print (np.var(v, ddof=1).round(3))
+print (np.var(v_alternate, ddof=1).round(3))
+
+# %%
+print (np.linalg.norm(v[1:] - v[:-1], ord=2))
+print (np.linalg.norm(v_alternate[1:] - v_alternate[:-1], ord=2))
+
+# %%
+
+# %%
+
+# %%
 
 # %%
 research_db = "/Users/hn/Documents/01_research_data/"

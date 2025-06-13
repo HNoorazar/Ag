@@ -259,7 +259,7 @@ for type_ in ['slope']: # 'categ',
             cax = ax.inset_axes([0.03, 0.18, 0.5, 0.03])
             cbar1 = fig.colorbar(cent_plt.collections[1], ax=ax, orientation='horizontal', shrink=0.3, cax=cax)
             cbar1.set_label(f'slope of ACF1$_{{ws={ws}}}$', labelpad=2)
-            
+            plt.tight_layout()
             plt.title(f"slope of ACF1 time-series (window size {ws}, {last_part})", y=0.98);
             file_name = outdir + f"{col}.png"
             plt.savefig(file_name, bbox_inches='tight', dpi=map_dpi_)
@@ -269,7 +269,7 @@ for type_ in ['slope']: # 'categ',
                 del(cent_plt, cax, cbar1, ws, last_part, file_name)
             except:
                 pass
-            plt.tight_layout()
+            
     #############
 
 # %%
@@ -301,7 +301,7 @@ for col in slope_cols:
     cax = ax.inset_axes([0.03, 0.18, 0.5, 0.03])
     cbar1 = fig.colorbar(cent_plt.collections[1], ax=ax, orientation='horizontal', shrink=0.3, cax=cax)
     cbar1.set_label(f'slope of ACF1$_{{ws={ws}}}$', labelpad=2)
-
+    plt.tight_layout()
     plt.title(f"slope of ACF1 time-series (window size {ws}, {last_part})", y=0.98);
     file_name = outdir + f"indiv_cbar_{col}.png"
     plt.savefig(file_name, bbox_inches='tight', dpi=map_dpi_)
@@ -311,7 +311,6 @@ for col in slope_cols:
         del(cent_plt, cax, cbar1, ws, last_part, file_name)
     except:
         pass
-    plt.tight_layout()
 
 #############
 
