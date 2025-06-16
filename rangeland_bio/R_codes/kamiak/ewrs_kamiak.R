@@ -128,7 +128,7 @@ if (ewr_type == "ddjnonparam"){
   ddjnonparam_ews_results_list <- list()
 
   for (a_fid in FIDs) {
-    wd_dir <- paste(dir_base, "plots/earlyWarnings", ewr_type, paste0("fid", a_fid), sep="/")
+    wd_dir <- paste(plot_dir, paste0("fid", a_fid), sep="/")
     if (dir.exists(file.path(wd_dir)) == F) {dir.create(path = file.path(wd_dir), recursive = T)}
     setwd(wd_dir)
     # Subset the data for the current fid
@@ -161,7 +161,7 @@ if (ewr_type == "ddjnonparam"){
     generic_ews_results_list <- list()
     generic_ews_results_list_separate <- list()
     for (a_fid in FIDs) {
-      wd_dir <- paste(dir_base, "plots/earlyWarnings", ewr_type, paste0("fid", a_fid), sep="/")
+      wd_dir <- paste(plot_dir, paste0("fid", a_fid), sep="/")
       if (dir.exists(file.path(wd_dir)) == F) {dir.create(path = file.path(wd_dir), recursive = T)}
       setwd(wd_dir)
 
@@ -181,7 +181,7 @@ if (ewr_type == "ddjnonparam"){
       generic_ews_results_list[[as.character(a_fid)]] <- output
 
       for (detrending_ in c("no", "gaussian", "loess", "linear", "first-diff")){
-        wd_dir <- paste(dir_base, "plots/earlyWarnings", ewr_type, paste0("fid", a_fid), detrending_, sep="/")
+        wd_dir <- paste(plot_dir, paste0("fid", a_fid), detrending_, sep="/")
         if (dir.exists(file.path(wd_dir)) == F) {dir.create(path = file.path(wd_dir), recursive = T)}
         setwd(wd_dir)
 
@@ -208,7 +208,7 @@ if (ewr_type == "ddjnonparam"){
     livpotential_ews_results_list <- list()
 
     for (a_fid in FIDs) {
-      wd_dir <- paste(dir_base, "plots/earlyWarnings", ewr_type, paste0("fid", a_fid), sep="/")
+      wd_dir <- paste(plot_dir, paste0("fid", a_fid), sep="/")
       if (dir.exists(file.path(wd_dir)) == F) {dir.create(path = file.path(wd_dir), recursive = T)}
       setwd(wd_dir)
 
@@ -237,7 +237,7 @@ if (ewr_type == "ddjnonparam"){
     movpotential_ews_results_list <- list()
 
     for (a_fid in FIDs) {
-      wd_dir <- paste(dir_base, "plots/earlyWarnings", ewr_type, paste0("fid", a_fid), sep="/")
+      wd_dir <- paste(plot_dir, paste0("fid", a_fid), sep="/")
       if (dir.exists(file.path(wd_dir)) == F) {dir.create(path = file.path(wd_dir), recursive = T)}
       setwd(wd_dir)
 
@@ -270,7 +270,7 @@ if (ewr_type == "ddjnonparam"){
       subset_data <- matrix(anpp[anpp$fid == a_fid]$mean_lb_per_acr)
       for (detrending_ in c("no", "gaussian", "linear", "first-diff")){
         print (paste0("line 272 FID: ", a_fid, ", detrending_:", detrending_))
-        wd_dir <- paste(dir_base, "plots/earlyWarnings", ewr_type, paste0("fid", a_fid), detrending_, sep="/")
+        wd_dir <- paste(plot_dir, paste0("fid", a_fid), detrending_, sep="/")
         if (dir.exists(file.path(wd_dir)) == F) {dir.create(path = file.path(wd_dir), recursive = T)}
         setwd(wd_dir)
 
@@ -293,7 +293,7 @@ if (ewr_type == "ddjnonparam"){
   } else if (ewr_type == "sensitivity_separate"){
     sensitivity_ews_separate <- list()
     for (a_fid in FIDs) {
-      # wd_dir <- paste(dir_base, "plots/earlyWarnings", ewr_type, paste0("fid", a_fid), sep="/")
+      # wd_dir <- paste(plot_dir, paste0("fid", a_fid), sep="/")
       # if (dir.exists(file.path(wd_dir)) == F) {dir.create(path = file.path(wd_dir), recursive = T)}
       # setwd(wd_dir)
       
@@ -303,7 +303,7 @@ if (ewr_type == "ddjnonparam"){
       ### 
       for (indicator_ in c("ar1", "sd", "acf1", "sk", "kurt", "cv", "returnrate", "densratio")){
         for (detrending_ in c("no", "gaussian", "loess", "linear", "first-diff")){
-          wd_dir <- paste(dir_base, "plots/earlyWarnings", ewr_type, paste0("fid", a_fid), paste(indicator_, detrending_, sep="_"), sep="/")
+          wd_dir <- paste(plot_dir, paste0("fid", a_fid), paste(indicator_, detrending_, sep="_"), sep="/")
           if (dir.exists(file.path(wd_dir)) == F) {dir.create(path = file.path(wd_dir), recursive = T)}
           setwd(wd_dir)
         
@@ -340,7 +340,7 @@ if (ewr_type == "ddjnonparam"){
 #   ##### even if d=0 is not a a guarantee for stationary. So, let us get rid of this 
 #   #### here and only do separate!
 #   #####
-#   # wd_dir <- paste(dir_base, "plots/earlyWarnings", ewr_type, paste0("fid", a_fid), "noDetrending", sep="/")
+#   # wd_dir <- paste(plot_dir, paste0("fid", a_fid), "noDetrending", sep="/")
 #   # if (dir.exists(file.path(wd_dir)) == F) {dir.create(path = file.path(wd_dir), recursive = T)}
 #   # setwd(wd_dir)
 #   # graphics.off(); while (dev.cur() > 1) {dev.off()}
