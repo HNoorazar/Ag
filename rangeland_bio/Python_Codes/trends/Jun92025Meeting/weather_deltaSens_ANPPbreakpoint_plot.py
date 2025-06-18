@@ -50,14 +50,14 @@ importlib.reload(rc);
 importlib.reload(rpc);
 
 # %%
-dpi_, map_dpi_=300, 900
+dpi_, map_dpi_ = 300, 500
 custom_cmap_coral = ListedColormap(['lightcoral', 'black'])
 custom_cmap_BW = ListedColormap(['white', 'black'])
 cmap_G = cm.get_cmap('Greens') # 'PRGn', 'YlGn'
-cmap_R = cm.get_cmap('Reds') 
+cmap_R = cm.get_cmap('Reds')
 
-fontdict_normal = fontdict={'family':'serif', 'weight':'normal'}
-fontdict_bold = fontdict={'family':'serif', 'weight':'bold'}
+fontdict_normal = {'family':'serif', 'weight':'normal'}
+fontdict_bold   = {'family':'serif', 'weight':'bold'}
 inset_axes_     = [0.1, 0.13, 0.45, 0.03]
 
 # %%
@@ -102,26 +102,40 @@ breakpoint_TS_sen_dir = breakpoint_plot_base + "breakpoints_TS_sensSlope/"
 breakpoints_dir = rangeland_bio_data + "breakpoints/"
 
 # %%
-ANPP = pd.read_pickle(bio_reOrganized + "bpszone_ANPP_no2012.sav")
-ANPP = ANPP["bpszone_ANPP"]
-ANPP.head(2)
+weather = pd.read_csv(bio_reOrganized + "bpszone_annual_tempPrecip_byHN.csv")
+weather.head(2)
 
 # %%
-filename = breakpoints_dir + "sensSlope_beforeAfter_BP1.sav"
-sensSlope_beforeAfter_BP1 = pd.read_pickle(filename)
+filename = breakpoints_dir + "weather_sensSlope_beforeAfter_ANPPBP1.sav"
+weather_slope_beforeAfter_ANPPBP1 = pd.read_pickle(filename)
 
-print (sensSlope_beforeAfter_BP1.keys())
-
-# %%
+print (weather_slope_beforeAfter_ANPPBP1.keys())
 
 # %%
-sensSlope_beforeAfter_BP1 = sensSlope_beforeAfter_BP1["sensSlope_beforeAfter_BP1"]
-sensSlope_beforeAfter_BP1.head(2)
 
 # %%
-sensSlope_beforeAfter_BP1["slope_diff"] = sensSlope_beforeAfter_BP1["slope_after"] - \
-                                                sensSlope_beforeAfter_BP1["slope_before"]
-sensSlope_beforeAfter_BP1.head(2)
+weather_slope_beforeAfter_ANPPBP1 = weather_slope_beforeAfter_ANPPBP1["sensSlope_beforeAfter_ANPPBP1"]
+weather_slope_beforeAfter_ANPPBP1.head(2)
+
+# %%
+weather_slope_beforeAfter_ANPPBP1["temp_slope_diff"] = \
+                                                weather_slope_beforeAfter_ANPPBP1["temp_slope_after"] - \
+                                                weather_slope_beforeAfter_ANPPBP1["temp_slope_before"]
+
+weather_slope_beforeAfter_ANPPBP1["temp_slope_ratio"] = \
+                                                weather_slope_beforeAfter_ANPPBP1["temp_slope_after"] / \
+                                                weather_slope_beforeAfter_ANPPBP1["temp_slope_before"]
+
+
+weather_slope_beforeAfter_ANPPBP1["precip_slope_diff"] = \
+                                                weather_slope_beforeAfter_ANPPBP1["precip_slope_after"] - \
+                                                weather_slope_beforeAfter_ANPPBP1["precip_slope_before"]
+
+weather_slope_beforeAfter_ANPPBP1["precip_slope_ratio"] = \
+                                                weather_slope_beforeAfter_ANPPBP1["precip_slope_after"] / \
+                                                weather_slope_beforeAfter_ANPPBP1["precip_slope_before"]
+
+weather_slope_beforeAfter_ANPPBP1.head(2)
 
 # %%
 
@@ -174,12 +188,12 @@ Albers_SF_west.rename(columns={"EW_meridia": "EW_meridian",
 Albers_SF_west.head(2)
 
 # %%
-sensSlope_beforeAfter_BP1.head(2)
+weather_slope_beforeAfter_ANPPBP1.head(2)
 
 # %%
-cols_ = ['fid', 'slope_diff']
+cols_ = ["fid", "temp_slope_diff", "temp_slope_ratio", "precip_slope_diff", "precip_slope_ratio"]
 
-Albers_SF_west = pd.merge(Albers_SF_west, sensSlope_beforeAfter_BP1[cols_], how="left", on="fid")
+Albers_SF_west = pd.merge(Albers_SF_west, weather_slope_beforeAfter_ANPPBP1[cols_], how="left", on="fid")
 Albers_SF_west.head(2)
 
 # %%
@@ -201,36 +215,31 @@ params = {"font.family": "Palatino",
 plt.rcParams.update(params)
 
 # %%
-y_var = 'slope_diff'
-
-# %%
 # fig, ax = plt.subplots(1, 1, figsize=(2, 2), sharex=True, sharey=True, dpi=map_dpi_)
+
+y_var = 'temp_slope_diff'
 fig, ax = plt.subplots(1, 1, dpi=map_dpi_)
 ax.set_xticks([]); ax.set_yticks([])
 
 min_max = max(np.abs(Albers_SF_west[y_var].min()), np.abs(Albers_SF_west[y_var].max()))
 norm1 = Normalize(vmin=-min_max, vmax=min_max, clip=True)
 
-rpc.plot_SF(SF=visframe_mainLand_west, ax_=ax, col="EW_meridian", cmap_=ListedColormap(['green', 'white']))
-
-# cent_plt = Albers_SF_west["centroid"].plot(ax=ax, c=Albers_SF_west[y_var], cmap='seismic',
-#                                            norm=norm1, markersize=0.1)
+rpc.plot_SF(SF=visframe_mainLand_west, ax_=ax, col="EW_meridian", cmap_=ListedColormap(['grey', 'white']))
 cent_plt = Albers_SF_west.plot(column=y_var, ax=ax, legend=False, cmap='seismic', norm=norm1)
 
 # first two arguments are x and y of the legend 
 # on the left side of it. The last two are length and width of the bar
 cax = ax.inset_axes(inset_axes_)
-cbar1 = fig.colorbar(cent_plt.collections[1], ax=ax, orientation='horizontal', shrink=0.3, 
-                     cmap=cm.get_cmap('RdYlGn'), norm=norm1, cax=cax)
-cbar1.set_label(r'$\Delta(Ss_{BP1})$', labelpad=1, fontdict=fontdict_normal);
-plt.title("Sen's slope diff. after and before BP1", fontdict=fontdict_bold);
+cbar1 = fig.colorbar(cent_plt.collections[1], ax=ax, orientation='horizontal', shrink=0.3, norm=norm1, cax=cax)
+cbar1.set_label(r'$\Delta(TempSs_{ANPP-BP1})$', labelpad=1, fontdict=fontdict_normal);
+plt.title("temp. slope diff. (ANPP-BP1)", fontdict=fontdict_bold);
 
 plt.tight_layout()
 # on overleaf, a sublot looked slightly higher than another. lets see if this fixes it
 ax.set_aspect('equal', adjustable='box')
 
 # fig.subplots_adjust(top=0.91, bottom=0.01, left=-0.1, right=1)
-file_name = bio_plots + "senSlopeDelta_BP1_divergeRB_GrnBG.png"
+file_name = breakpoint_plot_base + "temp_senSlopeDelta_ANPPBP1_divergeRB.png"
 plt.savefig(file_name, bbox_inches='tight', dpi=map_dpi_)
 
 del(cent_plt, cax, cbar1, norm1, min_max)
@@ -239,31 +248,94 @@ del(cent_plt, cax, cbar1, norm1, min_max)
 
 # %%
 # fig, ax = plt.subplots(1, 1, figsize=(2, 2), sharex=True, sharey=True, dpi=map_dpi_)
+
+y_var = 'precip_slope_diff'
 fig, ax = plt.subplots(1, 1, dpi=map_dpi_)
 ax.set_xticks([]); ax.set_yticks([])
 
 min_max = max(np.abs(Albers_SF_west[y_var].min()), np.abs(Albers_SF_west[y_var].max()))
 norm1 = Normalize(vmin=-min_max, vmax=min_max, clip=True)
 
-rcp.plot_SF(SF=visframe_mainLand_west, ax_=ax, col="EW_meridian", cmap_=ListedColormap(['gray', 'white']))
-
-# cent_plt = Albers_SF_west["centroid"].plot(ax=ax, c=Albers_SF_west[y_var], cmap='seismic',
-#                                            norm=norm1, markersize=0.1)
+rpc.plot_SF(SF=visframe_mainLand_west, ax_=ax, col="EW_meridian", cmap_=ListedColormap(['grey', 'white']))
 cent_plt = Albers_SF_west.plot(column=y_var, ax=ax, legend=False, cmap='seismic', norm=norm1)
 
 # first two arguments are x and y of the legend 
 # on the left side of it. The last two are length and width of the bar
 cax = ax.inset_axes(inset_axes_)
-cbar1 = fig.colorbar(cent_plt.collections[1], ax=ax, orientation='horizontal', shrink=0.3, 
-                     cmap=cm.get_cmap('RdYlGn'), norm=norm1, cax=cax)
-cbar1.set_label(r'$\Delta(Ss_{BP1})$', labelpad=1, fontdict=fontdict_normal);
-plt.title("Sen's slope diff. after and before BP1", fontdict=fontdict_bold);
-# on overleaf, a sublot looked slightly higher than
-# another. lets see if this fixes it
+cbar1 = fig.colorbar(cent_plt.collections[1], ax=ax, orientation='horizontal', shrink=0.3, norm=norm1, cax=cax)
+cbar1.set_label(r'$\Delta(precipSs_{ANPP-BP1})$', labelpad=1, fontdict=fontdict_normal);
+plt.title("precip. slope diff. (ANPP-BP1)", fontdict=fontdict_bold);
+
+plt.tight_layout()
+# on overleaf, a sublot looked slightly higher than another. lets see if this fixes it
 ax.set_aspect('equal', adjustable='box')
-# plt.tight_layout()
+
 # fig.subplots_adjust(top=0.91, bottom=0.01, left=-0.1, right=1)
-file_name = bio_plots + "senSlopeDelta_BP1_divergeRB_grey.png"
+file_name = breakpoint_plot_base + "precip_senSlopeDelta_ANPPBP1_divergeRB.png"
+plt.savefig(file_name, bbox_inches='tight', dpi=map_dpi_)
+
+del(cent_plt, cax, cbar1, norm1, min_max)
+
+# %%
+
+# %%
+# fig, ax = plt.subplots(1, 1, figsize=(2, 2), sharex=True, sharey=True, dpi=map_dpi_)
+
+y_var = 'temp_slope_ratio'
+fig, ax = plt.subplots(1, 1, dpi=map_dpi_)
+ax.set_xticks([]); ax.set_yticks([])
+
+min_max = max(np.abs(Albers_SF_west[y_var].min()), np.abs(Albers_SF_west[y_var].max()))
+norm1 = Normalize(vmin=-min_max, vmax=min_max, clip=True)
+
+rpc.plot_SF(SF=visframe_mainLand_west, ax_=ax, col="EW_meridian", cmap_=ListedColormap(['grey', 'white']))
+cent_plt = Albers_SF_west.plot(column=y_var, ax=ax, legend=False, cmap='seismic', norm=norm1)
+
+# first two arguments are x and y of the legend 
+# on the left side of it. The last two are length and width of the bar
+cax = ax.inset_axes(inset_axes_)
+cbar1 = fig.colorbar(cent_plt.collections[1], ax=ax, orientation='horizontal', shrink=0.3, norm=norm1, cax=cax)
+cbar1.set_label(r'$ratio(TempSs_{ANPP-BP1})$', labelpad=1, fontdict=fontdict_normal);
+plt.title("temp. slope ratio (ANPP-BP1)", fontdict=fontdict_bold);
+
+plt.tight_layout()
+# on overleaf, a sublot looked slightly higher than another. lets see if this fixes it
+ax.set_aspect('equal', adjustable='box')
+
+# fig.subplots_adjust(top=0.91, bottom=0.01, left=-0.1, right=1)
+file_name = breakpoint_plot_base + "temp_senSlopeRatio_ANPPBP1_divergeRB.png"
+plt.savefig(file_name, bbox_inches='tight', dpi=map_dpi_)
+
+del(cent_plt, cax, cbar1, norm1, min_max)
+
+# %%
+
+# %%
+# fig, ax = plt.subplots(1, 1, figsize=(2, 2), sharex=True, sharey=True, dpi=map_dpi_)
+
+y_var = 'precip_slope_ratio'
+fig, ax = plt.subplots(1, 1, dpi=map_dpi_)
+ax.set_xticks([]); ax.set_yticks([])
+
+min_max = max(np.abs(Albers_SF_west[y_var].min()), np.abs(Albers_SF_west[y_var].max()))
+norm1 = Normalize(vmin=-min_max, vmax=min_max, clip=True)
+
+rpc.plot_SF(SF=visframe_mainLand_west, ax_=ax, col="EW_meridian", cmap_=ListedColormap(['grey', 'white']))
+cent_plt = Albers_SF_west.plot(column=y_var, ax=ax, legend=False, cmap='seismic', norm=norm1)
+
+# first two arguments are x and y of the legend 
+# on the left side of it. The last two are length and width of the bar
+cax = ax.inset_axes(inset_axes_)
+cbar1 = fig.colorbar(cent_plt.collections[1], ax=ax, orientation='horizontal', shrink=0.3, norm=norm1, cax=cax)
+cbar1.set_label(r'$ratio(precipSs_{ANPP-BP1})$', labelpad=1, fontdict=fontdict_normal);
+plt.title("precip. slope ratio. (ANPP-BP1)", fontdict=fontdict_bold);
+
+plt.tight_layout()
+# on overleaf, a sublot looked slightly higher than another. lets see if this fixes it
+ax.set_aspect('equal', adjustable='box')
+
+# fig.subplots_adjust(top=0.91, bottom=0.01, left=-0.1, right=1)
+file_name = breakpoint_plot_base + "precip_senSlopeRatio_ANPPBP1_divergeRB.png"
 plt.savefig(file_name, bbox_inches='tight', dpi=map_dpi_)
 
 del(cent_plt, cax, cbar1, norm1, min_max)

@@ -38,11 +38,15 @@ import rangeland_core as rc
 import rangeland_plot_core as rpc
 
 # %%
-dpi_, map_dpi_=300, 900
+dpi_, map_dpi_ = 300, 500
 custom_cmap_coral = ListedColormap(['lightcoral', 'black'])
 custom_cmap_BW = ListedColormap(['white', 'black'])
 cmap_G = cm.get_cmap('Greens') # 'PRGn', 'YlGn'
-cmap_R = cm.get_cmap('Reds') 
+cmap_R = cm.get_cmap('Reds')
+
+fontdict_normal = {'family':'serif', 'weight':'normal'}
+fontdict_bold   = {'family':'serif', 'weight':'bold'}
+inset_axes_     = [0.1, 0.13, 0.45, 0.03]
 
 # %%
 research_db = "/Users/hn/Documents/01_research_data/"
