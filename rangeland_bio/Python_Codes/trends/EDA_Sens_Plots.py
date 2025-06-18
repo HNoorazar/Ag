@@ -43,11 +43,17 @@ import rangeland_core as rc
 import rangeland_plot_core as rcp
 
 # %%
-dpi_, map_dpi_=300, 900
+dpi_, map_dpi_=300, 500
 custom_cmap_coral = ListedColormap(['lightcoral', 'black'])
 custom_cmap_BW = ListedColormap(['white', 'black'])
 cmap_G = cm.get_cmap('Greens') # 'PRGn', 'YlGn'
-cmap_R = cm.get_cmap('Reds') 
+cmap_R = cm.get_cmap('Reds')
+
+best_cmap_ = ListedColormap([(0.9, 0.9, 0.9), 'black'])
+fontdict_normal = fontdict={'family':'serif', 'weight':'normal'}
+fontdict_bold   = fontdict={'family':'serif', 'weight':'bold'}
+inset_axes_     = [0.1, 0.13, 0.45, 0.03]
+inset_axes_     = [0.1, 0.18, 0.45, 0.03] # tight layout
 
 # %%
 from matplotlib import colormaps
@@ -143,15 +149,38 @@ visframe_mainLand_west = visframe[visframe.EW_meridian.isin(["W"])].copy()
 visframe_mainLand_west = visframe_mainLand_west[~visframe_mainLand_west.state.isin(["AK", "HI"])].copy()
 
 # %%
+font_base = 12
+params = {"font.family": "Palatino",
+          "legend.fontsize": font_base,
+          "axes.labelsize": font_base * .71,
+          "axes.titlesize": font_base * 1,
+          "xtick.labelsize": font_base * .7,
+          "ytick.labelsize": font_base * .7,
+          "axes.titlepad": 5,
+          "legend.handlelength": 2,
+          "xtick.bottom": False,
+          "ytick.left": False,
+          "xtick.labelbottom": False,
+          "ytick.labelleft": False,
+          'axes.linewidth' : .05}
+
+plt.rcParams.update(params)
+
+# %%
+# cc_ = [, plt.cm.Pastel2.colors[0]]
+
 
 # %%
 from mpl_toolkits.axes_grid1 import make_axes_locatable
-fig, ax = plt.subplots(1, 1, figsize=(2, 3), sharex=True, sharey=True, dpi=dpi_)
+
+
+fig, ax = plt.subplots(1, 1, sharex=True, sharey=True, dpi=dpi_)
 plt.title('rangeland polygons on western meridian')
 # divider = make_axes_locatable(ax)
 # cax = divider.append_axes("right", size="1%", pad=0, alpha=1)
-rcp.plot_SF(SF=visframe_mainLand_west, ax_=ax, cmap_ = "Pastel1", col="EW_meridian")
-Albers_SF_west["geometry"].centroid.plot(ax=ax, color='dodgerblue', markersize=0.051)
+rcp.plot_SF(SF=visframe_mainLand_west, ax_=ax, cmap_=best_cmap_, col="EW_meridian")
+# Albers_SF_west["geometry"].centroid.plot(ax=ax, color='dodgerblue', markersize=0.051)
+Albers_SF_west.plot(ax=ax, color='dodgerblue')
 
 plt.rcParams['axes.linewidth'] = .051
 # plt.legend(fontsize=10) # ax.axis('off')
@@ -519,8 +548,8 @@ cax = ax.inset_axes([0.08, 0.18, 0.45, 0.03])
 cbar1 = fig.colorbar(cent_plt.collections[1], ax=ax, orientation='horizontal', shrink=0.3, norm=norm1, cax=cax)
 # cbar1 = fig.colorbar(cent_plt.collections[1], ax=ax, orientation='horizontal', shrink=0.3, cax=cax)
 
-cbar1.set_label(r"Sen's slope", labelpad=1, fontdict={'family': 'serif', 'weight':'normal'})
-plt.title("Sen's slope - all locations", fontdict={'family': 'serif', 'weight': 'bold'})
+cbar1.set_label(r"Sen's slope", labelpad=1, fontdict=fontdict_normal)
+plt.title("ANPP Sen's slope", fontdict=fontdict_bold)
 
 # plt.tight_layout()
 # fig.subplots_adjust(top=0.91, bottom=0.01, left=-0.1, right=1)
@@ -528,6 +557,8 @@ file_name = bio_plots + "sensSlopes_centerColorBar_divergeRB.png"
 plt.savefig(file_name, bbox_inches='tight', dpi=map_dpi_)
 
 del(cent_plt, cax, cbar1, norm1, min_max)
+
+# %%
 
 # %%
 fig, ax = plt.subplots(1, 1, figsize=(2, 2), sharex=True, sharey=True, dpi=map_dpi_)
@@ -546,10 +577,10 @@ cax = ax.inset_axes([0.08, 0.18, 0.45, 0.03])
 cbar1 = fig.colorbar(cent_plt.collections[1], ax=ax, orientation='horizontal', shrink=0.3, norm=norm1, cax=cax)
 # cbar1 = fig.colorbar(cent_plt.collections[1], ax=ax, orientation='horizontal', shrink=0.3, cax=cax)
 
-cbar1.set_label(r"Sen's slope", labelpad=1, fontdict={'family': 'serif', 'weight':'normal'})
-plt.title("Sen's slope - all locations", fontdict={'family': 'serif', 'weight': 'bold'})
+cbar1.set_label(r"Sen's slope", labelpad=1, fontdict=fontdict_normal)
+plt.title("ANPP Sen's slope", fontdict=fontdict_bold)
 
-# plt.tight_layout()
+plt.tight_layout()
 # fig.subplots_adjust(top=0.91, bottom=0.01, left=-0.1, right=1)
 file_name = bio_plots + "sensSlopes_centerColorBar_divergeRB_GBG.png"
 plt.savefig(file_name, bbox_inches='tight', dpi=map_dpi_)

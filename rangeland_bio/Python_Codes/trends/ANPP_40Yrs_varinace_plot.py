@@ -124,27 +124,22 @@ Albers_SF_west.rename(columns={"EW_meridia": "EW_meridian",
                       inplace=True)
 
 # %%
-NPP_variance_df = ANPP.groupby('fid')['mean_lb_per_acr'].var().reset_index()
-NPP_variance_df.columns = ['fid', 'anpp_variance']
-NPP_variance_df.head(2)
 
 # %%
-NPP_mean_df = ANPP.groupby('fid')['mean_lb_per_acr'].mean().reset_index()
-NPP_mean_df.columns = ['fid', 'anpp_mean']
-NPP_mean_df.head(2)
+# NPP_variance_df = ANPP.groupby('fid')['mean_lb_per_acr'].var().reset_index()
+# NPP_variance_df.columns = ['fid', 'anpp_variance']
+# NPP_variance_df.head(2)
 
 # %%
-NPP_variance_df = pd.merge(NPP_variance_df, NPP_mean_df, how="left", on="fid")
-NPP_variance_df.head(2)
+cv_df = ANPP.groupby('fid').agg({'mean_lb_per_acr': ['var', 'mean', 'std']}).reset_index()
+cv_df.head(2)
 
-# %%
-NPP_variance_df["anpp_CV"] = NPP_variance_df["anpp_variance"] / NPP_variance_df["anpp_mean"]
-NPP_variance_df["anpp_CV"] = NPP_variance_df["anpp_CV"]*100
-NPP_variance_df.head(2)
+# Flatten column MultiIndex
+cv_df.columns = ['fid', 'anpp_variance', 'anpp_mean', 'anpp_std']
 
-# %%
-NPP_variance_df = NPP_variance_df.round(2)
-NPP_variance_df.head(2)
+# Calculate coefficient of variation
+cv_df['anpp_cv'] = (cv_df['anpp_std'] / cv_df['anpp_mean'])*100
+cv_df.head(3)
 
 # %%
 
@@ -203,7 +198,7 @@ Albers_SF_west.drop(columns=["trend"], inplace=True)
 print (ANPP_MK_df.shape)
 
 # %%
-Albers_SF_west = pd.merge(Albers_SF_west, NPP_variance_df, how="left", on="fid")
+Albers_SF_west = pd.merge(Albers_SF_west, cv_df, how="left", on="fid")
 Albers_SF_west.head(2)
 
 # %%
@@ -228,18 +223,18 @@ params = {"font.family": "Palatino",
 plt.rcParams.update(params)
 
 # %%
+
+# %%
 sharey_ = False ### set axis limits to be identical or not
 
 fig, axes = plt.subplots(1, 1, figsize=(7, 2), sharey=sharey_, sharex=True, dpi=dpi_)
 axes.grid(axis='y', alpha=0.7, zorder=0);
 
-axes.hist(Albers_SF_west["anpp_variance"].dropna(), zorder=3,
-          bins=100, color='skyblue', edgecolor='black')
+axes.hist(Albers_SF_west["anpp_variance"].dropna(), zorder=3, bins=100, color='skyblue', edgecolor='black')
 
-axes.set_ylabel('count')
 axes.set_title('ANPP variance distribution', color="k", fontdict=fontdict_bold);
-axes.set_xlabel('Variance of mean ANPP (lb/acre)', fontdict=fontdict_normal);
-axes.set_ylabel('Frequency', fontdict=fontdict_normal);
+axes.set_xlabel(r'Variance ($\sigma^2$) of mean ANPP (lb/acre)', fontdict=fontdict_normal);
+axes.set_ylabel('count', fontdict=fontdict_normal);
 
 file_name = bio_plots + "ANPP_40Yr_variance_histogram.pdf"
 plt.savefig(file_name, bbox_inches='tight', dpi=map_dpi_)
@@ -250,13 +245,12 @@ sharey_ = False ### set axis limits to be identical or not
 fig, axes = plt.subplots(1, 1, figsize=(7, 2), sharey=sharey_, sharex=True, dpi=dpi_)
 axes.grid(axis='y', alpha=0.7, zorder=0);
 
-axes.hist(Albers_SF_west['anpp_CV'].dropna(), zorder=3,
+axes.hist(Albers_SF_west['anpp_cv'].dropna(), zorder=3,
           bins=100, color='skyblue', edgecolor='black')
 
-axes.set_ylabel('count')
-axes.set_title('ANPP CV distribution', color="k", fontdict={'family':'serif', 'weight':'bold'});
-axes.set_xlabel('ANPP CV', fontdict={'family':'serif', 'weight':'normal'});
-axes.set_ylabel('Frequency', fontdict={'family':'serif', 'weight':'normal'});
+axes.set_title(r'ANPP CV distribution', color="k", fontdict=fontdict_bold);
+axes.set_xlabel(r'ANPP CV ($\sigma/\mu \times 100$)', fontdict=fontdict_normal);
+axes.set_ylabel('count', fontdict=fontdict_normal);
 
 file_name = bio_plots + "ANPP_40Yr_CV_histogram.pdf"
 plt.savefig(file_name, bbox_inches='tight', dpi=map_dpi_)
@@ -283,8 +277,8 @@ plt.rcParams.update(params)
 print (np.abs(Albers_SF_west['anpp_variance'].min()))
 print (np.abs(Albers_SF_west['anpp_variance'].max()))
 print ()
-print (np.abs(Albers_SF_west['anpp_CV'].min()))
-print (np.abs(Albers_SF_west['anpp_CV'].max()))
+print (np.abs(Albers_SF_west['anpp_cv'].min()))
+print (np.abs(Albers_SF_west['anpp_cv'].max()))
 
 
 # %%
@@ -306,8 +300,8 @@ cent_plt = Albers_SF_west.plot(column='anpp_variance', ax=ax, legend=False, cmap
 cax = ax.inset_axes(inset_axes_)
 cbar1 = fig.colorbar(cent_plt.collections[1], ax=ax, orientation='horizontal', shrink=0.3, 
                      cmap=cm.get_cmap('RdYlGn'), norm=norm1, cax=cax)
-cbar1.set_label(f'$\sigma^2$(ANPP)', labelpad=1, fontdict={'family':'serif', 'weight':'normal'});
-plt.title("ANPP variance", fontdict={'family':'serif', 'weight':'bold'});
+cbar1.set_label(f'$\sigma^2$(ANPP)', labelpad=1, fontdict=fontdict_normal);
+plt.title("ANPP variance", fontdict=fontdict_normal_bold);
 
 # plt.tight_layout()
 # fig.subplots_adjust(top=0.91, bottom=0.01, left=-0.1, right=1)
@@ -344,13 +338,13 @@ ax2.set_xticks([]); ax2.set_yticks([])
 rcp.plot_SF(SF=visframe_mainLand_west, ax_=ax1, col="EW_meridian", cmap_=ListedColormap(['grey', 'white']))
 rcp.plot_SF(SF=visframe_mainLand_west, ax_=ax2, col="EW_meridian", cmap_=ListedColormap(['grey', 'white']))
 
-min_max1 = max(np.abs(Albers_SF_west['anpp_CV'].min()), np.abs(Albers_SF_west['anpp_CV'].max()))
+min_max1 = max(np.abs(Albers_SF_west['anpp_cv'].min()), np.abs(Albers_SF_west['anpp_cv'].max()))
 min_max2 = max(np.abs(Albers_SF_west['anpp_variance'].min()), np.abs(Albers_SF_west['anpp_variance'].max()))
 
 norm1 = Normalize(vmin=-min_max1, vmax=min_max1, clip=True)
 norm2 = Normalize(vmin=-min_max2, vmax=min_max2, clip=True)
 
-cent_plt1 = Albers_SF_west.plot(column='anpp_CV',       ax=ax1, legend=False, cmap='seismic', norm=norm1)
+cent_plt1 = Albers_SF_west.plot(column='anpp_cv',       ax=ax1, legend=False, cmap='seismic', norm=norm1)
 cent_plt2 = Albers_SF_west.plot(column='anpp_variance', ax=ax2, legend=False, cmap='seismic', norm=norm2)
 
 cax1 = ax1.inset_axes(inset_axes_)
@@ -362,10 +356,10 @@ cbar1 = fig.colorbar(cent_plt1.collections[1], ax=ax1, orientation='horizontal',
 cbar2 = fig.colorbar(cent_plt2.collections[1], ax=ax2, orientation='horizontal', shrink=0.3, 
                      cmap=cm.get_cmap('RdYlGn'), norm=norm2, cax=cax2)
 
-cbar1.set_label(f'CV(ANPP)', labelpad=1, fontdict=fontdict_normal);
+cbar1.set_label(r'CV(ANPP) $\times 100$', labelpad=1, fontdict=fontdict_normal);
 cbar2.set_label(f'$\sigma^2$(ANPP)', labelpad=1, fontdict=fontdict_normal);
 
-ax1.set_title("ANPP CV", fontdict=fontdict_bold);
+ax1.set_title("CV(ANPP)", fontdict=fontdict_bold);
 ax2.set_title("variance of ANPP", fontdict=fontdict_bold);
 
 plt.tight_layout()
@@ -523,25 +517,25 @@ rcp.plot_SF(SF=visframe_mainLand_west, ax_=ax1, col="EW_meridian", cmap_=ListedC
 rcp.plot_SF(SF=visframe_mainLand_west, ax_=ax2, col="EW_meridian", cmap_=ListedColormap(['grey', 'white']))
 
 ######
-cut_1 = 30000
+cut_1 = 30
 ###############################################################
-df = Albers_SF_west[Albers_SF_west['anpp_CV'] < cut_1].copy()
-min_max = max(np.abs(df['anpp_CV'].min()), np.abs(df['anpp_CV'].max()))
+df = Albers_SF_west[Albers_SF_west['anpp_cv'] < cut_1].copy()
+min_max = max(np.abs(df['anpp_cv'].min()), np.abs(df['anpp_cv'].max()))
 norm1 = Normalize(vmin=-min_max, vmax=min_max, clip=True)
-cent_plt1 = df.plot(column='anpp_CV', ax=ax1, legend=False, cmap='seismic', norm=norm1)
+cent_plt1 = df.plot(column='anpp_cv', ax=ax1, legend=False, cmap='seismic', norm=norm1)
 
-print (df['anpp_CV'].min())
-print (df['anpp_CV'].max())
+print (df['anpp_cv'].min())
+print (df['anpp_cv'].max())
 print ()
 ###############################################################
-df = Albers_SF_west[Albers_SF_west['anpp_CV'] >= cut_1].copy()
+df = Albers_SF_west[Albers_SF_west['anpp_cv'] >= cut_1].copy()
 
-min_max = max(np.abs(df['anpp_CV'].min()), np.abs(df['anpp_CV'].max()))
+min_max = max(np.abs(df['anpp_cv'].min()), np.abs(df['anpp_cv'].max()))
 norm2 = Normalize(vmin=-min_max, vmax=min_max, clip=True)
-cent_plt2 = df.plot(column='anpp_CV', ax=ax2, legend=False, cmap='seismic', norm=norm2)
+cent_plt2 = df.plot(column='anpp_cv', ax=ax2, legend=False, cmap='seismic', norm=norm2)
 
-print (df['anpp_CV'].min())
-print (df['anpp_CV'].max())
+print (df['anpp_cv'].min())
+print (df['anpp_cv'].max())
 print ()
 ###############################################################
 ######################################################
@@ -554,11 +548,12 @@ cbar2 = fig.colorbar(cent_plt2.collections[1], ax=ax2, orientation='horizontal',
 cbar1.ax.tick_params(labelsize=tick_legend_FontSize*0.6)
 cbar2.ax.tick_params(labelsize=tick_legend_FontSize*0.6)
 
-cbar1.set_label('ANPP CV', labelpad=1, fontdict=fontdict_normal, fontsize=tick_legend_FontSize * .6);
-cbar2.set_label('ANPP CV', labelpad=1, fontdict=fontdict_normal, fontsize=tick_legend_FontSize * .6);
+lab_ = r'CV(ANPP) $\times 100$'
+cbar1.set_label(lab_, labelpad=1, fontdict=fontdict_normal, fontsize=tick_legend_FontSize * .6);
+cbar2.set_label(lab_, labelpad=1, fontdict=fontdict_normal, fontsize=tick_legend_FontSize * .6);
 
-ax1.set_title(r"ANPP CV (< 30,000)", fontdict=fontdict_bold);
-ax2.set_title(r"ANPP CV (> 30,000)", fontdict=fontdict_bold);
+ax1.set_title(f"CV(ANPP) < {cut_1}", fontdict=fontdict_bold);
+ax2.set_title(f"CV(ANPP) > {cut_1}", fontdict=fontdict_bold);
 ######################################################
 ######################################################
 file_name = bio_plots + "ANPP_40Yr_CV_divergeRB_2Categ_SeparNormal.png"

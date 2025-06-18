@@ -215,9 +215,6 @@ print (f'{Albers_SF["fid"].unique().max()= }')
 annual_weather.head(2)
 
 # %%
-annual_weather.head(2)
-
-# %%
 num_locs = len(annual_weather["fid"].unique())
 num_locs
 
@@ -225,6 +222,13 @@ num_locs
 cols_ = ["fid", "state_majority_area", "state_1", "state_2", "EW_meridian"]
 if not ("EW_meridian" in annual_weather.columns):
     annual_weather = pd.merge(annual_weather, Albers_SF[cols_], how="left", on = "fid")
+annual_weather.head(2)
+
+# %%
+out_name = bio_reOrganized + "bpszone_annual_tempPrecip_byHN.csv"
+annual_weather.to_csv(out_name, index = False)
+
+# %%
 annual_weather.head(2)
 
 # %% [markdown]
@@ -396,7 +400,7 @@ for a_FID in temp_MK_df["fid"].unique():
     del(L_, temp_TS, year_TS)
     
 # Round the columns to 6-decimals
-for a_col in ["sens_slope", "sens_slope", "Tau", "MK_score",
+for a_col in ["sens_slope", "sens_intercept", "Tau", "MK_score",
               "p", "var_s",
               "p_yue"     , "var_s_yue",
 #               "p_yue_lag0", "var_s_yue_lag0",
@@ -410,11 +414,25 @@ for a_col in ["sens_slope", "sens_slope", "Tau", "MK_score",
 temp_MK_df.head(2)
 
 # %%
+temp_MK_df.rename(columns={col: col + '_temp' if col != "fid" else col for col in temp_MK_df.columns}, 
+                  inplace=True)
+
+temp_MK_df.head(2)
 
 # %%
-filename = bio_reOrganized + "temp_MK_Spearman.sav"
+precip_MK_df.rename(columns={col: col + '_precip' if col != "fid" else col for col in precip_MK_df.columns}, 
+                  inplace=True)
 
-export_ = {"temp_MK_df": temp_MK_df, 
+precip_MK_df.head(2)
+
+# %%
+weather_MK_df = pd.merge(precip_MK_df, temp_MK_df, on='fid', how="left")
+weather_MK_df.head(2)
+
+# %%
+filename = bio_reOrganized + "weather_MK_Spearman.sav"
+
+export_ = {"weather_MK_df": weather_MK_df, 
            "source_code" : "MK_weather",
            "Author": "HN",
            "Date" : datetime.now().strftime('%Y-%m-%d %H:%M:%S')}
@@ -422,37 +440,98 @@ export_ = {"temp_MK_df": temp_MK_df,
 pickle.dump(export_, open(filename, 'wb'))
 
 # %%
-filename = bio_reOrganized + "precip_MK_Spearman.sav"
-
-export_ = {"precip_MK_df": precip_MK_df, 
-           "source_code" : "MK_weather",
-           "Author": "HN",
-           "Date" : datetime.now().strftime('%Y-%m-%d %H:%M:%S')}
-
-pickle.dump(export_, open(filename, 'wb'))
-
-# %%
-some_col = ["fid", "sens_slope", "sens_intercept", "trend", 
+some_col = ["sens_slope", "sens_intercept", "p", "trend", 
             "trend_yue","p_yue", "trend_rao", "p_rao",
             "Tau", "Spearman", "p_Spearman"]
 
-# %%
-Albers_SF_temp = Albers_SF.copy()
-Albers_SF_temp = pd.merge(Albers_SF_temp, temp_MK_df[some_col], on="fid", how="left")
-Albers_SF_temp.head(2)
+temp_cols = [x + "_temp" for x in some_col]
+precip_cols = [x + "_precip" for x in some_col]
 
-# %%
-Albers_SF_precip = Albers_SF.copy()
-Albers_SF_precip = pd.merge(Albers_SF_precip, precip_MK_df[some_col], on="fid", how="left")
-Albers_SF_precip.head(2)
+some_col = ["fid"] + temp_cols + precip_cols
 
 # %%
 
 # %%
-f_name = bio_reOrganized + 'Albers_SF_west_temp_MK_Spearman.shp.zip'
-Albers_SF_temp.to_file(filename=f_name, driver='ESRI Shapefile')
+print (Albers_SF.shape)
+print (weather_MK_df.shape)
+
+# %%
+Albers_SF = pd.merge(Albers_SF, weather_MK_df[some_col], on="fid", how="left")
+Albers_SF.head(2)
+
+# %%
+
+# %%
+bad_cols = ['bps_code', 'bps_name', 'hucsgree_4', 'state_1', 'state_2', 'bps_model',
+            'p_yue_precip', 'p_yue_temp',
+            'p_Spearman_precip', 'p_Spearman_temp', 'p_rao_precip', 'p_rao_temp',]
+Albers_SF.drop(columns=bad_cols, axis=1, inplace=True)
+
+# %%
+sorted(Albers_SF.columns)
+
+# %% [markdown]
+# # rename columns. 
+#
+# It will happen when saving shapefile. This way we will be in charge
+
+# %%
+Albers_SF.rename(columns={col: col.replace("yue", "U") if ("yue" in col) else col for col in Albers_SF.columns}, 
+                  inplace=True)
+
+# %%
+Albers_SF.rename(columns={col: col.replace("trend", "trnd") if 
+                          ("trend" in col) else col for col in Albers_SF.columns}, 
+                  inplace=True)
+
+# %%
+Albers_SF.rename(columns={col: col.replace("Spearman", "Sprmn") if 
+                          ("Spearman" in col) else col for col in Albers_SF.columns}, 
+                  inplace=True)
+
+# %%
+Albers_SF.rename(columns={col: col.replace("slope", "m") if 
+                          ("slope" in col) else col for col in Albers_SF.columns}, 
+                  inplace=True)
+
+# %%
+Albers_SF.rename(columns={col: col.replace("intercept", "intcp") if 
+                          ("intercept" in col) else col for col in Albers_SF.columns}, 
+                  inplace=True)
+
+# %%
+Albers_SF.rename(columns={col: col.replace("sens", "sen") if 
+                          ("sens" in col) else col for col in Albers_SF.columns}, 
+                  inplace=True)
+
+# %%
+Albers_SF.rename(columns={"sen_intcp_precip": "intcp_precip", 
+                          "sen_intcp_temp": "intcp_temp"}, inplace=True)
 
 
 # %%
-f_name = bio_reOrganized + 'Albers_SF_west_precip_MK_Spearman.shp.zip'
-Albers_SF_precip.to_file(filename=f_name, driver='ESRI Shapefile')
+sorted(Albers_SF.columns)
+
+# %%
+Albers_SF.head(2)
+
+# %%
+
+# %%
+# %%time
+f_name = bio_reOrganized + 'Albers_SF_west_weather_MK_Spearman.shp.zip'
+Albers_SF.to_file(filename=f_name, driver='ESRI Shapefile')
+
+
+# %%
+
+# %%
+# %%time
+f_name = bio_reOrganized + 'Albers_SF_west_weather_MK_Spearman.shp.zip'
+A = geopandas.read_file(f_name)
+A.head(2)
+
+# %%
+sorted(A.columns)
+
+# %%

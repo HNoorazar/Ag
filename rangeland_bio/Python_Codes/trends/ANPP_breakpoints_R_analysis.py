@@ -51,11 +51,15 @@ import rangeland_plot_core as rpc
 
 
 # %%
-dpi_, map_dpi_=300, 900
+dpi_, map_dpi_=300, 500
 custom_cmap_coral = ListedColormap(['lightcoral', 'black'])
 custom_cmap_BW = ListedColormap(['white', 'black'])
 cmap_G = cm.get_cmap('Greens') # 'PRGn', 'YlGn'
-cmap_R = cm.get_cmap('Reds') 
+cmap_R = cm.get_cmap('Reds')
+
+fontdict_normal = fontdict={'family':'serif', 'weight':'normal'}
+fontdict_bold = fontdict={'family':'serif', 'weight':'bold'}
+inset_axes_     = [0.1, 0.13, 0.45, 0.03]
 
 # %%
 from matplotlib import colormaps
@@ -369,6 +373,8 @@ plt.savefig(file_name, dpi=dpi_, bbox_inches='tight')
 
 # %% [markdown]
 # ## Maps
+#
+# ### norm_col is not making any difference
 
 # %%
 y_var = "mean_lb_per_acr"
@@ -434,58 +440,28 @@ plt.rcParams.update(params)
 fig, ax = plt.subplots(1, 1, dpi=map_dpi_) # figsize=(2, 2)
 ax.set_xticks([]); ax.set_yticks([])
 
-rpc.plot_SF(SF=visframe_mainLand_west, ax_=ax, col="EW_meridian", cmap_ = custom_cmap_BW)
+rpc.plot_SF(SF=visframe_mainLand_west, ax_=ax, col="EW_meridian", cmap_=ListedColormap(['grey', 'black']))
 SF_west_BP1 = SF_west[SF_west["breakpoint_count"]>=1].copy()
-cent_plt = SF_west_BP1["centroid"].plot(ax=ax, c=SF_west_BP1['BP_1'], markersize=.1);
-plt.tight_layout()
+# cent_plt = SF_west_BP1["centroid"].plot(ax=ax, c=SF_west_BP1['BP_1'], markersize=.1);
+cent_plt = SF_west_BP1.plot(column='BP_1', ax=ax, legend=False, cmap='seismic')
 
 ############# color bar
-cax = ax.inset_axes([0.03, 0.18, 0.5, 0.03])
+cax = ax.inset_axes(inset_axes_)
 # cbar1 = fig.colorbar(cent_plt.collections[1], ax=ax, orientation='vertical', shrink=0.5)
 cbar1 = fig.colorbar(cent_plt.collections[1], ax=ax, orientation='horizontal', shrink=0.3, cax=cax)
-cbar1.set_label(r"BP1 years", labelpad=2)
+cbar1.set_label(r"ANPP BP1 years", labelpad=2)
 
 #############
-plt.title('BP1 years', y=0.98);
+plt.title('ANPP BP1 years', y=0.98);
 
 # fig.subplots_adjust(top=0.91, bottom=0.01, left=0.01, right=0.981)
+plt.tight_layout()
 file_name = breakpoint_plot_base + "BP1_years_map.png"
 plt.savefig(file_name, bbox_inches='tight', dpi=map_dpi_)
 
 del(cent_plt, cax, cbar1)
 
 # %%
-
-# %%
-fig, ax = plt.subplots(1, 1, dpi=map_dpi_) # figsize=(2, 2)
-ax.set_xticks([]); ax.set_yticks([])
-
-rpc.plot_SF(SF=visframe_mainLand_west, ax_=ax, col="EW_meridian", cmap_ = custom_cmap_BW)
-SF_west_BP1 = SF_west[SF_west["breakpoint_count"]>=1].copy()
-
-min_col_ = SF_west_BP1['BP_1'].min()
-max_col_ = SF_west_BP1['BP_1'].max()
-norm_col = Normalize(vmin= min_col_, vmax = max_col_);
-
-
-cent_plt = SF_west_BP1["centroid"].plot(ax=ax, c=SF_west_BP1['BP_1'], markersize=.1, norm=norm_col);
-plt.tight_layout()
-
-
-############# color bar
-cax = ax.inset_axes([0.03, 0.18, 0.5, 0.03])
-# cbar1 = fig.colorbar(cent_plt.collections[1], ax=ax, orientation='vertical', shrink=0.5)
-cbar1 = fig.colorbar(cent_plt.collections[1], ax=ax, orientation='horizontal', shrink=0.3, cax=cax)
-cbar1.set_label(r"BP1 years", labelpad=2)
-
-#############
-plt.title('BP1 years', y=0.98);
-
-# fig.subplots_adjust(top=0.91, bottom=0.01, left=0.01, right=0.981)
-file_name = breakpoint_plot_base + "BP1_years_map_norm_col.png"
-# plt.savefig(file_name, bbox_inches='tight', dpi=map_dpi_)
-
-del(cent_plt, cax, cbar1)
 
 # %%
 tick_legend_FontSize = 10
@@ -513,46 +489,42 @@ plt.rcParams.update(params)
 
 
 # %%
-SF_west_BP1 = SF_west[SF_west["breakpoint_count"]>=1].copy()
-SF_west_BP1_green = SF_west_BP1[SF_west_BP1["trend"] == "increasing"].copy()
+# SF_west_BP1 = SF_west[SF_west["breakpoint_count"]>=1].copy()
+# SF_west_BP1_green = SF_west_BP1[SF_west_BP1["trend"] == "increasing"].copy()
 
-min_col_ = SF_west_BP1['BP_1'].min()
-max_col_ = SF_west_BP1['BP_1'].max()
-norm_col = Normalize(vmin= min_col_, vmax = max_col_);
+# min_col_ = SF_west_BP1['BP_1'].min()
+# max_col_ = SF_west_BP1['BP_1'].max()
+# norm_col = Normalize(vmin= min_col_, vmax = max_col_);
 
-fig, axes = plt.subplots(1, 2, figsize=(8, 4), sharex=True, sharey=True, dpi=map_dpi_,
-                         gridspec_kw={"hspace": 0.15, "wspace": -0.11})
-(ax1, ax2) = axes
-ax1.set_xticks([]); ax1.set_yticks([])
-ax2.set_xticks([]); ax2.set_yticks([])
+# fig, axes = plt.subplots(1, 2, figsize=(8, 4), sharex=True, sharey=True, dpi=map_dpi_,
+#                          gridspec_kw={"hspace": 0.15, "wspace": -0.11})
+# (ax1, ax2) = axes
+# ax1.set_xticks([]); ax1.set_yticks([])
+# ax2.set_xticks([]); ax2.set_yticks([])
 
-#############
-rpc.plot_SF(SF=visframe_mainLand_west, ax_=ax1, cmap_="Pastel1", col="EW_meridian")
-rpc.plot_SF(SF=visframe_mainLand_west, ax_=ax2, cmap_="Pastel1", col="EW_meridian")
-#############
+# #############
+# rpc.plot_SF(SF=visframe_mainLand_west, ax_=ax1, cmap_=ListedColormap(['grey', 'black']), col="EW_meridian")
+# rpc.plot_SF(SF=visframe_mainLand_west, ax_=ax2, cmap_=ListedColormap(['grey', 'black']), col="EW_meridian")
+# #############
 
-# p1 = SF_west_BP1.plot(column='BP_1', ax=ax1, cmap=cmap_G, norm=norm_col)
-p1 = SF_west_BP1["centroid"].plot(ax=ax1, c=SF_west_BP1['BP_1'], 
-                                  markersize=.1, norm=norm_col);
-ax1.set_title(r"BP1 years", y=0.98);
-#############
-p2 = SF_west_BP1_green["centroid"].plot(ax=ax2, c=SF_west_BP1_green['BP_1'], 
-                                        markersize=.1, norm=norm_col);
-ax2.set_title(r"BP1 years in greening locations", y=0.98);
+# # p1 = SF_west_BP1.plot(column='BP_1', ax=ax1, cmap=cmap_G, norm=norm_col)
+# # p1 = SF_west_BP1["centroid"].plot(ax=ax1, c=SF_west_BP1['BP_1'], markersize=.1, norm=norm_col);
+# p1 = SF_west_BP1.plot(column='BP_1', ax=ax1, legend=False, cmap='seismic', norm=norm_col)
+# ax1.set_title(r"BP1 years", y=0.98);
+# #############
+# # p2 = SF_west_BP1_green["centroid"].plot(ax=ax2, c=SF_west_BP1_green['BP_1'], markersize=.1, norm=norm_col);
+# p2 = SF_west_BP1_green.plot(column='BP_1', ax=ax2, legend=False, cmap='seismic', norm=norm_col)
+# ax2.set_title(r"BP1 years in greening locations", y=0.98);
 
-############# color bar
-cax = ax2.inset_axes([1.05, 0.3, 0.04, 0.4])
-cbar1=fig.colorbar(p1.get_children()[1], cax=cax, orientation='vertical');
-# cbar1.set_label(r"BP1 years", labelpad=2)
+# ############# color bar
+# cax = ax2.inset_axes([1.05, 0.3, 0.04, 0.4])
+# cbar1=fig.colorbar(p1.get_children()[1], cax=cax, orientation='vertical');
+# # cbar1.set_label(r"BP1 years", labelpad=2)
 
-file_name = breakpoint_plot_base + "BP1_years_all_and_green_map_norm_col.png"
-plt.savefig(file_name, bbox_inches='tight', dpi=map_dpi_)
+# file_name = breakpoint_plot_base + "BP1_years_all_and_green_map.png"
+# plt.savefig(file_name, bbox_inches='tight', dpi=map_dpi_)
 
-del(p1, p2, cax, cbar1)
-
-# %%
-
-# %%
+# del(p1, p2, cax, cbar1, min_col_, max_col_, norm_col)
 
 # %%
 
