@@ -20,9 +20,9 @@ bio_plots = strcat(rangeland_bio_base, "plots/");
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%/
-%/
-%/  read anpp file
-%/
+%
+%  read anpp file
+%
 filename = strcat(bio_reOrganized, "bpszone_ANPP_no2012.csv");
 anpp = readmatrix(filename); %  did not work in Octav
 anpp = csvread(filename);
