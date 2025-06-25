@@ -269,3 +269,6 @@ cols = ['annual_forb_grass', 'bare_ground', 'litter', 'perennial_forb_grass', 't
 LULC_1986_2023[cols].sum(axis=1)
 
 # %%
+LULC_1986_2023.tail(4)
+
+# %%
