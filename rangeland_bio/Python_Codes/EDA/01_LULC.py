@@ -101,6 +101,7 @@ state_fips = state_fips[state_fips.state != "VI"].copy()
 state_fips.head(2)
 
 # %%
+LULC_dir
 
 # %% [markdown]
 # ## Read CSV files
@@ -259,5 +260,12 @@ axes.tick_params(axis='x', rotation=45)
 plt.legend();
 
 # %%
+LULC_1986_2023.head(2)
+
+# %%
+cols = ['annual_forb_grass', 'bare_ground', 'litter', 'perennial_forb_grass', 'tree']
+
+# %%
+LULC_1986_2023[cols].sum(axis=1)
 
 # %%
