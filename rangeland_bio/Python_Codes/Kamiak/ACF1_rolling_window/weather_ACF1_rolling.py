@@ -55,12 +55,15 @@ ACF1s_window = rc.rolling_autocorr_df_prealloc(
 )
 
 ws_str = str(ws)
-fnamePref = (
-    f"rolling_autocorrelations_ws{ws_str}_temp"
-    if y_ == "avg_of_dailyAvgTemp_C"
-    else f"rolling_autocorrelations_ws{ws_str}_{y_}"
-)
-filename = ACF_data + fnamePref + ".sav"
+
+if y_ == "avg_of_dailyAvgTemp_C":
+    fnamePref = f"rolling_autocorrelations_ws{ws_str}_temp"
+elif y_ == "precip_mm":
+    fnamePref = f"rolling_autocorrelations_ws{ws_str}_prec"
+
+else:
+    fnamePref = f"rolling_autocorrelations_ws{ws_str}_{y_}"
+
 
 export_ = {
     fnamePref: ACF1s_window,
@@ -69,6 +72,7 @@ export_ = {
     "Date": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
 }
 
+filename = ACF_data + fnamePref + ".sav"
 pickle.dump(export_, open(filename, "wb"))
 
 filename = ACF_data + fnamePref + ".csv"

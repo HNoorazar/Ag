@@ -54,11 +54,15 @@ variances = rc.rolling_variance_df_prealloc(
 )
 
 ws_str = str(ws)
-fnamePref = (
-    f"rolling_variance_ws{ws_str}_temp"
-    if y_ == "avg_of_dailyAvgTemp_C"
-    else f"rolling_variance_ws{ws_str}_{y_}"
-)
+
+if y_ == "avg_of_dailyAvgTemp_C":
+    fnamePref = f"rolling_variance_ws{ws_str}_temp"
+elif y_ == "precip_mm":
+    fnamePref = f"rolling_variance_ws{ws_str}_prec"
+
+else:
+    fnamePref = f"rolling_variance_ws{ws_str}_{y_}"
+
 filename = rolling_variances_dir + fnamePref + ".sav"
 
 export_ = {

@@ -4,7 +4,7 @@
 #SBATCH --partition=rajagopalan,kamiak
 #SBATCH --requeue
 #SBATCH --job-name=weather_ACF1_rolling_window_size # Job Name
-#SBATCH --time=0-10:00:00    # Wall clock time limit in Days-HH:MM:SS
+#SBATCH --time=0-1:00:00    # Wall clock time limit in Days-HH:MM:SS
 #SBATCH --mem=8GB 
 #SBATCH --nodes=1            # Node count required for the job
 #SBATCH --ntasks-per-node=1  # Number of tasks to be launched per Node
