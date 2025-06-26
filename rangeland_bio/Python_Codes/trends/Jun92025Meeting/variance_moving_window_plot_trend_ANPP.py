@@ -329,12 +329,6 @@ os.makedirs(outdir, exist_ok=True)
 # %%
 
 # %%
-
-# %%
-
-# %%
-
-# %%
 # # %%time
 for y_var in slope_cols:
     print (y_var)
@@ -383,7 +377,6 @@ for y_var in slope_cols:
     cbar0.set_label(fr'slope of $\sigma^2_{{ws={ws}}}$', labelpad=2, fontdict=fontdict_normal)
     cbar1.set_label(fr'slope of $\sigma^2_{{ws={ws}}}$', labelpad=2, fontdict=fontdict_normal)
 
-    t_ = y_var.replace("mean_lb_per_acr", 'anpp').split("_")[-1]
     fig.suptitle(f"slope of variance time-series (window size {ws}, {last_part})", y=0.82);
     plt.tight_layout()    
     t_ = y_var.replace("mean_lb_per_acr", 'anpp')

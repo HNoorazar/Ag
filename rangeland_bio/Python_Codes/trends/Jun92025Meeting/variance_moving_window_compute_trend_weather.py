@@ -209,5 +209,6 @@ f_name = rangeland_bio_data + 'SF_west_weather_movingVariance.shp.zip'
 SF_west.to_file(filename=f_name, driver='ESRI Shapefile')
 
 # %%
+SF_west.shape
 
 # %%
