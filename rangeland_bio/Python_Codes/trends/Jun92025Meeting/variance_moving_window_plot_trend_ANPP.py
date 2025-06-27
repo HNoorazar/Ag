@@ -50,6 +50,7 @@ cmap_R = cm.get_cmap('Reds')
 
 fontdict_normal = {'family':'serif', 'weight':'normal'}
 fontdict_bold   = {'family':'serif', 'weight':'bold'}
+fontdict_bold_sup= {'family':'serif', 'fontweight':'bold'}
 inset_axes_     = [0.1, 0.14, 0.45, 0.03]
 
 # %%
@@ -261,7 +262,7 @@ for type_ in ['slope']: # 'categ',
             ax.set_aspect('equal', adjustable='box')
 
             # title_ = f"slope of variance time-series (window size {ws}, {last_part})"
-            plt.title(L_ + f' ({last_part})'title_, y=0.98, fontdict=fontdict_bold);
+            plt.title(L_ + f' ({last_part})', y=0.98, fontdict=fontdict_bold);
             file_name = outdir + f"{col}.png"
             ax.set_aspect('equal', adjustable='box')
             plt.savefig(file_name, bbox_inches='tight', dpi=map_dpi_)
@@ -386,7 +387,7 @@ for y_var in slope_cols:
     cbar0.set_label(L_, labelpad=2, fontdict=fontdict_normal)
     cbar1.set_label(L_, labelpad=2, fontdict=fontdict_normal)
     # f"slope of variance time-series (window size {ws}, {last_part})"
-    fig.suptitle(L_ +f' ({last_part})', y=0.82, fontdict=fontdict_bold);
+    fig.suptitle(L_ +f' ({last_part})', y=0.82, fontdict=fontdict_bold_sup);
     plt.tight_layout()    
     t_ = y_var.replace("mean_lb_per_acr", 'anpp')
     

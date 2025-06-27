@@ -51,10 +51,9 @@ custom_cmap_GrayW = ListedColormap(['grey', 'black'])
 cmap_G = cm.get_cmap('Greens') # 'PRGn', 'YlGn'
 cmap_R = cm.get_cmap('Reds')
 
-best_cmap_ = ListedColormap([(0.9, 0.9, 0.9), 'black'])
-
 fontdict_normal = {'family':'serif', 'weight':'normal'}
 fontdict_bold   = {'family':'serif', 'weight':'bold'}
+fontdict_bold_sup= {'family':'serif', 'fontweight':'bold'}
 inset_axes_     = [0.1, 0.14, 0.45, 0.03]
 
 # %%

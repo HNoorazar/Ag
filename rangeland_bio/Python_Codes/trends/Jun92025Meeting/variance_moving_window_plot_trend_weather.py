@@ -50,6 +50,7 @@ cmap_R = cm.get_cmap('Reds')
 
 fontdict_normal = {'family':'serif', 'weight':'normal'}
 fontdict_bold   = {'family':'serif', 'weight':'bold'}
+fontdict_bold_sup   = {'family':'serif', 'fontweight':'bold'}
 inset_axes_     = [0.1, 0.14, 0.45, 0.03]
 
 # %%
@@ -312,9 +313,7 @@ for col in temp_slope_cols:
     L_ = fr'slope of $\sigma^2_{{ws={ws}}}$'
     cbar1.set_label(L_, labelpad=2, fontdict=fontdict_normal)
     plt.tight_layout()
-    # on overleaf, a sublot looked slightly higher than
-    # another. lets see if this fixes it
-    
+    # on overleaf, a sublot looked slightly higher than another. lets see if this fixes it
     # title_ = f"slope of variance time-series (window size {ws}, {last_part})"
     plt.title(L_ + f' ({last_part})', y=0.98, fontdict=fontdict_bold);
     file_name = outdir + f"indiv_cbar_{col}.png"
@@ -322,7 +321,7 @@ for col in temp_slope_cols:
     
     plt.savefig(file_name, bbox_inches='tight', dpi=map_dpi_)
     plt.close()
-
+    
     try:
         del(cent_plt, cax, cbar1, ws, last_part, file_name)
     except:
@@ -394,7 +393,7 @@ for y_var in temp_slope_cols:
     cbar1.set_label(L_, labelpad=2, fontdict=fontdict_normal)
     
     # L_ = f"slope of variance time-series (window size {ws}, {last_part})"
-    fig.suptitle(L_ + f' ({last_part})', y=0.82, fontdict=fontdict_bold);
+    fig.suptitle(L_ + f' ({last_part})', y=0.82, fontdict=fontdict_bold_sup);
     plt.tight_layout()
     
     file_name = outdir + y_var + "_divergeRB_greyBG.png"
@@ -422,6 +421,9 @@ for col_ in prec_slope_cols:
 cc_ = max(np.abs(min_), np.max(max_))
 norm_col = Normalize(vmin=-cc_, vmax=cc_, clip=True);
 print (round(min_, 2), round(max_, 2), round(cc_, 2))
+
+# %%
+# cax = ax.inset_axes([0.03, 0.18, 0.5, 0.03])
 
 # %%
 # %%time
@@ -468,15 +470,12 @@ for type_ in ['slope']: # 'categ',
 
             cent_plt = SF_west.plot(column=col, ax=ax, legend=False, cmap='seismic', norm=norm_col)
             ############# color bar
-            # cax = ax.inset_axes([0.03, 0.18, 0.5, 0.03])
             cax = ax.inset_axes(inset_axes_)
             cbar1 = fig.colorbar(cent_plt.collections[1], ax=ax, orientation='horizontal', shrink=0.3, cax=cax)
             L_ = fr'slope of $\sigma^2_{{ws={ws}}}$'
-            cbar1.set_label(, labelpad=2, fontdict=fontdict_normal)
+            cbar1.set_label(L_, labelpad=2, fontdict=fontdict_normal)
             plt.tight_layout()
-            # on overleaf, a sublot looked slightly higher than
-            # another. lets see if this fixes it
-            
+
             # title_ = f"slope of variance time-series (window size {ws}, {last_part})"
             plt.title(L_ + f' ({last_part})', y=0.98, fontdict=fontdict_bold);
             file_name = outdir + f"{col}.png"
@@ -520,16 +519,12 @@ for col in prec_slope_cols:
     norm0 = Normalize(vmin= -min_max0, vmax=min_max0, clip=True)
     cent_plt = SF_west.plot(column=col, ax=ax, legend=False, cmap='seismic', norm=norm0)
     ############# color bar
-    # cax = ax.inset_axes([0.03, 0.18, 0.5, 0.03])
     cax = ax.inset_axes(inset_axes_)
-    
     cbar1 = fig.colorbar(cent_plt.collections[1], ax=ax, orientation='horizontal', shrink=0.3, cax=cax)
     
     L_ = fr'slope of $\sigma^2_{{ws={ws}}}$'
     cbar1.set_label(L_, labelpad=2, fontdict=fontdict_normal)
     plt.tight_layout()
-    # on overleaf, a sublot looked slightly higher than
-    # another. lets see if this fixes it
     
     # title_ = f"slope of variance time-series (window size {ws}, {last_part})"
     plt.title(L_ + f' ({last_part})', y=0.98, fontdict=fontdict_bold);
@@ -599,7 +594,7 @@ for y_var in prec_slope_cols:
     cbar1.set_label(L_, labelpad=2, fontdict=fontdict_normal)
 
     # f"slope of variance time-series (window size {ws}, {last_part})"
-    fig.suptitle(L_ + f' ({last_part})', y=0.82, fontdict=fontdict_bold)
+    fig.suptitle(L_ + f' ({last_part})', y=0.82, fontdict=fontdict_bold_sup)
     plt.tight_layout()
     
     file_name = outdir + y_var + "_divergeRB_greyBG.png"
@@ -610,5 +605,7 @@ for y_var in prec_slope_cols:
 
 print ()    
 print (outdir)
+
+# %%
 
 # %%
