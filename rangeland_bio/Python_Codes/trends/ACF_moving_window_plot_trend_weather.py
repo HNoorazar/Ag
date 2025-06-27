@@ -208,7 +208,7 @@ for col_ in temp_slope_cols:
 
 cc_ = max(np.abs(min_), np.max(max_))
 norm_col = Normalize(vmin=-cc_, vmax=cc_, clip=True);
-print (min_, max_, cc_)
+print (round(min_, 2), round(max_, 2), round(cc_, 2))
 
 # %%
 
@@ -325,8 +325,6 @@ for col in temp_slope_cols:
 
 #############
 
-# %%
-
 # %% [markdown]
 # ### <span style="color:red">colormap virdis does not work for polygons!</span>
 
@@ -342,13 +340,13 @@ max_ = -np.inf
 for col_ in prec_slope_cols:
     if SF_west[col_].min() < min_:
         min_ = SF_west[col_].min()
-        
+
     if SF_west[col_].max() > max_:
         max_ = SF_west[col_].max()
 
 cc_ = max(np.abs(min_), np.max(max_))
-norm_col = Normalize(vmin=-cc_, vmax=cc_, clip=True);
-print (min_.round(2), max_.round(2), cc_.round(2))
+norm_col = Normalize(vmin= -cc_, vmax=cc_, clip=True);
+print (round(min_, 2), round(max_, 2), round(cc_, 2))
 
 # %%
 
@@ -439,8 +437,7 @@ for col in prec_slope_cols:
     min_max0 = max(np.abs(SF_west[col].min()), np.abs(SF_west[col].max()))
     norm0 = Normalize(vmin= -min_max0, vmax=min_max0, clip=True)
     cent_plt = SF_west.plot(column=col, ax=ax, legend=False, cmap='seismic', norm=norm0)
-    ############# color bar
-    #cax = ax.inset_axes([0.03, 0.18, 0.5, 0.03])
+    ############# color bar 
     cax = ax.inset_axes(inset_axes_)
     cbar1 = fig.colorbar(cent_plt.collections[1], ax=ax, orientation='horizontal', shrink=0.3, cax=cax)
     

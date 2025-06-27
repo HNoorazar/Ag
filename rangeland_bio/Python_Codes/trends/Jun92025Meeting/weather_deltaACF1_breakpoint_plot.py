@@ -53,12 +53,14 @@ importlib.reload(rpc);
 dpi_, map_dpi_ = 300, 500
 custom_cmap_coral = ListedColormap(['lightcoral', 'black'])
 custom_cmap_BW = ListedColormap(['white', 'black'])
+custom_cmap_GrayW = ListedColormap(['grey', 'black'])
 cmap_G = cm.get_cmap('Greens') # 'PRGn', 'YlGn'
 cmap_R = cm.get_cmap('Reds')
 
 fontdict_normal = {'family':'serif', 'weight':'normal'}
 fontdict_bold   = {'family':'serif', 'weight':'bold'}
-inset_axes_     = [0.1, 0.13, 0.45, 0.03]
+fontdict_bold_sup= {'family':'serif', 'fontweight':'bold'}
+inset_axes_     = [0.1, 0.14, 0.45, 0.03]
 
 # %%
 from matplotlib import colormaps
@@ -84,7 +86,7 @@ os.makedirs(bio_plots, exist_ok=True)
 breakpoint_plot_base = bio_plots + "breakpoints/"
 os.makedirs(breakpoint_plot_base, exist_ok=True)
 
-breakpoint_TS_dir = breakpoint_plot_base + "breakpoints_TS/"
+breakpoint_TS_dir = bio_plots + "breakpoints_TS/"
 os.makedirs(breakpoint_TS_dir, exist_ok=True)
 
 
@@ -102,22 +104,17 @@ breakpoint_TS_sen_dir = breakpoint_plot_base + "breakpoints_TS_sensSlope/"
 breakpoints_dir = rangeland_bio_data + "breakpoints/"
 
 # %%
-ANPP = pd.read_pickle(bio_reOrganized + "bpszone_ANPP_no2012.sav")
-ANPP = ANPP["bpszone_ANPP"]
-ANPP.head(2)
+filename = bio_reOrganized + f"weather_detrended.sav"
+
+weather_detrended = pd.read_pickle(filename)
+weather_detrended.keys()
+weather_detrended = weather_detrended["weather_detrended"]
+weather_detrended.head(2)
 
 # %%
-filename = bio_reOrganized + f"bpszone_ANPP_no2012_detrended.sav"
-
-ANPP_no2012_detrended = pd.read_pickle(filename)
-ANPP_no2012_detrended = ANPP_no2012_detrended["ANPP_no2012_detrended"]
-ANPP_no2012_detrended.head(2)
-
-# %%
-filename = breakpoints_dir + "ACFs_beforeAfter_BP1.sav"
+filename = breakpoints_dir + "weather_ACFs_beforeAfter_BP1.sav"
 ACFs_beforeAfter_BP1 = pd.read_pickle(filename)
-ACFs_beforeAfter_BP1 = ACFs_beforeAfter_BP1['ACFs_beforeAfter_BP1']
-
+ACFs_beforeAfter_BP1 = ACFs_beforeAfter_BP1['weather_ACFs_beforeAfter_BP1']
 ACFs_beforeAfter_BP1.head(2)
 
 # %%
@@ -135,9 +132,17 @@ state_fips = state_fips[state_fips.state != "VI"].copy()
 state_fips.head(2)
 
 # %%
-ys = ["mean_lb_per_acr", "anpp_detrendLinReg", "anpp_detrendDiff", "anpp_detrendSens"]
+temp_ys = ["temp", "temp_detrendLinReg", "temp_detrendDiff", "temp_detrendSens"]
+prec_ys = ["prec", "prec_detrendLinReg", "prec_detrendDiff", "prec_detrendSens"]
 
-for y_ in ys:
+for y_ in temp_ys:
+    v_after = ACFs_beforeAfter_BP1['ACF_after_' + y_].values
+    v_before = ACFs_beforeAfter_BP1['ACF_before_' + y_].values
+    
+    ACFs_beforeAfter_BP1["delta_ACF_" + y_] = v_after - v_before
+    ACFs_beforeAfter_BP1["ratio_ACF_" + y_] = v_after / v_before
+    
+for y_ in prec_ys:
     v_after = ACFs_beforeAfter_BP1['ACF_after_' + y_].values
     v_before = ACFs_beforeAfter_BP1['ACF_before_' + y_].values
     
@@ -208,26 +213,17 @@ params = {"font.family": "Palatino",
 plt.rcParams.update(params)
 
 # %%
-ACF_plot_base = bio_plots + "ACF1/"
-os.makedirs(ACF_plot_base, exist_ok=True)
-
-# %%
-out_dir = bio_plots + "ACF_BABP1/"
-os.makedirs(out_dir, exist_ok=True)
-
-# %%
-y_var = delta_ratio_cols[0]
-delta_ratio_cols
-
-# %%
-y_var = delta_ratio_cols[1]
-y_var
+bio_plots
 
 # %% [markdown]
 # ## Ratio and Delta side by side
 
 # %%
-patterns = ['mean_lb_per_acr', 'detrendLinReg', 'detrendDiff', 'detrendSens']
+temp_patterns = ['temp', 'detrendLinReg', 'detrendDiff', 'detrendSens']
+prec_patterns = ['prec', 'detrendLinReg', 'detrendDiff', 'detrendSens']
+
+out_dir = bio_plots + "ACF_BABP1_temp/"
+os.makedirs(out_dir, exist_ok=True)
 
 # %%
 # %%time
@@ -236,9 +232,9 @@ curr_out_dir = out_dir + "ratio_and_delta_sideByside/"
 os.makedirs(curr_out_dir, exist_ok=True)
 curr_out_dir
 
-for a_pattern in patterns:
+for a_pattern in temp_patterns:
     y_vars = sorted([x for x in delta_ratio_cols if a_pattern in x])
-    
+
     fig, ax = plt.subplots(1, 2, dpi=map_dpi_, gridspec_kw={'hspace': 0.02, 'wspace': 0.05})
     ax[0].set_xticks([]); ax[0].set_yticks([]);
     ax[1].set_xticks([]); ax[1].set_yticks([]);
@@ -249,42 +245,39 @@ for a_pattern in patterns:
 
     df0 = Albers_SF_west.copy()
     df1 = Albers_SF_west.copy()
-    
+
     df0.dropna(subset=[y_vars[0]], inplace=True)
     df1.dropna(subset=[y_vars[1]], inplace=True)
 
     ############
     min_max0 = max(np.abs(df0[y_vars[0]].min()), np.abs(df0[y_vars[0]].max()))
     min_max1 = max(np.abs(df1[y_vars[1]].min()), np.abs(df1[y_vars[1]].max()))
-    
+
     norm0 = Normalize(vmin= -min_max0, vmax=min_max0, clip=True)
     norm1 = Normalize(vmin= -min_max1, vmax=min_max1, clip=True)
-    
+
     cent_plt0 = df0.plot(ax=ax[0], column=y_vars[0], legend=False, cmap='seismic', norm=norm0)
     cent_plt1 = df1.plot(ax=ax[1], column=y_vars[1], legend=False, cmap='seismic', norm=norm1)
 
-
     cax0 = ax[0].inset_axes(inset_axes_)
     cax1 = ax[1].inset_axes(inset_axes_)
-    
+
     cbar0 = fig.colorbar(cent_plt0.collections[1], ax=ax[0], norm=norm0, cax=cax0,
-                         orientation='horizontal', shrink=0.3, cmap=cm.get_cmap('RdYlGn'))
+                         orientation='horizontal', shrink=0.3)
 
     cbar1 = fig.colorbar(cent_plt1.collections[1], ax=ax[1], norm=norm1, cax=cax1, 
-                         orientation='horizontal', shrink=0.3, cmap=cm.get_cmap('RdYlGn'))
+                         orientation='horizontal', shrink=0.3)
 
     cbar0.set_label(r'$\Delta(ACF1_{BP1})$', labelpad=1, fontdict=fontdict_normal);
     cbar1.set_label(r'ratio$(ACF1_{BP1})$' , labelpad=1, fontdict=fontdict_normal);
+
+    L_ = f"ACF1-delta & -ratio after & before ANPP-BP1 ({a_pattern})"
+    fig.suptitle(L_, y=0.82, fontdict=fontdict_bold_sup);
     
-    t_ = a_pattern.replace('mean_lb_per_acr', 'anpp')
-    fig.suptitle(f"ACF1-delta and -ratio after and before BP1 ({t_})", y=0.82, fontdict={'family':'serif'});
-    
-    file_name = curr_out_dir + "ACF_" + t_ + "_BP1_divergeRB_greyBG.png"
+    file_name = curr_out_dir + "ACF_" + a_pattern + "_BP1.png"
     plt.savefig(file_name, bbox_inches='tight', dpi=map_dpi_)
     plt.close()
     del(cent_plt0, cent_plt1, cax0, cax1, cbar0, cbar1, norm0, norm1, min_max0, min_max1, df0, df1)
-
-# %%
 
 # %% [markdown]
 # ## one variable at a time. outliers separated.
@@ -328,34 +321,169 @@ for y_var in delta_ratio_cols:
     cent_plt1 = filtered_outside.plot(ax=ax[1], column=y_var, legend=False, cmap='seismic', norm=norm1)
 
     cax0 = ax[0].inset_axes(inset_axes_); 
-    cax1 = ax[1].inset_axes(inset_axes_)
+    cax1 = ax[1].inset_axes(inset_axes_);
     
     cbar0 = fig.colorbar(cent_plt0.collections[1], ax=ax[0], norm=norm0, cax=cax0,
-                         cmap=cm.get_cmap('RdYlGn'), shrink=0.3, orientation='horizontal')
+                         shrink=0.3, orientation='horizontal')
     
     cbar1 = fig.colorbar(cent_plt1.collections[1], ax=ax[1], norm=norm1, cax=cax1,
-                         cmap=cm.get_cmap('RdYlGn'), shrink=0.3, orientation='horizontal')
+                         shrink=0.3, orientation='horizontal')
 
     if "delta" in y_var:
-        cbar0.set_label(r'$\Delta(ACF1_{BP1})$', labelpad=1, fontdict=fontdict_normal);
-        cbar1.set_label(r'$\Delta(ACF1_{BP1})$', labelpad=1, fontdict=fontdict_normal);
+        L_ = r'$\Delta(ACF1_{BP1})$'
+        cbar0.set_label(L_, labelpad=1, fontdict=fontdict_normal);
+        cbar1.set_label(L_, labelpad=1, fontdict=fontdict_normal);
         pre_title = "diff."
     elif "ratio" in y_var:
-        cbar0.set_label(r'$ratio(ACF1_{BP1})$', labelpad=1, fontdict=fontdict_normal);
-        cbar1.set_label(r'$ratio(ACF1_{BP1})$', labelpad=1, fontdict=fontdict_normal;
+        L_ = r'$ratio(ACF1_{BP1})$'
+        cbar0.set_label(L_, labelpad=1, fontdict=fontdict_normal);
+        cbar1.set_label(L_, labelpad=1, fontdict=fontdict_normal);
         pre_title = "ratio"
     
-    t_ = y_var.replace("mean_lb_per_acr", 'anpp').split("_")[-1]
-    # plt.title(f"ACF1 {pre_title} after and before BP1", fontdict={'family':'serif', 'weight':'bold'});
-    fig.suptitle(f"ACF1-{pre_title} after and before BP1 ({t_})", y=0.82, fontdict={'family':'serif'});
+    t_ = y_var.split("_")[-1]
+    title_ = f"ACF1-{pre_title} after & before ANPP-BP1 ({t_})"
+    fig.suptitle(title_, y=0.82, fontdict=fontdict_bold_sup);
     
-    t_ = y_var.replace("mean_lb_per_acr", 'anpp')
-    file_name = curr_out_dir + t_ + "_BP1_divergeRB_greyBG.png"
+    file_name = curr_out_dir + y_var + "_BP1.png"
     plt.savefig(file_name, bbox_inches='tight', dpi=map_dpi_)
     plt.close()
     del(cent_plt0, cent_plt1, cax0, cax1, cbar0, cbar1, norm0, norm1, min_max0, min_max1,
         filtered_between, filtered_outside)
 
 # %%
+
+# %% [markdown]
+# # Repeat for Prec
+
+# %%
+temp_patterns = ['temp', 'detrendLinReg', 'detrendDiff', 'detrendSens']
+prec_patterns = ['prec', 'detrendLinReg', 'detrendDiff', 'detrendSens']
+
+out_dir = bio_plots + "ACF_BABP1_prec/"
+os.makedirs(out_dir, exist_ok=True)
+
+# %%
+# %%time
+
+curr_out_dir = out_dir + "ratio_and_delta_sideByside/"
+os.makedirs(curr_out_dir, exist_ok=True)
+curr_out_dir
+
+for a_pattern in prec_patterns:
+    y_vars = sorted([x for x in delta_ratio_cols if a_pattern in x])
+
+    fig, ax = plt.subplots(1, 2, dpi=map_dpi_, gridspec_kw={'hspace': 0.02, 'wspace': 0.05})
+    ax[0].set_xticks([]); ax[0].set_yticks([]);
+    ax[1].set_xticks([]); ax[1].set_yticks([]);
+
+    # Plotting the data with original colormap (don't change the color normalization)
+    rpc.plot_SF(SF=visframe_mainLand_west, ax_=ax[0], col="EW_meridian", cmap_=custom_cmap_GrayW)
+    rpc.plot_SF(SF=visframe_mainLand_west, ax_=ax[1], col="EW_meridian", cmap_=custom_cmap_GrayW)
+
+    df0 = Albers_SF_west.copy()
+    df1 = Albers_SF_west.copy()
+
+    df0.dropna(subset=[y_vars[0]], inplace=True)
+    df1.dropna(subset=[y_vars[1]], inplace=True)
+
+    ############
+    min_max0 = max(np.abs(df0[y_vars[0]].min()), np.abs(df0[y_vars[0]].max()))
+    min_max1 = max(np.abs(df1[y_vars[1]].min()), np.abs(df1[y_vars[1]].max()))
+
+    norm0 = Normalize(vmin= -min_max0, vmax=min_max0, clip=True)
+    norm1 = Normalize(vmin= -min_max1, vmax=min_max1, clip=True)
+
+    cent_plt0 = df0.plot(ax=ax[0], column=y_vars[0], legend=False, cmap='seismic', norm=norm0)
+    cent_plt1 = df1.plot(ax=ax[1], column=y_vars[1], legend=False, cmap='seismic', norm=norm1)
+
+    cax0 = ax[0].inset_axes(inset_axes_)
+    cax1 = ax[1].inset_axes(inset_axes_)
+
+    cbar0 = fig.colorbar(cent_plt0.collections[1], ax=ax[0], norm=norm0, cax=cax0,
+                         orientation='horizontal', shrink=0.3)
+
+    cbar1 = fig.colorbar(cent_plt1.collections[1], ax=ax[1], norm=norm1, cax=cax1, 
+                         orientation='horizontal', shrink=0.3)
+
+    cbar0.set_label(r'$\Delta(ACF1_{BP1})$', labelpad=1, fontdict=fontdict_normal);
+    cbar1.set_label(r'ratio$(ACF1_{BP1})$' , labelpad=1, fontdict=fontdict_normal);
+
+    L_ = f"ACF1-delta & -ratio after & before ANPP-BP1 ({a_pattern})"
+    fig.suptitle(L_, y=0.82, fontdict=fontdict_bold_sup);
+    
+    file_name = curr_out_dir + "ACF_" + a_pattern + "_BP1.png"
+    plt.savefig(file_name, bbox_inches='tight', dpi=map_dpi_)
+    plt.close()
+    del(cent_plt0, cent_plt1, cax0, cax1, cbar0, cbar1, norm0, norm1, min_max0, min_max1, df0, df1)
+
+# %%
+
+# %%
+# %%time
+
+curr_out_dir = out_dir + "ratio_or_delta_outliers/"
+os.makedirs(curr_out_dir, exist_ok=True)
+curr_out_dir
+
+for y_var in delta_ratio_cols:
+    print (y_var)
+    fig, ax = plt.subplots(1, 2, dpi=map_dpi_, gridspec_kw={'hspace': 0.02, 'wspace': 0.05})
+    ax[0].set_xticks([]); ax[0].set_yticks([]);
+    ax[1].set_xticks([]); ax[1].set_yticks([]);
+
+    # Plotting the data with original colormap (don't change the color normalization)
+    rpc.plot_SF(SF=visframe_mainLand_west, ax_=ax[0], col="EW_meridian", cmap_=custom_cmap_GrayW)
+    rpc.plot_SF(SF=visframe_mainLand_west, ax_=ax[1], col="EW_meridian", cmap_=custom_cmap_GrayW)
+
+    df = Albers_SF_west.copy()
+    df.dropna(subset=[y_var], inplace=True)
+
+    perc_ = 5 / 100
+    lower_bound = df[y_var].quantile(perc_)
+    upper_bound = df[y_var].quantile(1 - perc_)
+
+    # Filter rows between 10th and 90th percentile (inclusive)
+    filtered_between = df[(df[y_var] >= lower_bound) & (df[y_var] <= upper_bound)]
+    filtered_outside = df[(df[y_var] < lower_bound) | (df[y_var] > upper_bound)]
+
+    ############
+    min_max0 = max(np.abs(filtered_between[y_var].min()), np.abs(filtered_between[y_var].max()))
+    min_max1 = max(np.abs(filtered_outside[y_var].min()), np.abs(filtered_outside[y_var].max()))
+    
+    norm0 = Normalize(vmin= -min_max0, vmax=min_max0, clip=True)
+    norm1 = Normalize(vmin= -min_max1, vmax=min_max1, clip=True)
+    
+    cent_plt0 = filtered_between.plot(ax=ax[0], column=y_var, legend=False, cmap='seismic', norm=norm0)
+    cent_plt1 = filtered_outside.plot(ax=ax[1], column=y_var, legend=False, cmap='seismic', norm=norm1)
+
+    cax0 = ax[0].inset_axes(inset_axes_); 
+    cax1 = ax[1].inset_axes(inset_axes_);
+    
+    cbar0 = fig.colorbar(cent_plt0.collections[1], ax=ax[0], norm=norm0, cax=cax0,
+                         shrink=0.3, orientation='horizontal')
+    
+    cbar1 = fig.colorbar(cent_plt1.collections[1], ax=ax[1], norm=norm1, cax=cax1,
+                         shrink=0.3, orientation='horizontal')
+
+    if "delta" in y_var:
+        L_ = r'$\Delta(ACF1_{BP1})$'
+        cbar0.set_label(L_, labelpad=1, fontdict=fontdict_normal);
+        cbar1.set_label(L_, labelpad=1, fontdict=fontdict_normal);
+        pre_title = "diff."
+    elif "ratio" in y_var:
+        L_ = r'$ratio(ACF1_{BP1})$'
+        cbar0.set_label(L_, labelpad=1, fontdict=fontdict_normal);
+        cbar1.set_label(L_, labelpad=1, fontdict=fontdict_normal);
+        pre_title = "ratio"
+    
+    t_ = y_var.split("_")[-1]
+    title_ = f"ACF1-{pre_title} after & before ANPP-BP1 ({t_})"
+    fig.suptitle(title_, y=0.82, fontdict=fontdict_bold_sup);
+    
+    file_name = curr_out_dir + y_var + "_BP1.png"
+    plt.savefig(file_name, bbox_inches='tight', dpi=map_dpi_)
+    plt.close()
+    del(cent_plt0, cent_plt1, cax0, cax1, cbar0, cbar1, norm0, norm1, min_max0, min_max1,
+        filtered_between, filtered_outside)
 
 # %%

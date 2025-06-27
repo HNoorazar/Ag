@@ -120,10 +120,6 @@ SF_west.head(2)
 # ## Read all rolling window variances
 
 # %%
-ys = ["anpp", "anpp_detrendLinReg", "anpp_detrendDiff", "anpp_detrendSens"]
-
-# %%
-# %%
 # %%time
 filename = bio_reOrganized + "variance_rollingWindow_trends.sav"
 
@@ -275,8 +271,6 @@ for type_ in ['slope']: # 'categ',
             
     #############
 
-# %%
-
 # %% [markdown]
 # ## Different color bars for each plot
 
@@ -323,8 +317,6 @@ for col in slope_cols:
         pass
 #############
 
-# %%
-
 # %% [markdown]
 # ### <span style="color:red">colormap virdis does not work for polygons!</span>
 
@@ -338,7 +330,8 @@ os.makedirs(outdir, exist_ok=True)
 # %%
 
 # %%
-# # %%time
+# %%time
+perc_ = 10 / 100
 for y_var in slope_cols:
     print (y_var)
     fig, ax = plt.subplots(1, 2, dpi=map_dpi_, gridspec_kw={'hspace': 0.02, 'wspace': 0.05})
@@ -351,8 +344,7 @@ for y_var in slope_cols:
 
     df = SF_west.copy()
     df.dropna(subset=[y_var], inplace=True)
-
-    perc_ = 10 / 100
+    
     lower_bound = df[y_var].quantile(perc_)
     upper_bound = df[y_var].quantile(1 - perc_)
 

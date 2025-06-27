@@ -59,12 +59,14 @@ importlib.reload(rpc);
 dpi_, map_dpi_ = 300, 500
 custom_cmap_coral = ListedColormap(['lightcoral', 'black'])
 custom_cmap_BW = ListedColormap(['white', 'black'])
+custom_cmap_GrayW = ListedColormap(['grey', 'black'])
 cmap_G = cm.get_cmap('Greens') # 'PRGn', 'YlGn'
 cmap_R = cm.get_cmap('Reds')
 
 fontdict_normal = {'family':'serif', 'weight':'normal'}
 fontdict_bold   = {'family':'serif', 'weight':'bold'}
-inset_axes_     = [0.1, 0.13, 0.45, 0.03]
+fontdict_bold_sup= {'family':'serif', 'fontweight':'bold'}
+inset_axes_     = [0.1, 0.14, 0.45, 0.03]
 
 # %%
 from matplotlib import colormaps
@@ -90,7 +92,7 @@ os.makedirs(bio_plots, exist_ok=True)
 breakpoint_plot_base = bio_plots + "breakpoints/"
 os.makedirs(breakpoint_plot_base, exist_ok=True)
 
-breakpoint_TS_dir = breakpoint_plot_base + "breakpoints_TS/"
+breakpoint_TS_dir = bio_plots + "breakpoints_TS/"
 os.makedirs(breakpoint_TS_dir, exist_ok=True)
 
 
@@ -111,18 +113,12 @@ os.makedirs(breakpoint_TS_sen_dir, exist_ok=True)
 breakpoints_dir = rangeland_bio_data + "breakpoints/"
 
 # %%
-# ANPP = pd.read_pickle(bio_reOrganized + "bpszone_ANPP_no2012.sav")
-# ANPP = ANPP["bpszone_ANPP"]
-# ANPP.head(2)
+filename = bio_reOrganized + f"weather_detrended.sav"
 
-# %%
-
-# %%
-filename = bio_reOrganized + f"bpszone_ANPP_no2012_detrended.sav"
-
-ANPP_no2012_detrended = pd.read_pickle(filename)
-ANPP_no2012_detrended = ANPP_no2012_detrended["ANPP_no2012_detrended"]
-ANPP_no2012_detrended.head(2)
+weather_detrended = pd.read_pickle(filename)
+weather_detrended.keys()
+weather_detrended = weather_detrended["weather_detrended"]
+weather_detrended.head(2)
 
 # %%
 ANPP_breaks = pd.read_csv(breakpoints_dir + "ANPP_break_points.csv")
@@ -148,8 +144,18 @@ ANPP_breaks['BP_1'] = ANPP_breaks['BP_1'].dropna().astype(int)
 print (ANPP_breaks.shape)
 
 # %%
+weather_detrended.rename(columns={"avg_of_dailyAvgTemp_C": "temp",
+                                 "precip_mm":"prec"}, 
+                         inplace=True)
+
+# %%
 lag = 1
-ys = ["mean_lb_per_acr", "anpp_detrendLinReg", "anpp_detrendDiff", "anpp_detrendSens"]
+
+temp_ys = ["temp", "temp_detrendLinReg", "temp_detrendDiff", "temp_detrendSens"]
+prec_ys = ["prec", "prec_detrendLinReg", "prec_detrendDiff", "prec_detrendSens"]
+
+cols_ = ["fid", "year"] + temp_ys + prec_ys
+weather_detrended = weather_detrended[cols_]
 
 # %%
 
@@ -158,60 +164,112 @@ ys = ["mean_lb_per_acr", "anpp_detrendLinReg", "anpp_detrendDiff", "anpp_detrend
 
 unique_fids = ANPP_breaks['fid'].unique()
 # Initialize empty DataFrame with desired columns
-ACFs_df = pd.DataFrame({'fid': unique_fids,
+ACFs_df_temp = pd.DataFrame({'fid': unique_fids,
                         'BP1' : np.nan,
                         'n_before': np.nan,
                         'n_after': np.nan,
-                        'ACF_before_mean_lb_per_acr': np.nan,
-                        'ACF_after_mean_lb_per_acr': np.nan,
+                        'ACF_before_temp': np.nan,
+                        'ACF_after_temp': np.nan,
                        
-                        'ACF_before_anpp_detrendLinReg': np.nan,
-                        'ACF_after_anpp_detrendLinReg': np.nan,
+                        'ACF_before_temp_detrendLinReg': np.nan,
+                        'ACF_after_temp_detrendLinReg': np.nan,
                        
-                        'ACF_before_anpp_detrendDiff': np.nan,
-                        'ACF_after_anpp_detrendDiff': np.nan,
+                        'ACF_before_temp_detrendDiff': np.nan,
+                        'ACF_after_temp_detrendDiff': np.nan,
                        
-                        'ACF_before_anpp_detrendSens': np.nan,
-                        'ACF_after_anpp_detrendSens': np.nan})
+                        'ACF_before_temp_detrendSens': np.nan,
+                        'ACF_after_temp_detrendSens': np.nan})
 
 
-ACFs_df = ACFs_df.set_index('fid')
-ACFs_df.head(2)
+ACFs_df_temp = ACFs_df_temp.set_index('fid')
+ACFs_df_temp.head(2)
 
-# y_var = "mean_lb_per_acr"
+# y_var = "temp"
 for _, row in ANPP_breaks.iterrows():
     fid = row['fid']
     bp_year = row['BP_1']
     
-    ACFs_df.loc[fid, 'BP1'] = bp_year
+    ACFs_df_temp.loc[fid, 'BP1'] = bp_year
     
-    # Filter ANPP by current fid
-    subset = ANPP_no2012_detrended[ANPP_no2012_detrended['fid'] == fid]
-    for y_var in ys:
+    # Filter by current fid
+    subset = weather_detrended[weather_detrended['fid'] == fid]
+    for y_var in temp_ys:
         # Separate before and after BP_1
         before = subset[subset['year'] < bp_year][y_var].dropna()
         after = subset[subset['year'] >= bp_year][y_var].dropna()
         
-        ACFs_df.loc[fid, 'n_before'] = len(before)
-        ACFs_df.loc[fid, 'n_after'] = len(after)
+        ACFs_df_temp.loc[fid, 'n_before'] = len(before)
+        ACFs_df_temp.loc[fid, 'n_after'] = len(after)
 
         autocorr = before.autocorr(lag=lag) if before.nunique() > 1 else np.nan
-        ACFs_df.loc[fid, 'ACF_before_' + y_var] = autocorr
+        ACFs_df_temp.loc[fid, 'ACF_before_' + y_var] = autocorr
 
         autocorr = after.autocorr(lag=lag) if after.nunique() > 1 else np.nan
-        ACFs_df.loc[fid, 'ACF_after_' + y_var] = autocorr
+        ACFs_df_temp.loc[fid, 'ACF_after_' + y_var] = autocorr
 
-ACFs_df.reset_index(drop=False, inplace=True)
-ACFs_df.head(3)
-
-# %%
+ACFs_df_temp.reset_index(drop=False, inplace=True)
+ACFs_df_temp.head(3)
 
 # %%
-filename = breakpoints_dir + "ACFs_beforeAfter_BP1.sav"
+
+# %%
+# %%time
+
+unique_fids = ANPP_breaks['fid'].unique()
+# Initialize empty DataFrame with desired columns
+ACFs_df_prec = pd.DataFrame({'fid': unique_fids,
+                             'ACF_before_prec': np.nan,
+                             'ACF_after_prec': np.nan,
+ 
+                             'ACF_before_prec_detrendLinReg': np.nan,
+                             'ACF_after_prec_detrendLinReg': np.nan,
+
+                             'ACF_before_prec_detrendDiff': np.nan,
+                             'ACF_after_prec_detrendDiff': np.nan,
+ 
+                             'ACF_before_prec_detrendSens': np.nan,
+                             'ACF_after_prec_detrendSens': np.nan})
+
+
+ACFs_df_prec = ACFs_df_prec.set_index('fid')
+ACFs_df_prec.head(2)
+
+# y_var = "prec"
+for _, row in ANPP_breaks.iterrows():
+    fid = row['fid']
+    bp_year = row['BP_1']
+    
+    ACFs_df_prec.loc[fid, 'BP1'] = bp_year
+    
+    # Filter by current fid
+    subset = weather_detrended[weather_detrended['fid'] == fid]
+    for y_var in prec_ys:
+        # Separate before and after BP_1
+        before = subset[subset['year'] < bp_year][y_var].dropna()
+        after = subset[subset['year'] >= bp_year][y_var].dropna()
+        
+        ACFs_df_prec.loc[fid, 'n_before'] = len(before)
+        ACFs_df_prec.loc[fid, 'n_after'] = len(after)
+
+        autocorr = before.autocorr(lag=lag) if before.nunique() > 1 else np.nan
+        ACFs_df_prec.loc[fid, 'ACF_before_' + y_var] = autocorr
+
+        autocorr = after.autocorr(lag=lag) if after.nunique() > 1 else np.nan
+        ACFs_df_prec.loc[fid, 'ACF_after_' + y_var] = autocorr
+
+ACFs_df_prec.reset_index(drop=False, inplace=True)
+ACFs_df_prec.head(3)
+
+# %%
+ACFs_df = pd.merge(ACFs_df_temp, ACFs_df_prec, on='fid', how='left')
+ACFs_df.head(2)
+
+# %%
+filename = breakpoints_dir + "weather_ACFs_beforeAfter_BP1.sav"
 
 export_ = {
-    "ACFs_beforeAfter_BP1": ACFs_df,
-    "source_code": "breakpoints_ACF_compute",
+    "weather_ACFs_beforeAfter_BP1": ACFs_df,
+    "source_code": "weather_beforeAfterBP1_ACF_compute",
     "Author": "HN",
     "Date": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
 }

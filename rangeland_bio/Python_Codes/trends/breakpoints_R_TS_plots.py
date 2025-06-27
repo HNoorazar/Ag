@@ -88,7 +88,7 @@ os.makedirs(yue_plots, exist_ok=True)
 breakpoint_plot_base = bio_plots + "breakpoints/"
 os.makedirs(breakpoint_plot_base, exist_ok=True)
 
-breakpoint_TS_dir = breakpoint_plot_base + "breakpoints_TS/"
+breakpoint_TS_dir = bio_plots + "breakpoints_TS/"
 os.makedirs(breakpoint_TS_dir, exist_ok=True)
 
 

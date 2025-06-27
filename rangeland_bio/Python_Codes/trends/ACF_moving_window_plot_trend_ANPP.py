@@ -56,15 +56,6 @@ cmap_R = cm.get_cmap('Reds')
 fontdict_normal = {'family':'serif', 'weight':'normal'}
 fontdict_bold   = {'family':'serif', 'weight':'bold'}
 fontdict_bold_sup= {'family':'serif', 'fontweight':'bold'}
-inset_axes_     = [0.1, 0.14, 0.45, 0.03]dpi_, map_dpi_ = 300, 500
-custom_cmap_coral = ListedColormap(['lightcoral', 'black'])
-custom_cmap_BW = ListedColormap(['white', 'black'])
-custom_cmap_GrayW = ListedColormap(['grey', 'black'])
-cmap_G = cm.get_cmap('Greens') # 'PRGn', 'YlGn'
-cmap_R = cm.get_cmap('Reds')
-
-fontdict_normal = {'family':'serif', 'weight':'normal'}
-fontdict_bold   = {'family':'serif', 'weight':'bold'}
 inset_axes_     = [0.1, 0.14, 0.45, 0.03]
 
 # %%
@@ -143,10 +134,6 @@ print (ANPP.year.max())
 # ## Read all rolling window ACFs
 
 # %%
-ys = ["anpp", "anpp_detrendLinReg", "anpp_detrendDiff", "anpp_detrendSens"]
-
-# %%
-# %%
 filename = bio_reOrganized + "ACFs_rollingWindow_trends.sav"
 
 ACF_trends_MK_df = pd.read_pickle(filename)
@@ -197,7 +184,7 @@ for col_ in slope_cols:
 
 cc_ = max(np.abs(min_), np.max(max_))
 norm_col = Normalize(vmin=-cc_, vmax=cc_, clip=True);
-print (min_, max_, cc_)
+print (round(min_, 2), round(max_, 2), round(cc_, 2))
 
 # %%
 tick_legend_FontSize = 8
@@ -339,4 +326,4 @@ for col in slope_cols:
 # %%
 
 # %% [markdown]
-# ## colormap virdis does not work for polygons!
+# ### <span style="color:red">colormap virdis does not work for polygons!</span>

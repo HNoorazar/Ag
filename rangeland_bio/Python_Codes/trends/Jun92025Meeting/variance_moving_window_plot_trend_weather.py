@@ -50,7 +50,7 @@ cmap_R = cm.get_cmap('Reds')
 
 fontdict_normal = {'family':'serif', 'weight':'normal'}
 fontdict_bold   = {'family':'serif', 'weight':'bold'}
-fontdict_bold_sup   = {'family':'serif', 'fontweight':'bold'}
+fontdict_bold_sup= {'family':'serif', 'fontweight':'bold'}
 inset_axes_     = [0.1, 0.14, 0.45, 0.03]
 
 # %%
@@ -257,7 +257,6 @@ for type_ in ['slope']: # 'categ',
 
             cent_plt = SF_west.plot(column=col, ax=ax, legend=False, cmap='seismic', norm=norm_col)
             ############# color bar
-            # cax = ax.inset_axes([0.03, 0.18, 0.5, 0.03])
             cax = ax.inset_axes(inset_axes_)
             cbar1 = fig.colorbar(cent_plt.collections[1], ax=ax, orientation='horizontal', shrink=0.3, cax=cax)
             
@@ -265,15 +264,13 @@ for type_ in ['slope']: # 'categ',
             cbar1.set_label(L_, labelpad=2, fontdict=fontdict_normal)
             plt.tight_layout()
             # on overleaf, a sublot looked slightly higher than another. lets see if this fixes it
-            # title_ = f"slope of variance time-series (window size {ws}, {last_part})"
-            plt.title(L_ + f' ({last_part})', y=0.98, fontdict=fontdict_bold);
-            
-            file_name = outdir + f"{col}.png"
             ax.set_aspect('equal', adjustable='box')
             
+            # title_ = f"slope of variance time-series (window size {ws}, {last_part})"
+            plt.title(L_ + f' ({last_part})', y=0.98, fontdict=fontdict_bold);
+            file_name = outdir + f"{col}.png"
             plt.savefig(file_name, bbox_inches='tight', dpi=map_dpi_)
             plt.close()
-
             try:
                 del(cent_plt, cax, cbar1, ws, last_part, file_name)
             except:
@@ -314,14 +311,12 @@ for col in temp_slope_cols:
     cbar1.set_label(L_, labelpad=2, fontdict=fontdict_normal)
     plt.tight_layout()
     # on overleaf, a sublot looked slightly higher than another. lets see if this fixes it
+    ax.set_aspect('equal', adjustable='box')
     # title_ = f"slope of variance time-series (window size {ws}, {last_part})"
     plt.title(L_ + f' ({last_part})', y=0.98, fontdict=fontdict_bold);
     file_name = outdir + f"indiv_cbar_{col}.png"
-    ax.set_aspect('equal', adjustable='box')
-    
     plt.savefig(file_name, bbox_inches='tight', dpi=map_dpi_)
     plt.close()
-    
     try:
         del(cent_plt, cax, cbar1, ws, last_part, file_name)
     except:

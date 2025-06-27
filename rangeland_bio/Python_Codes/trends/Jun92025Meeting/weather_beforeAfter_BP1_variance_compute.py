@@ -59,12 +59,14 @@ importlib.reload(rpc);
 dpi_, map_dpi_ = 300, 500
 custom_cmap_coral = ListedColormap(['lightcoral', 'black'])
 custom_cmap_BW = ListedColormap(['white', 'black'])
+custom_cmap_GrayW = ListedColormap(['grey', 'black'])
 cmap_G = cm.get_cmap('Greens') # 'PRGn', 'YlGn'
 cmap_R = cm.get_cmap('Reds')
 
 fontdict_normal = {'family':'serif', 'weight':'normal'}
 fontdict_bold   = {'family':'serif', 'weight':'bold'}
-inset_axes_     = [0.1, 0.13, 0.45, 0.03]
+fontdict_bold_sup= {'family':'serif', 'fontweight':'bold'}
+inset_axes_     = [0.1, 0.14, 0.45, 0.03]
 
 # %%
 from matplotlib import colormaps
@@ -90,7 +92,7 @@ os.makedirs(bio_plots, exist_ok=True)
 breakpoint_plot_base = bio_plots + "breakpoints/"
 os.makedirs(breakpoint_plot_base, exist_ok=True)
 
-breakpoint_TS_dir = breakpoint_plot_base + "breakpoints_TS/"
+breakpoint_TS_dir = bio_plots + "breakpoints_TS/"
 os.makedirs(breakpoint_TS_dir, exist_ok=True)
 
 
@@ -111,27 +113,23 @@ os.makedirs(breakpoint_TS_sen_dir, exist_ok=True)
 breakpoints_dir = rangeland_bio_data + "breakpoints/"
 
 # %%
-# ANPP = pd.read_pickle(bio_reOrganized + "bpszone_ANPP_no2012.sav")
-# ANPP = ANPP["bpszone_ANPP"]
-# ANPP.head(2)
+filename = bio_reOrganized + f"weather_detrended.sav"
+
+weather_detrended = pd.read_pickle(filename)
+weather_detrended.keys()
+weather_detrended = weather_detrended["weather_detrended"]
+weather_detrended.head(2)
 
 # %%
-
-# %%
-filename = bio_reOrganized + f"bpszone_ANPP_no2012_detrended.sav"
-
-ANPP_no2012_detrended = pd.read_pickle(filename)
-ANPP_no2012_detrended = ANPP_no2012_detrended["ANPP_no2012_detrended"]
-ANPP_no2012_detrended.head(2)
+weather_detrended.rename(columns={"avg_of_dailyAvgTemp_C": "temp",
+                                 "precip_mm":"prec"}, 
+                         inplace=True)
 
 # %%
 ANPP_breaks = pd.read_csv(breakpoints_dir + "ANPP_break_points.csv")
 ANPP_breaks = ANPP_breaks[ANPP_breaks["breakpoint_count"]>0]
 ANPP_breaks.reset_index(drop=True, inplace=True)
 ANPP_breaks.head(5)
-
-# %%
-ANPP_breaks.tail(5)
 
 # %%
 bp_cols = ANPP_breaks['breakpoint_years'].str.split('_', expand=True)
@@ -146,15 +144,19 @@ ANPP_breaks['BP_1'] = ANPP_breaks['BP_1'].dropna().astype(int)
 print (ANPP_breaks.shape)
 
 # %%
-ys = ["mean_lb_per_acr", "anpp_detrendLinReg", "anpp_detrendDiff", "anpp_detrendSens"]
+temp_ys = ["temp", "temp_detrendLinReg", "temp_detrendDiff", "temp_detrendSens"]
+prec_ys = ["prec", "prec_detrendLinReg", "prec_detrendDiff", "prec_detrendSens"]
+
+cols_ = ["fid", "year"] + temp_ys + prec_ys
+weather_detrended = weather_detrended[cols_]
 
 # %%
 ANPP_breaks.head(2)
 
 # %%
 unique_fids_w_BP = list(ANPP_breaks['fid'].unique())
-ANPP_no2012_detrended = ANPP_no2012_detrended[ANPP_no2012_detrended['fid'].isin(unique_fids_w_BP)]
-df_merged = pd.merge(ANPP_no2012_detrended, ANPP_breaks[['fid', 'BP_1']], on='fid', how='left')
+weather_detrended = weather_detrended[weather_detrended['fid'].isin(unique_fids_w_BP)]
+df_merged = pd.merge(weather_detrended, ANPP_breaks[['fid', 'BP_1']], on='fid', how='left')
 df_merged.head(2)
 
 
@@ -175,105 +177,63 @@ def calculate_variance(group, y_col):
     return pd.Series({f'variance_before_{y_col}': variance_before, 
                       f'variance_after_{y_col}': variance_after})
 
-# Apply the function to each group of 'fid'
-y_ = "mean_lb_per_acr"
-result_anpp = df_merged.groupby('fid').apply(calculate_variance, y_col=y_).reset_index()
-
-y_ = "anpp_detrendLinReg"
-result_anpp_detrendLinReg = df_merged.groupby('fid').apply(calculate_variance, y_col=y_).reset_index()
-
-y_ = "anpp_detrendDiff"
-result_anpp_detrendDiff = df_merged.groupby('fid').apply(calculate_variance, y_col=y_).reset_index()
-
-y_ = "anpp_detrendSens"
-result_aanpp_detrendSens = df_merged.groupby('fid').apply(calculate_variance, y_col=y_).reset_index()
 
 # %%
-result_anpp_detrendLinReg.head(2)
+# %%time
+
+# Apply the function to each group of 'fid'
+y_ = temp_ys[0]
+result_temp = df_merged.groupby('fid').apply(calculate_variance, y_col=y_).reset_index()
+
+y_ = temp_ys[1]
+result_temp_detrendLinReg = df_merged.groupby('fid').apply(calculate_variance, y_col=y_).reset_index()
+
+y_ = temp_ys[2]
+result_temp_detrendDiff = df_merged.groupby('fid').apply(calculate_variance, y_col=y_).reset_index()
+
+y_ = temp_ys[3]
+result_temp_detrendSens = df_merged.groupby('fid').apply(calculate_variance, y_col=y_).reset_index()
+
+# %%
+# %%time
+
+# Apply the function to each group of 'fid'
+y_ = prec_ys[0]
+result_prec = df_merged.groupby('fid').apply(calculate_variance, y_col=y_).reset_index()
+
+y_ = prec_ys[1]
+result_prec_detrendLinReg = df_merged.groupby('fid').apply(calculate_variance, y_col=y_).reset_index()
+
+y_ = prec_ys[2]
+result_prec_detrendDiff = df_merged.groupby('fid').apply(calculate_variance, y_col=y_).reset_index()
+
+y_ = prec_ys[3]
+result_aprec_detrendSens = df_merged.groupby('fid').apply(calculate_variance, y_col=y_).reset_index()
 
 # %%
 from functools import reduce
 
 # %%
-df_list = [result_anpp, result_anpp_detrendLinReg, result_anpp_detrendDiff, result_aanpp_detrendSens]
-merged_var_diffs = reduce(lambda left, right: pd.merge(left, right, on='fid', how='left'), df_list)
+df_list = [result_temp, result_temp_detrendLinReg, result_temp_detrendDiff, result_temp_detrendSens]
+merged_var_diffs_temp = reduce(lambda left, right: pd.merge(left, right, on='fid', how='left'), df_list)
+
+df_list = [result_prec, result_prec_detrendLinReg, result_prec_detrendDiff, result_aprec_detrendSens]
+merged_var_diffs_prec = reduce(lambda left, right: pd.merge(left, right, on='fid', how='left'), df_list)
 
 # %%
+merged_var_diffs = pd.merge(merged_var_diffs_temp, merged_var_diffs_prec, on='fid', how='left')
 merged_var_diffs.head(2)
 
 # %%
-
-# %%
-# %%time
-
-unique_fids = ANPP_breaks['fid'].unique()
-# Initialize empty DataFrame with desired columns
-variances_df = pd.DataFrame({'fid': unique_fids,
-                             'BP1' : np.nan,
-                             'n_before': np.nan,
-                             'n_after': np.nan,
-                             'variance_before_mean_lb_per_acr': np.nan,
-                             'variance_after_mean_lb_per_acr': np.nan,
-                            
-                             'variance_before_anpp_detrendLinReg': np.nan,
-                             'variance_after_anpp_detrendLinReg': np.nan,
-                            
-                             'variance_before_anpp_detrendDiff': np.nan,
-                             'variance_after_anpp_detrendDiff': np.nan,
-                             
-                             'variance_before_anpp_detrendSens': np.nan,
-                             'variance_after_anpp_detrendSens': np.nan})
-
-
-variances_df = variances_df.set_index('fid')
-variances_df.head(2)
-
-# y_var = "mean_lb_per_acr"
-for _, row in ANPP_breaks.iterrows():
-    fid = row['fid']
-    bp_year = row['BP_1']
-    
-    variances_df.loc[fid, 'BP1'] = bp_year
-    
-    # Filter ANPP by current fid
-    subset = ANPP_no2012_detrended[ANPP_no2012_detrended['fid'] == fid]
-    for y_var in ys:
-        # Separate before and after BP_1
-        before = subset[subset['year'] < bp_year][y_var].dropna()
-        after = subset[subset['year'] >= bp_year][y_var].dropna()
-        
-        variances_df.loc[fid, 'n_before'] = len(before)
-        variances_df.loc[fid, 'n_after'] = len(after)
-
-        var_ = before.var() if len(before) > 1 else np.nan
-        variances_df.loc[fid, 'variance_before_' + y_var] = var_
-
-        var_ = after.var() if len(before) > 1 else np.nan
-        variances_df.loc[fid, 'variance_after_' + y_var] = var_
-
-variances_df.reset_index(drop=False, inplace=True)
-variances_df.head(3)
-
-# %%
-merged_var_diffs.head(2)
-
-# %%
-y_ = "variance_after_anpp_detrendSens"
-sum(variances_df[y_] - merged_var_diffs[y_])
-
-# %%
-filename = breakpoints_dir + "variances_beforeAfter_BP1.sav"
+filename = breakpoints_dir + "weather_variances_beforeAfter_BP1.sav"
 
 export_ = {
-    "variances_beforeAfter_BP1": merged_var_diffs,
-    "source_code": "breakpoints_variance_compute",
+    "weather_variances_beforeAfter_BP1": merged_var_diffs,
+    "source_code": "weather_beforeAfter_BP1_variance_compute",
     "Author": "HN",
     "Date": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
 }
 
 pickle.dump(export_, open(filename, 'wb'))
-
-# %%
-merged_var_diffs.head(3)
 
 # %%
