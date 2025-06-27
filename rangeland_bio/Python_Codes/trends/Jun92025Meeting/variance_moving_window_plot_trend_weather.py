@@ -210,7 +210,7 @@ for col_ in temp_slope_cols:
 
 cc_ = max(np.abs(min_), np.max(max_))
 norm_col = Normalize(vmin=-cc_, vmax=cc_, clip=True);
-print (min_.round(2), max_.round(2), cc_.round(2))
+print (round(min_, 2), round(max_, 2), round(cc_, 2))
 
 # %%
 # %%time
@@ -234,7 +234,7 @@ for type_ in ['slope']: # 'categ',
             file_name = ddd + f"Categorical_MK{col}.png"
             ax.set_aspect('equal', adjustable='box')
             title_ = f'(MK) trend of variance time-series (window size {ws}, {last_part})'
-            plt.title(title_,  y=0.98, fontdict=fontdict_bold);
+            plt.title(title_, y=0.98, fontdict=fontdict_bold);
             plt.close()
             try:
                 del(cent_plt, cax, cbar1, ws, last_part)
@@ -258,15 +258,14 @@ for type_ in ['slope']: # 'categ',
             ############# color bar
             # cax = ax.inset_axes([0.03, 0.18, 0.5, 0.03])
             cax = ax.inset_axes(inset_axes_)
-            
             cbar1 = fig.colorbar(cent_plt.collections[1], ax=ax, orientation='horizontal', shrink=0.3, cax=cax)
-            cbar1.set_label(fr'slope of $\sigma^2_{{ws={ws}}}$', labelpad=2, fontdict=fontdict_normal)
-            plt.tight_layout()
-            # on overleaf, a sublot looked slightly higher than
-            # another. lets see if this fixes it
             
-            title_ = f"slope of variance time-series (window size {ws}, {last_part})"
-            plt.title(title_, y=0.98, fontdict=fontdict_bold);
+            L_ = fr'slope of $\sigma^2_{{ws={ws}}}$'
+            cbar1.set_label(L_, labelpad=2, fontdict=fontdict_normal)
+            plt.tight_layout()
+            # on overleaf, a sublot looked slightly higher than another. lets see if this fixes it
+            # title_ = f"slope of variance time-series (window size {ws}, {last_part})"
+            plt.title(L_ + f' ({last_part})', y=0.98, fontdict=fontdict_bold);
             
             file_name = outdir + f"{col}.png"
             ax.set_aspect('equal', adjustable='box')
@@ -309,13 +308,15 @@ for col in temp_slope_cols:
     # cax = ax.inset_axes([0.03, 0.18, 0.5, 0.03])
     cax = ax.inset_axes(inset_axes_)
     cbar1 = fig.colorbar(cent_plt.collections[1], ax=ax, orientation='horizontal', shrink=0.3, cax=cax)
-    cbar1.set_label(fr'slope of $\sigma^2_{{ws={ws}}}$', labelpad=2, fontdict=fontdict_normal)
+    
+    L_ = fr'slope of $\sigma^2_{{ws={ws}}}$'
+    cbar1.set_label(L_, labelpad=2, fontdict=fontdict_normal)
     plt.tight_layout()
     # on overleaf, a sublot looked slightly higher than
     # another. lets see if this fixes it
     
-    title_ = f"slope of variance time-series (window size {ws}, {last_part})"
-    plt.title(title_, y=0.98, fontdict=fontdict_bold);
+    # title_ = f"slope of variance time-series (window size {ws}, {last_part})"
+    plt.title(L_ + f' ({last_part})', y=0.98, fontdict=fontdict_bold);
     file_name = outdir + f"indiv_cbar_{col}.png"
     ax.set_aspect('equal', adjustable='box')
     
@@ -388,10 +389,12 @@ for y_var in temp_slope_cols:
     cbar1 = fig.colorbar(cent_plt1.collections[1], ax=ax[1], norm=norm1, cax=cax1,
                          shrink=0.3, orientation='horizontal')
 
-    cbar0.set_label(fr'slope of $\sigma^2_{{ws={ws}}}$', labelpad=2, fontdict=fontdict_normal)
-    cbar1.set_label(fr'slope of $\sigma^2_{{ws={ws}}}$', labelpad=2, fontdict=fontdict_normal)
-
-    fig.suptitle(f"slope of variance time-series (window size {ws}, {last_part})", y=0.82);
+    L_ = fr'slope of $\sigma^2_{{ws={ws}}}$'
+    cbar0.set_label(L_, labelpad=2, fontdict=fontdict_normal)
+    cbar1.set_label(L_, labelpad=2, fontdict=fontdict_normal)
+    
+    # L_ = f"slope of variance time-series (window size {ws}, {last_part})"
+    fig.suptitle(L_ + f' ({last_part})', y=0.82, fontdict=fontdict_bold);
     plt.tight_layout()
     
     file_name = outdir + y_var + "_divergeRB_greyBG.png"
@@ -418,7 +421,7 @@ for col_ in prec_slope_cols:
 
 cc_ = max(np.abs(min_), np.max(max_))
 norm_col = Normalize(vmin=-cc_, vmax=cc_, clip=True);
-print (min_.round(2), max_.round(2), cc_.round(2))
+print (round(min_, 2), round(max_, 2), round(cc_, 2))
 
 # %%
 # %%time
@@ -468,13 +471,14 @@ for type_ in ['slope']: # 'categ',
             # cax = ax.inset_axes([0.03, 0.18, 0.5, 0.03])
             cax = ax.inset_axes(inset_axes_)
             cbar1 = fig.colorbar(cent_plt.collections[1], ax=ax, orientation='horizontal', shrink=0.3, cax=cax)
-            cbar1.set_label(fr'slope of $\sigma^2_{{ws={ws}}}$', labelpad=2, fontdict=fontdict_normal)
+            L_ = fr'slope of $\sigma^2_{{ws={ws}}}$'
+            cbar1.set_label(, labelpad=2, fontdict=fontdict_normal)
             plt.tight_layout()
             # on overleaf, a sublot looked slightly higher than
             # another. lets see if this fixes it
             
-            title_ = f"slope of variance time-series (window size {ws}, {last_part})"
-            plt.title(title_, y=0.98, fontdict=fontdict_bold);
+            # title_ = f"slope of variance time-series (window size {ws}, {last_part})"
+            plt.title(L_ + f' ({last_part})', y=0.98, fontdict=fontdict_bold);
             file_name = outdir + f"{col}.png"
             ax.set_aspect('equal', adjustable='box')
             plt.savefig(file_name, bbox_inches='tight', dpi=map_dpi_)
@@ -520,13 +524,15 @@ for col in prec_slope_cols:
     cax = ax.inset_axes(inset_axes_)
     
     cbar1 = fig.colorbar(cent_plt.collections[1], ax=ax, orientation='horizontal', shrink=0.3, cax=cax)
-    cbar1.set_label(fr'slope of $\sigma^2_{{ws={ws}}}$', labelpad=2, fontdict=fontdict_normal)
+    
+    L_ = fr'slope of $\sigma^2_{{ws={ws}}}$'
+    cbar1.set_label(L_, labelpad=2, fontdict=fontdict_normal)
     plt.tight_layout()
     # on overleaf, a sublot looked slightly higher than
     # another. lets see if this fixes it
     
-    title_ = f"slope of variance time-series (window size {ws}, {last_part})"
-    plt.title(title_, y=0.98, fontdict=fontdict_bold);
+    # title_ = f"slope of variance time-series (window size {ws}, {last_part})"
+    plt.title(L_ + f' ({last_part})', y=0.98, fontdict=fontdict_bold);
     file_name = outdir + f"indiv_cbar_{col}.png"
     ax.set_aspect('equal', adjustable='box')
     plt.savefig(file_name, bbox_inches='tight', dpi=map_dpi_)
@@ -588,10 +594,12 @@ for y_var in prec_slope_cols:
     cbar1 = fig.colorbar(cent_plt1.collections[1], ax=ax[1], norm=norm1, cax=cax1,
                          shrink=0.3, orientation='horizontal')
 
-    cbar0.set_label(fr'slope of $\sigma^2_{{ws={ws}}}$', labelpad=2, fontdict=fontdict_normal)
-    cbar1.set_label(fr'slope of $\sigma^2_{{ws={ws}}}$', labelpad=2, fontdict=fontdict_normal)
+    L_ = fr'slope of $\sigma^2_{{ws={ws}}}$'
+    cbar0.set_label(L_, labelpad=2, fontdict=fontdict_normal)
+    cbar1.set_label(L_, labelpad=2, fontdict=fontdict_normal)
 
-    fig.suptitle(f"slope of variance time-series (window size {ws}, {last_part})", y=0.82);
+    # f"slope of variance time-series (window size {ws}, {last_part})"
+    fig.suptitle(L_ + f' ({last_part})', y=0.82, fontdict=fontdict_bold)
     plt.tight_layout()
     
     file_name = outdir + y_var + "_divergeRB_greyBG.png"

@@ -260,11 +260,13 @@ for type_ in ['slope']: # 'categ',
             ############# color bar
             cax = ax.inset_axes(inset_axes_)
             cbar1 = fig.colorbar(cent_plt.collections[1], ax=ax, orientation='horizontal', shrink=0.3, cax=cax)
-            cbar1.set_label(f'slope of ACF1$_{{ws={ws}}}$', labelpad=2, fontdict=fontdict_normal);
+            
+            L_ = f'slope of ACF1$_{{ws={ws}}}$'
+            cbar1.set_label(L_, labelpad=2, fontdict=fontdict_normal);
             plt.tight_layout()
 
-            title_ = f"slope of ACF1 time-series (window size {ws}, {last_part})"
-            plt.title(title_, y=0.98, fontdict=fontdict_bold);
+            # title_ = f"slope of ACF1 time-series (window size {ws}, {last_part})"
+            plt.title(L_ + f' ({last_part})', y=0.98, fontdict=fontdict_bold);
             file_name = outdir + f"{col}.png"
             ax.set_aspect('equal', adjustable='box')
             plt.savefig(file_name, bbox_inches='tight', dpi=map_dpi_)
@@ -305,11 +307,13 @@ for col in temp_slope_cols:
     #cax = ax.inset_axes([0.03, 0.18, 0.5, 0.03])
     cax = ax.inset_axes(inset_axes_)
     cbar1 = fig.colorbar(cent_plt.collections[1], ax=ax, orientation='horizontal', shrink=0.3, cax=cax)
-    cbar1.set_label(f'slope of ACF1$_{{ws={ws}}}$', labelpad=2, fontdict=fontdict_normal);
+    
+    L_ = f'slope of ACF1$_{{ws={ws}}}$'
+    cbar1.set_label(L_, labelpad=2, fontdict=fontdict_normal);
     plt.tight_layout()
 
-    title_ = f"slope of ACF1 time-series (window size {ws}, {last_part})"
-    plt.title(title_, y=0.98, fontdict=fontdict_bold);
+    # title_ = f"slope of ACF1 time-series (window size {ws}, {last_part})"
+    plt.title(L_ + f' ({last_part})', y=0.98, fontdict=fontdict_bold);
     file_name = outdir + f"indiv_cbar_{col}.png"
     ax.set_aspect('equal', adjustable='box')
     plt.savefig(file_name, bbox_inches='tight', dpi=map_dpi_)
@@ -396,11 +400,13 @@ for type_ in ['slope']: # 'categ',
             ############# color bar
             cax = ax.inset_axes(inset_axes_)
             cbar1 = fig.colorbar(cent_plt.collections[1], ax=ax, orientation='horizontal', shrink=0.3, cax=cax)
-            cbar1.set_label(f'slope of ACF1$_{{ws={ws}}}$', labelpad=2, fontdict=fontdict_normal);
+            
+            L_ = f'slope of ACF1$_{{ws={ws}}}$'
+            cbar1.set_label(L_, labelpad=2, fontdict=fontdict_normal);
             plt.tight_layout()
 
-            title_ = f"slope of ACF1 time-series (window size {ws}, {last_part})"
-            plt.title(title_, y=0.98, fontdict=fontdict_bold);
+            # title_ = f"slope of ACF1 time-series (window size {ws}, {last_part})"
+            plt.title(L_ + f' ({last_part})', y=0.98, fontdict=fontdict_bold);
             file_name = outdir + f"{col}.png"
             ax.set_aspect('equal', adjustable='box')
             plt.savefig(file_name, bbox_inches='tight', dpi=map_dpi_)
@@ -438,11 +444,13 @@ for col in prec_slope_cols:
     #cax = ax.inset_axes([0.03, 0.18, 0.5, 0.03])
     cax = ax.inset_axes(inset_axes_)
     cbar1 = fig.colorbar(cent_plt.collections[1], ax=ax, orientation='horizontal', shrink=0.3, cax=cax)
-    cbar1.set_label(f'slope of ACF1$_{{ws={ws}}}$', labelpad=2, fontdict=fontdict_normal);
+    
+    L_ = f'slope of ACF1$_{{ws={ws}}}$'
+    cbar1.set_label(L_, labelpad=2, fontdict=fontdict_normal);
     plt.tight_layout()
 
-    title_ = f"slope of ACF1 time-series (window size {ws}, {last_part})"
-    plt.title(title_, y=0.98, fontdict=fontdict_bold);
+    # title_ = f"slope of ACF1 time-series (window size {ws}, {last_part})"
+    plt.title(L_ + f' ({last_part})', y=0.98, fontdict=fontdict_bold);
     file_name = outdir + f"indiv_cbar_{col}.png"
     ax.set_aspect('equal', adjustable='box')
     plt.savefig(file_name, bbox_inches='tight', dpi=map_dpi_)

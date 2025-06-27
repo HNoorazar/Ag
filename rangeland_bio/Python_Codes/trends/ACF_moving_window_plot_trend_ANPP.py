@@ -49,14 +49,13 @@ import rangeland_plot_core as rpc
 dpi_, map_dpi_ = 300, 500
 custom_cmap_coral = ListedColormap(['lightcoral', 'black'])
 custom_cmap_BW = ListedColormap(['white', 'black'])
+custom_cmap_GrayW = ListedColormap(['grey', 'black'])
 cmap_G = cm.get_cmap('Greens') # 'PRGn', 'YlGn'
 cmap_R = cm.get_cmap('Reds')
 
-best_cmap_ = ListedColormap([(0.9, 0.9, 0.9), 'black'])
-
 fontdict_normal = {'family':'serif', 'weight':'normal'}
 fontdict_bold   = {'family':'serif', 'weight':'bold'}
-inset_axes_     = [0.1, 0.13, 0.45, 0.03]
+inset_axes_     = [0.1, 0.14, 0.45, 0.03]
 
 # %%
 research_db = "/Users/hn/Documents/01_research_data/"
@@ -263,9 +262,13 @@ for type_ in ['slope']: # 'categ',
             ############# color bar
             cax = ax.inset_axes([0.03, 0.18, 0.5, 0.03])
             cbar1 = fig.colorbar(cent_plt.collections[1], ax=ax, orientation='horizontal', shrink=0.3, cax=cax)
-            cbar1.set_label(f'slope of ACF1$_{{ws={ws}}}$', labelpad=2)
+            
+            L_ = f'slope of ACF1$_{{ws={ws}}}$'
+            cbar1.set_label(L_, labelpad=2, fontdict=fontdict_normal);
             plt.tight_layout()
-            plt.title(f"slope of ACF1 time-series (window size {ws}, {last_part})", y=0.98);
+            
+            # f"slope of ACF1 time-series (window size {ws}, {last_part})"
+            plt.title(L_ + f' ({last_part})', y=0.98, fontdict=fontdict_bold);
             file_name = outdir + f"{col}.png"
             plt.savefig(file_name, bbox_inches='tight', dpi=map_dpi_)
             plt.close()
@@ -305,9 +308,13 @@ for col in slope_cols:
     ############# color bar
     cax = ax.inset_axes([0.03, 0.18, 0.5, 0.03])
     cbar1 = fig.colorbar(cent_plt.collections[1], ax=ax, orientation='horizontal', shrink=0.3, cax=cax)
-    cbar1.set_label(f'slope of ACF1$_{{ws={ws}}}$', labelpad=2)
+    
+    L_ = f'slope of ACF1$_{{ws={ws}}}$'
+    cbar1.set_label(L_, labelpad=2, fontdict=fontdict_normal);
     plt.tight_layout()
-    plt.title(f"slope of ACF1 time-series (window size {ws}, {last_part})", y=0.98);
+    
+    # f"slope of ACF1 time-series (window size {ws}, {last_part})"
+    plt.title(L_ + f' ({last_part})', y=0.98, fontdict=fontdict_bold);
     file_name = outdir + f"indiv_cbar_{col}.png"
     plt.savefig(file_name, bbox_inches='tight', dpi=map_dpi_)
     plt.close()

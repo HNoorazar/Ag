@@ -35,5 +35,10 @@ if ("diff".lower() in y_.lower()):
     print ("hell")
 
 # %%
+ws = 4
+L_ = fr'slope of $\sigma^2_{{ws={ws}}}$'
+L_
+
+# %%
 
 # %%

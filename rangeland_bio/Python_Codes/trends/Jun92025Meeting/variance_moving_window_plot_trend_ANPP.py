@@ -44,12 +44,13 @@ import rangeland_plot_core as rpc
 dpi_, map_dpi_ = 300, 500
 custom_cmap_coral = ListedColormap(['lightcoral', 'black'])
 custom_cmap_BW = ListedColormap(['white', 'black'])
+custom_cmap_GrayW = ListedColormap(['grey', 'black'])
 cmap_G = cm.get_cmap('Greens') # 'PRGn', 'YlGn'
 cmap_R = cm.get_cmap('Reds')
 
 fontdict_normal = {'family':'serif', 'weight':'normal'}
 fontdict_bold   = {'family':'serif', 'weight':'bold'}
-inset_axes_     = [0.1, 0.13, 0.45, 0.03]
+inset_axes_     = [0.1, 0.14, 0.45, 0.03]
 
 # %%
 research_db = "/Users/hn/Documents/01_research_data/"
@@ -122,6 +123,7 @@ ys = ["anpp", "anpp_detrendLinReg", "anpp_detrendDiff", "anpp_detrendSens"]
 
 # %%
 # %%
+# %%time
 filename = bio_reOrganized + "variance_rollingWindow_trends.sav"
 
 variance_trends_MK_df = pd.read_pickle(filename)
@@ -175,7 +177,7 @@ for col_ in slope_cols:
 
 cc_ = max(np.abs(min_), np.max(max_))
 norm_col = Normalize(vmin=-cc_, vmax=cc_, clip=True);
-print (min_, max_, cc_)
+print (round(min_, 2), round(max_, 2), round(cc_, 2))
 
 # %%
 tick_legend_FontSize = 8
@@ -225,7 +227,8 @@ for type_ in ['slope']: # 'categ',
             last_part = last_part.replace("anpp", "ANPP").replace("_", " ")
 
             file_name = ddd + f"Categorical_MK{col}.png"
-            plt.title(f'(MK) trend of variance time-series (window size {ws}, {last_part})', y=0.98);
+            title_ = f'(MK) trend of variance time-series (window size {ws}, {last_part})'
+            plt.title(title_, y=0.98, fontdict=fontdict_bold);
             plt.close()
             try:
                 del(cent_plt, cax, cbar1, ws, last_part)
@@ -249,14 +252,18 @@ for type_ in ['slope']: # 'categ',
             ############# color bar
             cax = ax.inset_axes([0.03, 0.18, 0.5, 0.03])
             cbar1 = fig.colorbar(cent_plt.collections[1], ax=ax, orientation='horizontal', shrink=0.3, cax=cax)
-            cbar1.set_label(fr'slope of $\sigma^2_{{ws={ws}}}$', labelpad=2)
+
+            L_ = fr'slope of $\sigma^2_{{ws={ws}}}$'
+            cbar1.set_label(L_, labelpad=2, fontdict=fontdict_normal);
             plt.tight_layout()
             # on overleaf, a sublot looked slightly higher than
             # another. lets see if this fixes it
             ax.set_aspect('equal', adjustable='box')
 
-            plt.title(f"slope of variance time-series (window size {ws}, {last_part})", y=0.98);
+            # title_ = f"slope of variance time-series (window size {ws}, {last_part})"
+            plt.title(L_ + f' ({last_part})'title_, y=0.98, fontdict=fontdict_bold);
             file_name = outdir + f"{col}.png"
+            ax.set_aspect('equal', adjustable='box')
             plt.savefig(file_name, bbox_inches='tight', dpi=map_dpi_)
             plt.close()
 
@@ -295,13 +302,16 @@ for col in slope_cols:
     ############# color bar
     cax = ax.inset_axes([0.03, 0.18, 0.5, 0.03])
     cbar1 = fig.colorbar(cent_plt.collections[1], ax=ax, orientation='horizontal', shrink=0.3, cax=cax)
-    cbar1.set_label(fr'slope of $\sigma^2_{{ws={ws}}}$', labelpad=2)
+    L_ = fr'slope of $\sigma^2_{{ws={ws}}}$'
+    cbar1.set_label(L_, labelpad=2, fontdict=fontdict_normal);
     plt.tight_layout()
     # on overleaf, a sublot looked slightly higher than
     # another. lets see if this fixes it
     ax.set_aspect('equal', adjustable='box')
     
-    plt.title(f"slope of variance time-series (window size {ws}, {last_part})", y=0.98);
+    # title_ = f"slope of variance time-series (window size {ws}, {last_part})"
+    plt.title(L_ +  f' ({last_part})', y=0.98, fontdict=fontdict_bold);
+    ax.set_aspect('equal', adjustable='box')
     file_name = outdir + f"indiv_cbar_{col}.png"
     plt.savefig(file_name, bbox_inches='tight', dpi=map_dpi_)
     plt.close()
@@ -310,8 +320,6 @@ for col in slope_cols:
         del(cent_plt, cax, cbar1, ws, last_part, file_name)
     except:
         pass
-    
-
 #############
 
 # %%
@@ -374,10 +382,11 @@ for y_var in slope_cols:
     cbar1 = fig.colorbar(cent_plt1.collections[1], ax=ax[1], norm=norm1, cax=cax1,
                          cmap=cm.get_cmap('RdYlGn'), shrink=0.3, orientation='horizontal')
 
-    cbar0.set_label(fr'slope of $\sigma^2_{{ws={ws}}}$', labelpad=2, fontdict=fontdict_normal)
-    cbar1.set_label(fr'slope of $\sigma^2_{{ws={ws}}}$', labelpad=2, fontdict=fontdict_normal)
-
-    fig.suptitle(f"slope of variance time-series (window size {ws}, {last_part})", y=0.82);
+    L_ = fr'slope of $\sigma^2_{{ws={ws}}}$'
+    cbar0.set_label(L_, labelpad=2, fontdict=fontdict_normal)
+    cbar1.set_label(L_, labelpad=2, fontdict=fontdict_normal)
+    # f"slope of variance time-series (window size {ws}, {last_part})"
+    fig.suptitle(L_ +f' ({last_part})', y=0.82, fontdict=fontdict_bold);
     plt.tight_layout()    
     t_ = y_var.replace("mean_lb_per_acr", 'anpp')
     
