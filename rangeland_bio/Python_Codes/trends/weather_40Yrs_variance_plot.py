@@ -181,8 +181,8 @@ bps_weather.head(2)
 # %%
 # print (f"{bps_weather_wide.shape=}")
 # print (f"{bps_gridmet_mean.shape=}")
-print (f"{bps_weather.shape=     }")
-print (f"{Albers_SF.shape=}")
+print (f"{bps_weather.shape = }")
+print (f"{Albers_SF.shape   = }")
 
 # %%
 print (f'{len(Albers_SF["fid"])=}')
@@ -300,6 +300,14 @@ axes.set_ylabel('count', fontdict=fontdict_normal);
 file_name = bio_plots + "temp_40Yr_variance_histogram.pdf"
 plt.savefig(file_name, bbox_inches='tight', dpi=map_dpi_)
 
+# %%
+print (Albers_SF["temp_variance"].max())
+print (Albers_SF["temp_variance"].min())
+
+# %%
+print (Albers_SF["temp_cv_times100"].max())
+print (Albers_SF["temp_cv_times100"].min())
+
 # %% [markdown]
 # # Distribution of CV of temp is bad! so many outliers.
 
@@ -313,7 +321,7 @@ df = Albers_SF[Albers_SF["temp_cv_times100"] < 30]
 df = df[df["temp_cv_times100"] > -20]
 axes.hist(df["temp_cv_times100"].dropna(), zorder=3, bins=100, color='skyblue', edgecolor='black');
 
-axes.set_title(r'CV(temp.) $\times$ 100 distribution', color="k", fontdict=fontdict_bold);
+axes.set_title(r'CV(temp.) $\times$ 100 distribution ($(-20, 30)$)', color="k", fontdict=fontdict_bold);
 axes.set_xlabel(r'CV(temp.) $\times$ 100 (annual mean)', fontdict=fontdict_normal);
 axes.set_ylabel('count', fontdict=fontdict_normal);
 
@@ -328,14 +336,15 @@ fig, axes = plt.subplots(2, 1, figsize=(10, 4), sharex=False, sharey=False, dpi=
 (ax1, ax2) = axes
 ax1.grid(axis='y', alpha=0.7, zorder=0); ax2.grid(axis='y', alpha=0.7, zorder=0);
 
-df = Albers_SF[(Albers_SF["temp_cv_times100"] < -20)]
+df = Albers_SF[(Albers_SF["temp_cv_times100"] <= -20)]
 ax1.hist(df["temp_cv_times100"].dropna(), zorder=3, bins=100, color='skyblue', edgecolor='black');
-ax1.set_title(r'CV(temp)$\times$ 100 distribution', color="k", fontdict=fontdict_bold);
+L_ = r'CV(temp)$\times$ 100 distribution (Top: <= -20, bottom >=50)'
+ax1.set_title(L_, color="k", fontdict=fontdict_bold);
+
 ax1.set_xlabel('', fontdict=fontdict_normal);
 ax1.set_ylabel('count', fontdict=fontdict_normal);
 
-
-df = Albers_SF[(Albers_SF["temp_cv_times100"] > 50)]
+df = Albers_SF[(Albers_SF["temp_cv_times100"] >= 50)]
 ax2.hist(df["temp_cv_times100"].dropna(), zorder=3, bins=100, color='skyblue', edgecolor='black');
 ax2.hist(df["temp_cv_times100"].dropna(), zorder=3, bins=100, color='skyblue', edgecolor='black');
 ax2.set_title('', color="k", fontdict=fontdict_bold);
@@ -349,6 +358,7 @@ file_name = bio_plots + "temp_40Yr_CV_histogram_outliers.pdf"
 plt.savefig(file_name, bbox_inches='tight', dpi=map_dpi_)
 
 # %%
+bio_plots
 
 # %%
 fig, axes = plt.subplots(2, 1, figsize=(10, 4), sharex=False, sharey=False, dpi=dpi_,
