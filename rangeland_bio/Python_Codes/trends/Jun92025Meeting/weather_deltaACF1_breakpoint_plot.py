@@ -104,18 +104,6 @@ breakpoint_TS_sen_dir = breakpoint_plot_base + "breakpoints_TS_sensSlope/"
 breakpoints_dir = rangeland_bio_data + "breakpoints/"
 
 # %%
-filename = bio_reOrganized + f"weather_detrended.sav"
-
-weather_detrended = pd.read_pickle(filename)
-weather_detrended.keys()
-weather_detrended = weather_detrended["weather_detrended"]
-weather_detrended.head(2)
-
-# %%
-filename = breakpoints_dir + "weather_ACFs_beforeAfter_BP1.sav"
-ACFs_beforeAfter_BP1 = pd.read_pickle(filename)
-ACFs_beforeAfter_BP1 = ACFs_beforeAfter_BP1['weather_ACFs_beforeAfter_BP1']
-ACFs_beforeAfter_BP1.head(2)
 
 # %%
 county_fips_dict = pd.read_pickle(common_data + "county_fips.sav")
@@ -132,38 +120,13 @@ state_fips = state_fips[state_fips.state != "VI"].copy()
 state_fips.head(2)
 
 # %%
-temp_ys = ["temp", "temp_detrendLinReg", "temp_detrendDiff", "temp_detrendSens"]
-prec_ys = ["prec", "prec_detrendLinReg", "prec_detrendDiff", "prec_detrendSens"]
-
-for y_ in temp_ys:
-    v_after = ACFs_beforeAfter_BP1['ACF_after_' + y_].values
-    v_before = ACFs_beforeAfter_BP1['ACF_before_' + y_].values
-    
-    ACFs_beforeAfter_BP1["delta_ACF_" + y_] = v_after - v_before
-    ACFs_beforeAfter_BP1["ratio_ACF_" + y_] = v_after / v_before
-    
-for y_ in prec_ys:
-    v_after = ACFs_beforeAfter_BP1['ACF_after_' + y_].values
-    v_before = ACFs_beforeAfter_BP1['ACF_before_' + y_].values
-    
-    ACFs_beforeAfter_BP1["delta_ACF_" + y_] = v_after - v_before
-    ACFs_beforeAfter_BP1["ratio_ACF_" + y_] = v_after / v_before
-
-
-# %%
-delta_ratio_cols = [x for x in ACFs_beforeAfter_BP1.columns if (("delta" in x) or ('ratio' in x) )]
-delta_ratio_cols
-
-# %%
 # %%time
 from shapely.geometry import Polygon
 gdf = geopandas.read_file(common_data +'cb_2018_us_state_500k.zip')
-
 gdf.rename(columns={"STUSPS": "state"}, inplace=True)
 gdf = gdf[~gdf.state.isin(["PR", "VI", "AS", "GU", "MP"])]
 gdf = pd.merge(gdf, state_fips[["EW_meridian", "state"]], how="left", on="state")
 
-# %%
 visframe = gdf.to_crs({'init':'epsg:5070'})
 visframe_mainLand = visframe[~visframe.state.isin(["AK", "HI"])].copy()
 
@@ -189,6 +152,48 @@ Albers_SF_west.head(2)
 # %%
 
 # %%
+
+# %%
+filename = bio_reOrganized + f"weather_detrended.sav"
+
+weather_detrended = pd.read_pickle(filename)
+weather_detrended.keys()
+weather_detrended = weather_detrended["weather_detrended"]
+weather_detrended.head(2)
+
+# %%
+filename = breakpoints_dir + "weather_ACFs_beforeAfter_BP1.sav"
+ACFs_beforeAfter_BP1 = pd.read_pickle(filename)
+ACFs_beforeAfter_BP1 = ACFs_beforeAfter_BP1['weather_ACFs_beforeAfter_BP1']
+ACFs_beforeAfter_BP1.head(2)
+
+# %%
+temp_patterns = ["temp", "temp_detrendLinReg", "temp_detrendDiff", "temp_detrendSens"]
+prec_patterns = ['prec', 'prec_detrendLinReg', 'prec_detrendDiff', 'prec_detrendSens']
+
+# %%
+for y_ in temp_patterns:
+    v_after = ACFs_beforeAfter_BP1['ACF_after_' + y_].values
+    v_before = ACFs_beforeAfter_BP1['ACF_before_' + y_].values
+    
+    ACFs_beforeAfter_BP1["delta_ACF_" + y_] = v_after - v_before
+    ACFs_beforeAfter_BP1["ratio_ACF_" + y_] = v_after / v_before
+    
+for y_ in prec_patterns:
+    v_after = ACFs_beforeAfter_BP1['ACF_after_' + y_].values
+    v_before = ACFs_beforeAfter_BP1['ACF_before_' + y_].values
+    
+    ACFs_beforeAfter_BP1["delta_ACF_" + y_] = v_after - v_before
+    ACFs_beforeAfter_BP1["ratio_ACF_" + y_] = v_after / v_before
+
+
+# %%
+delta_ratio_cols = [x for x in ACFs_beforeAfter_BP1.columns if (("delta" in x) or ('ratio' in x) )]
+temp_delta_ratio_cols = [x for x in delta_ratio_cols if "temp" in x]
+prec_delta_ratio_cols = [x for x in delta_ratio_cols if "prec" in x]
+temp_delta_ratio_cols
+
+# %%
 cols_ = ['fid'] + delta_ratio_cols
 
 Albers_SF_west = pd.merge(Albers_SF_west, ACFs_beforeAfter_BP1[cols_], how="left", on="fid")
@@ -212,16 +217,10 @@ params = {"font.family": "Palatino",
 
 plt.rcParams.update(params)
 
-# %%
-bio_plots
-
 # %% [markdown]
 # ## Ratio and Delta side by side
 
 # %%
-temp_patterns = ['temp', 'detrendLinReg', 'detrendDiff', 'detrendSens']
-prec_patterns = ['prec', 'detrendLinReg', 'detrendDiff', 'detrendSens']
-
 out_dir = bio_plots + "ACF_BABP1_temp/"
 os.makedirs(out_dir, exist_ok=True)
 
@@ -233,8 +232,10 @@ os.makedirs(curr_out_dir, exist_ok=True)
 curr_out_dir
 
 for a_pattern in temp_patterns:
-    y_vars = sorted([x for x in delta_ratio_cols if a_pattern in x])
-
+    y_vars = y_vars = [f'delta_ACF_{a_pattern}', f'ratio_ACF_{a_pattern}']
+    print (y_vars)
+    print ("------------------------------------------------------------------")
+    
     fig, ax = plt.subplots(1, 2, dpi=map_dpi_, gridspec_kw={'hspace': 0.02, 'wspace': 0.05})
     ax[0].set_xticks([]); ax[0].set_yticks([]);
     ax[1].set_xticks([]); ax[1].set_yticks([]);
@@ -288,9 +289,13 @@ for a_pattern in temp_patterns:
 curr_out_dir = out_dir + "ratio_or_delta_outliers/"
 os.makedirs(curr_out_dir, exist_ok=True)
 curr_out_dir
-
-for y_var in delta_ratio_cols:
+counter=1
+for y_var in temp_delta_ratio_cols:
     print (y_var)
+    print (f"{counter=}/{len(temp_delta_ratio_cols)}")
+    counter+=1
+    print ("------------------------------------------------------------------")
+    
     fig, ax = plt.subplots(1, 2, dpi=map_dpi_, gridspec_kw={'hspace': 0.02, 'wspace': 0.05})
     ax[0].set_xticks([]); ax[0].set_yticks([]);
     ax[1].set_xticks([]); ax[1].set_yticks([]);
@@ -306,7 +311,7 @@ for y_var in delta_ratio_cols:
     lower_bound = df[y_var].quantile(perc_)
     upper_bound = df[y_var].quantile(1 - perc_)
 
-    # Filter rows between 10th and 90th percentile (inclusive)
+    # Filter rows between perc_ and 100-perc_ th percentile (inclusive)
     filtered_between = df[(df[y_var] >= lower_bound) & (df[y_var] <= upper_bound)]
     filtered_outside = df[(df[y_var] < lower_bound) | (df[y_var] > upper_bound)]
 
@@ -356,9 +361,6 @@ for y_var in delta_ratio_cols:
 # # Repeat for Prec
 
 # %%
-temp_patterns = ['temp', 'detrendLinReg', 'detrendDiff', 'detrendSens']
-prec_patterns = ['prec', 'detrendLinReg', 'detrendDiff', 'detrendSens']
-
 out_dir = bio_plots + "ACF_BABP1_prec/"
 os.makedirs(out_dir, exist_ok=True)
 
@@ -367,11 +369,11 @@ os.makedirs(out_dir, exist_ok=True)
 
 curr_out_dir = out_dir + "ratio_and_delta_sideByside/"
 os.makedirs(curr_out_dir, exist_ok=True)
-curr_out_dir
 
 for a_pattern in prec_patterns:
-    y_vars = sorted([x for x in delta_ratio_cols if a_pattern in x])
-
+    y_vars = y_vars = [f'delta_ACF_{a_pattern}', f'ratio_ACF_{a_pattern}']
+    print (y_vars)
+    print ("------------------------------------------------------------------")
     fig, ax = plt.subplots(1, 2, dpi=map_dpi_, gridspec_kw={'hspace': 0.02, 'wspace': 0.05})
     ax[0].set_xticks([]); ax[0].set_yticks([]);
     ax[1].set_xticks([]); ax[1].set_yticks([]);
@@ -423,10 +425,14 @@ for a_pattern in prec_patterns:
 
 curr_out_dir = out_dir + "ratio_or_delta_outliers/"
 os.makedirs(curr_out_dir, exist_ok=True)
-curr_out_dir
+counter = 1
 
-for y_var in delta_ratio_cols:
+for y_var in prec_delta_ratio_cols:
     print (y_var)
+    print (f"{counter=}/{len(prec_delta_ratio_cols)}")
+    print ("------------------------------------------------------------------")
+    counter+=1
+
     fig, ax = plt.subplots(1, 2, dpi=map_dpi_, gridspec_kw={'hspace': 0.02, 'wspace': 0.05})
     ax[0].set_xticks([]); ax[0].set_yticks([]);
     ax[1].set_xticks([]); ax[1].set_yticks([]);
@@ -442,7 +448,7 @@ for y_var in delta_ratio_cols:
     lower_bound = df[y_var].quantile(perc_)
     upper_bound = df[y_var].quantile(1 - perc_)
 
-    # Filter rows between 10th and 90th percentile (inclusive)
+    # Filter rows between perc_ and 100-perc_ th percentile (inclusive)
     filtered_between = df[(df[y_var] >= lower_bound) & (df[y_var] <= upper_bound)]
     filtered_outside = df[(df[y_var] < lower_bound) | (df[y_var] > upper_bound)]
 
@@ -485,5 +491,7 @@ for y_var in delta_ratio_cols:
     plt.close()
     del(cent_plt0, cent_plt1, cax0, cax1, cbar0, cbar1, norm0, norm1, min_max0, min_max1,
         filtered_between, filtered_outside)
+
+# %%
 
 # %%

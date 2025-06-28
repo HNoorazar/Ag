@@ -131,17 +131,16 @@ state_fips = state_fips[state_fips.state != "VI"].copy()
 state_fips.head(2)
 
 # %%
-temp_ys = ["temp", "temp_detrendLinReg", "temp_detrendDiff", "temp_detrendSens"]
-prec_ys = ["prec", "prec_detrendLinReg", "prec_detrendDiff", "prec_detrendSens"]
-
-for y_ in temp_ys:
+temp_patterns = ["temp", "temp_detrendLinReg", "temp_detrendDiff", "temp_detrendSens"]
+prec_patterns = ["prec", "prec_detrendLinReg", "prec_detrendDiff", "prec_detrendSens"]
+for y_ in temp_patterns:
     v_after = variances_beforeAfter_BP1['variance_after_' + y_].values
     v_before = variances_beforeAfter_BP1['variance_before_' + y_].values
     
     variances_beforeAfter_BP1["delta_variance_" + y_] = v_after - v_before
     variances_beforeAfter_BP1["ratio_variance_" + y_] = v_after / v_before
 
-for y_ in prec_ys:
+for y_ in prec_patterns:
     v_after = variances_beforeAfter_BP1['variance_after_' + y_].values
     v_before = variances_beforeAfter_BP1['variance_before_' + y_].values
     
@@ -153,7 +152,9 @@ variances_beforeAfter_BP1.head(2)
 
 # %%
 delta_ratio_cols = [x for x in variances_beforeAfter_BP1.columns if (("delta" in x) or ('ratio' in x) )]
-delta_ratio_cols
+temp_delta_ratio_cols = [x for x in delta_ratio_cols if "temp" in x]
+prec_delta_ratio_cols = [x for x in delta_ratio_cols if "prec" in x]
+temp_delta_ratio_cols
 
 # %%
 # %%time
@@ -216,19 +217,10 @@ params = {"font.family": "Palatino",
 plt.rcParams.update(params)
 
 # %%
-delta_ratio_cols
-
-# %%
-y_var = delta_ratio_cols[1]
-y_var
+temp_delta_ratio_cols[1]
 
 # %% [markdown]
 # ## Ratio and Delta side by side
-
-# %%
-temp_patterns = ['temp', 'detrendLinReg', 'detrendDiff', 'detrendSens']
-prec_patterns = ['prec', 'detrendLinReg', 'detrendDiff', 'detrendSens']
-a_pattern = temp_patterns[0]
 
 # %% [markdown]
 # ## First Temp
@@ -244,7 +236,9 @@ os.makedirs(curr_out_dir, exist_ok=True)
 curr_out_dir
 
 for a_pattern in temp_patterns:
-    y_vars = sorted([x for x in delta_ratio_cols if a_pattern in x])
+    y_vars = [f'delta_variance_{a_pattern}', f'ratio_variance_{a_pattern}']
+    print (y_vars)
+    print ("------------------------------------------------------------------")
 
     fig, ax = plt.subplots(1, 2, dpi=map_dpi_, gridspec_kw={'hspace': 0.02, 'wspace': 0.05})
     ax[0].set_xticks([]); ax[0].set_yticks([]);
@@ -263,6 +257,7 @@ for a_pattern in temp_patterns:
     ############
     min_max0 = max(np.abs(df0[y_vars[0]].min()), np.abs(df0[y_vars[0]].max()))
     min_max1 = max(np.abs(df1[y_vars[1]].min()), np.abs(df1[y_vars[1]].max()))
+
 
     norm0 = Normalize(vmin= -min_max0, vmax=min_max0, clip=True)
     norm1 = Normalize(vmin= -min_max1, vmax=min_max1, clip=True)
@@ -299,9 +294,12 @@ for a_pattern in temp_patterns:
 curr_out_dir = out_dir + "ratio_or_delta_outliers/"
 os.makedirs(curr_out_dir, exist_ok=True)
 curr_out_dir
-
-for y_var in delta_ratio_cols:
+counter = 1
+for y_var in temp_delta_ratio_cols:
     print (y_var)
+    print (f"{counter = }/{len(temp_delta_ratio_cols)}")
+    print ("------------------------------------------------------------------")
+    counter+=1
     fig, ax = plt.subplots(1, 2, dpi=map_dpi_, gridspec_kw={'hspace': 0.02, 'wspace': 0.05})
     ax[0].set_xticks([]); ax[0].set_yticks([]);
     ax[1].set_xticks([]); ax[1].set_yticks([]);
@@ -379,7 +377,9 @@ os.makedirs(curr_out_dir, exist_ok=True)
 curr_out_dir
 
 for a_pattern in prec_patterns:
-    y_vars = sorted([x for x in delta_ratio_cols if a_pattern in x])
+    y_vars = [f'delta_variance_{a_pattern}', f'ratio_variance_{a_pattern}']
+    print (y_vars)
+    print ("------------------------------------------------------------------")
 
     fig, ax = plt.subplots(1, 2, dpi=map_dpi_, gridspec_kw={'hspace': 0.02, 'wspace': 0.05})
     ax[0].set_xticks([]); ax[0].set_yticks([]);
@@ -398,6 +398,7 @@ for a_pattern in prec_patterns:
     ############
     min_max0 = max(np.abs(df0[y_vars[0]].min()), np.abs(df0[y_vars[0]].max()))
     min_max1 = max(np.abs(df1[y_vars[1]].min()), np.abs(df1[y_vars[1]].max()))
+
 
     norm0 = Normalize(vmin= -min_max0, vmax=min_max0, clip=True)
     norm1 = Normalize(vmin= -min_max1, vmax=min_max1, clip=True)
@@ -433,9 +434,12 @@ for a_pattern in prec_patterns:
 curr_out_dir = out_dir + "ratio_or_delta_outliers/"
 os.makedirs(curr_out_dir, exist_ok=True)
 curr_out_dir
-
-for y_var in delta_ratio_cols:
+counter = 1
+for y_var in prec_delta_ratio_cols:
     print (y_var)
+    print (f"{counter = }/{len(prec_delta_ratio_cols)}")
+    print ("------------------------------------------------------------------")
+    counter+=1
     fig, ax = plt.subplots(1, 2, dpi=map_dpi_, gridspec_kw={'hspace': 0.02, 'wspace': 0.05})
     ax[0].set_xticks([]); ax[0].set_yticks([]);
     ax[1].set_xticks([]); ax[1].set_yticks([]);
@@ -447,11 +451,11 @@ for y_var in delta_ratio_cols:
     df = Albers_SF_west.copy()
     df.dropna(subset=[y_var], inplace=True)
 
-    perc_ = 5 / 100
-    lower_bound = df[y_var].quantile(perc_)
-    upper_bound = df[y_var].quantile(1 - perc_)
+    prec_ = 5 / 100
+    lower_bound = df[y_var].quantile(prec_)
+    upper_bound = df[y_var].quantile(1 - prec_)
 
-    # Filter rows between 10th and 90th percentile (inclusive)
+    # Filter rows between 10th and 90th precentile (inclusive)
     filtered_between = df[(df[y_var] >= lower_bound) & (df[y_var] <= upper_bound)]
     filtered_outside = df[(df[y_var] < lower_bound) | (df[y_var] > upper_bound)]
 
@@ -486,6 +490,8 @@ for y_var in delta_ratio_cols:
         pre_title = "ratio"
 
     t_ = y_var.split("_")[-1]
+    # plt.title(f"ACF1 {pre_title} after and before BP1", fontdict={'family':'serif', 'weight':'bold'});    
+    # fig.suptitle(f"\sigma^2-{pre_title} after and before BP1 ({t_})", y=0.82, fontdict={'family':'serif'});
     L_ = fr"$\sigma^2$-{pre_title} after and before ANPP-BP1 ({t_})"
     fig.suptitle(L_, y=0.82, fontdict=fontdict_bold_sup);
     
