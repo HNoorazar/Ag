@@ -111,7 +111,7 @@ ANPP_MK_df.head(2)
 # %%
 f_name = bio_reOrganized + 'Albers_SF_west_ANPP_MK_Spearman_no2012.shp.zip'
 Albers_SF_west = geopandas.read_file(f_name)
-Albers_SF_west["centroid"] = Albers_SF_west["geometry"].centroid
+# Albers_SF_west["centroid"] = Albers_SF_west["geometry"].centroid
 Albers_SF_west.head(2)
 
 # %%
@@ -131,17 +131,16 @@ Albers_SF_west.rename(columns={"EW_meridia": "EW_meridian",
 # NPP_variance_df.head(2)
 
 # %%
-cv_df = ANPP.groupby('fid').agg({'mean_lb_per_acr': ['var', 'mean', 'std']}).reset_index()
+cv_df = ANPP.groupby('fid').agg({'mean_lb_per_acr': ['var', 'mean', 'std',
+                                                     'median', 'min', 'max']}).reset_index()
 cv_df.head(2)
 
 # Flatten column MultiIndex
-cv_df.columns = ['fid', 'anpp_variance', 'anpp_mean', 'anpp_std']
+cv_df.columns = ['fid', 'anpp_variance', 'anpp_mean', 'anpp_std', 'anpp_median', 'anpp_min', 'anpp_max']
 
 # Calculate coefficient of variation
 cv_df['anpp_cv'] = (cv_df['anpp_std'] / cv_df['anpp_mean'])*100
 cv_df.head(3)
-
-# %%
 
 # %% [markdown]
 # # Make some plots
@@ -282,26 +281,110 @@ print (np.abs(Albers_SF_west['anpp_cv'].max()))
 
 
 # %%
-
-# %%
+y_var = "anpp_min"
 # fig, ax = plt.subplots(1, 1, figsize=(2, 2), sharex=True, sharey=True, dpi=map_dpi_)
 fig, ax = plt.subplots(1, 1, dpi=map_dpi_)
 ax.set_xticks([]); ax.set_yticks([])
 
-min_max = max(np.abs(Albers_SF_west['anpp_variance'].min()), np.abs(Albers_SF_west['anpp_variance'].max()))
+min_max = max(np.abs(Albers_SF_west[y_var].min()), np.abs(Albers_SF_west[y_var].max()))
 norm1 = Normalize(vmin=-min_max, vmax=min_max, clip=True)
 
 rcp.plot_SF(SF=visframe_mainLand_west, ax_=ax, col="EW_meridian", cmap_=ListedColormap(['grey', 'white']))
 
-cent_plt = Albers_SF_west.plot(column='anpp_variance', ax=ax, legend=False, cmap='seismic', norm=norm1)
+cent_plt = Albers_SF_west.plot(column=y_var, ax=ax, legend=False, cmap='seismic', norm=norm1)
 
 # first two arguments are x and y of the legend 
 # on the left side of it. The last two are length and width of the bar
 cax = ax.inset_axes(inset_axes_)
-cbar1 = fig.colorbar(cent_plt.collections[1], ax=ax, orientation='horizontal', shrink=0.3, 
-                     cmap=cm.get_cmap('RdYlGn'), norm=norm1, cax=cax)
+cbar1 = fig.colorbar(cent_plt.collections[1], ax=ax, orientation='horizontal', shrink=0.3, norm=norm1, cax=cax)
+cbar1.set_label(f'min(ANPP)', labelpad=1, fontdict=fontdict_normal);
+plt.title("ANPP minimum", fontdict=fontdict_bold);
+
+# plt.tight_layout()
+# fig.subplots_adjust(top=0.91, bottom=0.01, left=-0.1, right=1)
+file_name = bio_plots + "ANPP_40Yr_min.png"
+plt.savefig(file_name, bbox_inches='tight', dpi=map_dpi_)
+
+del(cent_plt, cax, cbar1, norm1, min_max)
+
+# %%
+
+# %%
+y_var = "anpp_max"
+fig, ax = plt.subplots(1, 1, dpi=map_dpi_)
+ax.set_xticks([]); ax.set_yticks([])
+
+min_max = max(np.abs(Albers_SF_west[y_var].min()), np.abs(Albers_SF_west[y_var].max()))
+norm1 = Normalize(vmin=-min_max, vmax=min_max, clip=True)
+
+rcp.plot_SF(SF=visframe_mainLand_west, ax_=ax, col="EW_meridian", cmap_=ListedColormap(['grey', 'white']))
+
+cent_plt = Albers_SF_west.plot(column=y_var, ax=ax, legend=False, cmap='seismic', norm=norm1)
+
+# first two arguments are x and y of the legend 
+# on the left side of it. The last two are length and width of the bar
+cax = ax.inset_axes(inset_axes_)
+cbar1 = fig.colorbar(cent_plt.collections[1], ax=ax, orientation='horizontal', shrink=0.3, norm=norm1, cax=cax)
+cbar1.set_label(f'max(ANPP)', labelpad=1, fontdict=fontdict_normal);
+plt.title("ANPP maximum", fontdict=fontdict_bold);
+
+file_name = bio_plots + "ANPP_40Yr_max.png"
+plt.savefig(file_name, bbox_inches='tight', dpi=map_dpi_)
+
+del(cent_plt, cax, cbar1, norm1, min_max)
+
+# %%
+
+# %%
+y_var = "anpp_median"
+fig, ax = plt.subplots(1, 1, dpi=map_dpi_)
+ax.set_xticks([]); ax.set_yticks([])
+
+min_max = max(np.abs(Albers_SF_west[y_var].min()), np.abs(Albers_SF_west[y_var].max()))
+norm1 = Normalize(vmin=-min_max, vmax=min_max, clip=True)
+
+rcp.plot_SF(SF=visframe_mainLand_west, ax_=ax, col="EW_meridian", cmap_=ListedColormap(['grey', 'white']))
+
+cent_plt = Albers_SF_west.plot(column=y_var, ax=ax, legend=False, cmap='seismic', norm=norm1)
+
+# first two arguments are x and y of the legend 
+# on the left side of it. The last two are length and width of the bar
+cax = ax.inset_axes(inset_axes_)
+cbar1 = fig.colorbar(cent_plt.collections[1], ax=ax, orientation='horizontal', shrink=0.3, norm=norm1, cax=cax)
+cbar1.set_label(f'median(ANPP)', labelpad=1, fontdict=fontdict_normal);
+plt.title("ANPP median", fontdict=fontdict_bold);
+
+file_name = bio_plots + "ANPP_40Yr_median.png"
+plt.savefig(file_name, bbox_inches='tight', dpi=map_dpi_)
+
+del(cent_plt, cax, cbar1, norm1, min_max)
+
+# %%
+
+# %%
+
+# %%
+
+# %%
+y_var = "anpp_variance"
+# fig, ax = plt.subplots(1, 1, figsize=(2, 2), sharex=True, sharey=True, dpi=map_dpi_)
+fig, ax = plt.subplots(1, 1, dpi=map_dpi_)
+ax.set_xticks([]); ax.set_yticks([])
+
+min_max = max(np.abs(Albers_SF_west[y_var].min()), np.abs(Albers_SF_west[y_var].max()))
+norm1 = Normalize(vmin=-min_max, vmax=min_max, clip=True)
+
+rcp.plot_SF(SF=visframe_mainLand_west, ax_=ax, col="EW_meridian", cmap_=ListedColormap(['grey', 'white']))
+
+cent_plt = Albers_SF_west.plot(column=y_var, ax=ax, legend=False, cmap='seismic', norm=norm1)
+
+# first two arguments are x and y of the legend 
+# on the left side of it. The last two are length and width of the bar
+cax = ax.inset_axes(inset_axes_)
+cbar1 = fig.colorbar(cent_plt.collections[1], ax=ax, orientation='horizontal', shrink=0.3, norm=norm1, cax=cax)
 cbar1.set_label(f'$\sigma^2$(ANPP)', labelpad=1, fontdict=fontdict_normal);
-plt.title("ANPP variance", fontdict=fontdict_normal_bold);
+plt.title("ANPP variance", fontdict=fontdict_bold);
+
 
 # plt.tight_layout()
 # fig.subplots_adjust(top=0.91, bottom=0.01, left=-0.1, right=1)
@@ -309,6 +392,8 @@ file_name = bio_plots + "ANPP_40Yr_variance_divergeRB_GreyBG.png"
 plt.savefig(file_name, bbox_inches='tight', dpi=map_dpi_)
 
 del(cent_plt, cax, cbar1, norm1, min_max)
+
+# %%
 
 # %%
 tick_legend_FontSize = 10
@@ -350,11 +435,8 @@ cent_plt2 = Albers_SF_west.plot(column='anpp_variance', ax=ax2, legend=False, cm
 cax1 = ax1.inset_axes(inset_axes_)
 cax2 = ax2.inset_axes(inset_axes_)
 
-cbar1 = fig.colorbar(cent_plt1.collections[1], ax=ax1, orientation='horizontal', shrink=0.3, 
-                     cmap=cm.get_cmap('RdYlGn'), norm=norm1, cax=cax1)
-
-cbar2 = fig.colorbar(cent_plt2.collections[1], ax=ax2, orientation='horizontal', shrink=0.3, 
-                     cmap=cm.get_cmap('RdYlGn'), norm=norm2, cax=cax2)
+cbar1 = fig.colorbar(cent_plt1.collections[1], ax=ax1, orientation='horizontal', shrink=0.3, norm=norm1, cax=cax1)
+cbar2 = fig.colorbar(cent_plt2.collections[1], ax=ax2, orientation='horizontal', shrink=0.3, norm=norm2, cax=cax2)
 
 cbar1.set_label(r'CV(ANPP) $\times 100$', labelpad=1, fontdict=fontdict_normal);
 cbar2.set_label(f'$\sigma^2$(ANPP)', labelpad=1, fontdict=fontdict_normal);

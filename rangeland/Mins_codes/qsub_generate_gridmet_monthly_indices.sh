@@ -2,11 +2,11 @@
 #SBATCH --job-name="rangeland climate"
 ##SBATCH --partition=stockle,kamiak,adam --account stockle
 #SBATCH --partition=adam,kamiak --account adam
-#SBATCH --time=5-24:00:00       ### Wall clock time limit in Days-HH:MM:SS
-#SBATCH --nodes=1               ### Node count required for the job
-#SBATCH --ntasks-per-node=1     ### Nuber of tasks to be launched per Node
-#SBATCH --cpus-per-task=1       ### Number of threads per task (OMP threads)
-#SBATCH --mem=2000             ### Amount of memory in MB
+#SBATCH --time=5-24:00:00   ### Wall clock time limit in Days-HH:MM:SS
+#SBATCH --nodes=1           ### Node count required for the job
+#SBATCH --ntasks-per-node=1 ### Nuber of tasks to be launched per Node
+#SBATCH --cpus-per-task=1   ### Number of threads per task (OMP threads)
+#SBATCH --mem=2000          ### Amount of memory in MB
 #SBATCH--array=0-199%40
 ##SBATCH--array=0-2%2
 

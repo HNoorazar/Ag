@@ -18,16 +18,12 @@
 echo
 echo "--- We are now in $PWD ..."
 echo
-
-## echo "I am Slurm job ${SLURM_JOB_ID}, array job ${SLURM_ARRAY_JOB_ID}, and array task ${SLURM_ARRAY_TASK_ID}."
-
 # Load R on compute node
 # module load r/4.1.0
 
 ## module purge         # Kamiak is not similar to Aeolus. purge on its own cannot be loaded. 
                         # Either leave it out or add "module load StdEnv". Lets see if this works. (Feb 22.)
 ## module load StdEnv
-
 module load gcc/7.3.0
 # module load python3/3.5.0
 # module load python3/3.7.0

@@ -18,8 +18,6 @@ echo
 echo "--- We are now in $PWD, running an R script ..."
 echo
 
-## echo "I am Slurm job ${SLURM_JOB_ID}, array job ${SLURM_ARRAY_JOB_ID}, and array task ${SLURM_ARRAY_TASK_ID}."
-
 # Load R on compute node
 module load r/4.1.0
 

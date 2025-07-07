@@ -164,9 +164,6 @@ bps_weather.head(2)
 # bps_weather_wide.head(2)
 
 # %%
-# 
-
-# %%
 # bps_gridmet_mean = pd.read_csv(rangeland_bio_data + "Min_Data/" + "bps_gridmet_mean_indices.csv")
 
 # bps_gridmet_mean.rename(columns={"bpshuc": "fid"}, inplace=True)
@@ -205,13 +202,14 @@ annual_weather.head(3)
 # # Compute variances
 
 # %%
-cv_df = annual_weather.groupby('fid').agg({'avg_of_dailyAvgTemp_C': ['var', 'mean', 'std'],
-                                           'precip_mm': ['var', 'mean', 'std']}).reset_index()
+stats = ['var', 'mean', 'std', 'min', 'max', 'median']
+cv_df = annual_weather.groupby('fid').agg({'avg_of_dailyAvgTemp_C': stats,
+                                           'precip_mm': stats}).reset_index()
 
 # Flatten column MultiIndex
 cv_df.columns = ['fid', 
-                 'temp_variance', 'temp_mean', 'temp_std', 
-                 'precip_variance', 'precip_mean', 'precip_std']
+                 'temp_variance', 'temp_mean', 'temp_std', 'temp_min', 'temp_max', 'temp_median',
+                 'precip_variance', 'precip_mean', 'precip_std', 'precip_min', 'precip_max', 'precip_median']
 
 # Calculate coefficient of variation
 cv_df['temp_cv_times100'] = 100 *  (cv_df['temp_std'] / cv_df['temp_mean'])
@@ -428,21 +426,135 @@ plt.rcParams.update(params)
 # %%
 
 # %%
+y_var = 'temp_min'
 # fig, ax = plt.subplots(1, 1, figsize=(2, 2), sharex=True, sharey=True, dpi=map_dpi_)
 fig, ax = plt.subplots(1, 1, dpi=map_dpi_)
 ax.set_xticks([]); ax.set_yticks([])
 # ListedColormap(['grey', 'white'])
 rcp.plot_SF(SF=visframe_mainLand_west, ax_=ax, col="EW_meridian", cmap_=best_cmap_)
 
-min_max = max(np.abs(Albers_SF['temp_variance'].min()), np.abs(Albers_SF['temp_variance'].max()))
+min_max = max(np.abs(Albers_SF[y_var].min()), np.abs(Albers_SF[y_var].max()))
 norm1 = Normalize(vmin=-min_max, vmax=min_max, clip=True)
-cent_plt = Albers_SF.plot(column='temp_variance', ax=ax, legend=False, cmap='seismic', norm=norm1)
+cent_plt = Albers_SF.plot(column=y_var, ax=ax, legend=False, cmap='seismic', norm=norm1)
 
 # first two arguments are x and y of the legend 
 # on the left side of it. The last two are length and width of the bar
 cax = ax.inset_axes(inset_axes_)
-cbar1 = fig.colorbar(cent_plt.collections[1], ax=ax, orientation='horizontal', shrink=0.3, 
-                     cmap=cm.get_cmap('RdYlGn'), norm=norm1, cax=cax)
+cbar1 = fig.colorbar(cent_plt.collections[1], ax=ax, orientation='horizontal', shrink=0.3, norm=norm1, cax=cax)
+cbar1.set_label(f'min(temp.)', labelpad=1, fontdict=fontdict_normal);
+plt.title("minimum of temperature", fontdict=fontdict_bold);
+
+ax.set_aspect('equal', adjustable='box')
+plt.tight_layout()
+# fig.subplots_adjust(top=0.91, bottom=0.01, left=-0.1, right=1)
+file_name = bio_plots + "temp_40Yr_min.png"
+plt.savefig(file_name, bbox_inches='tight', dpi=map_dpi_)
+
+del(cent_plt, cax, cbar1, norm1, min_max)
+
+# %%
+
+# %%
+y_var = 'temp_max'
+# fig, ax = plt.subplots(1, 1, figsize=(2, 2), sharex=True, sharey=True, dpi=map_dpi_)
+fig, ax = plt.subplots(1, 1, dpi=map_dpi_)
+ax.set_xticks([]); ax.set_yticks([])
+# ListedColormap(['grey', 'white'])
+rcp.plot_SF(SF=visframe_mainLand_west, ax_=ax, col="EW_meridian", cmap_=best_cmap_)
+
+min_max = max(np.abs(Albers_SF[y_var].min()), np.abs(Albers_SF[y_var].max()))
+norm1 = Normalize(vmin=-min_max, vmax=min_max, clip=True)
+cent_plt = Albers_SF.plot(column=y_var, ax=ax, legend=False, cmap='seismic', norm=norm1)
+
+# first two arguments are x and y of the legend 
+# on the left side of it. The last two are length and width of the bar
+cax = ax.inset_axes(inset_axes_)
+cbar1 = fig.colorbar(cent_plt.collections[1], ax=ax, orientation='horizontal', shrink=0.3, norm=norm1, cax=cax)
+cbar1.set_label(f'max(temp.)', labelpad=1, fontdict=fontdict_normal);
+plt.title("maximum of temperature", fontdict=fontdict_bold);
+
+ax.set_aspect('equal', adjustable='box')
+plt.tight_layout()
+# fig.subplots_adjust(top=0.91, bottom=0.01, left=-0.1, right=1)
+file_name = bio_plots + "temp_40Yr_max.png"
+plt.savefig(file_name, bbox_inches='tight', dpi=map_dpi_)
+
+del(cent_plt, cax, cbar1, norm1, min_max)
+
+# %%
+
+# %%
+y_var = 'temp_mean'
+fig, ax = plt.subplots(1, 1, dpi=map_dpi_)
+ax.set_xticks([]); ax.set_yticks([])
+# ListedColormap(['grey', 'white'])
+rcp.plot_SF(SF=visframe_mainLand_west, ax_=ax, col="EW_meridian", cmap_=best_cmap_)
+
+min_max = max(np.abs(Albers_SF[y_var].min()), np.abs(Albers_SF[y_var].max()))
+norm1 = Normalize(vmin=-min_max, vmax=min_max, clip=True)
+cent_plt = Albers_SF.plot(column=y_var, ax=ax, legend=False, cmap='seismic', norm=norm1)
+
+# first two arguments are x and y of the legend 
+# on the left side of it. The last two are length and width of the bar
+cax = ax.inset_axes(inset_axes_)
+cbar1 = fig.colorbar(cent_plt.collections[1], ax=ax, orientation='horizontal', shrink=0.3, norm=norm1, cax=cax)
+cbar1.set_label(f'mean(temp.)', labelpad=1, fontdict=fontdict_normal);
+plt.title("mean of temperature", fontdict=fontdict_bold);
+
+ax.set_aspect('equal', adjustable='box')
+plt.tight_layout()
+# fig.subplots_adjust(top=0.91, bottom=0.01, left=-0.1, right=1)
+file_name = bio_plots + "temp_40Yr_mean.png"
+plt.savefig(file_name, bbox_inches='tight', dpi=map_dpi_)
+
+del(cent_plt, cax, cbar1, norm1, min_max)
+
+# %%
+
+# %%
+y_var = 'temp_median'
+fig, ax = plt.subplots(1, 1, dpi=map_dpi_)
+ax.set_xticks([]); ax.set_yticks([])
+# ListedColormap(['grey', 'white'])
+rcp.plot_SF(SF=visframe_mainLand_west, ax_=ax, col="EW_meridian", cmap_=best_cmap_)
+
+min_max = max(np.abs(Albers_SF[y_var].min()), np.abs(Albers_SF[y_var].max()))
+norm1 = Normalize(vmin=-min_max, vmax=min_max, clip=True)
+cent_plt = Albers_SF.plot(column=y_var, ax=ax, legend=False, cmap='seismic', norm=norm1)
+
+# first two arguments are x and y of the legend 
+# on the left side of it. The last two are length and width of the bar
+cax = ax.inset_axes(inset_axes_)
+cbar1 = fig.colorbar(cent_plt.collections[1], ax=ax, orientation='horizontal', shrink=0.3, norm=norm1, cax=cax)
+cbar1.set_label(f'median(temp.)', labelpad=1, fontdict=fontdict_normal);
+plt.title("median of temperature", fontdict=fontdict_bold);
+
+ax.set_aspect('equal', adjustable='box')
+plt.tight_layout()
+# fig.subplots_adjust(top=0.91, bottom=0.01, left=-0.1, right=1)
+file_name = bio_plots + "temp_40Yr_median.png"
+plt.savefig(file_name, bbox_inches='tight', dpi=map_dpi_)
+
+del(cent_plt, cax, cbar1, norm1, min_max)
+
+# %%
+
+# %%
+y_var = 'temp_variance'
+# fig, ax = plt.subplots(1, 1, figsize=(2, 2), sharex=True, sharey=True, dpi=map_dpi_)
+fig, ax = plt.subplots(1, 1, dpi=map_dpi_)
+ax.set_xticks([]); ax.set_yticks([])
+# ListedColormap(['grey', 'white'])
+rcp.plot_SF(SF=visframe_mainLand_west, ax_=ax, col="EW_meridian", cmap_=best_cmap_)
+
+min_max = max(np.abs(Albers_SF[y_var].min()), np.abs(Albers_SF[y_var].max()))
+norm1 = Normalize(vmin=-min_max, vmax=min_max, clip=True)
+cent_plt = Albers_SF.plot(column=y_var, ax=ax, legend=False, cmap='seismic', norm=norm1)
+
+# first two arguments are x and y of the legend 
+# on the left side of it. The last two are length and width of the bar
+cax = ax.inset_axes(inset_axes_)
+cbar1 = fig.colorbar(cent_plt.collections[1], ax=ax, orientation='horizontal', shrink=0.3, norm=norm1, cax=cax)
 cbar1.set_label(f'$\sigma^2$(temp.)', labelpad=1, fontdict=fontdict_normal);
 plt.title("variance of temperature", fontdict=fontdict_bold);
 
@@ -457,22 +569,135 @@ del(cent_plt, cax, cbar1, norm1, min_max)
 # %%
 
 # %%
-# fig, ax = plt.subplots(1, 1, figsize=(2, 2), sharex=True, sharey=True, dpi=map_dpi_)
+y_var = 'precip_min'
 fig, ax = plt.subplots(1, 1, dpi=map_dpi_)
 ax.set_xticks([]); ax.set_yticks([])
 
-min_max = max(np.abs(Albers_SF['precip_variance'].min()), np.abs(Albers_SF['precip_variance'].max()))
+min_max = max(np.abs(Albers_SF[y_var].min()), np.abs(Albers_SF[y_var].max()))
 norm1 = Normalize(vmin=-min_max, vmax=min_max, clip=True)
 
 rcp.plot_SF(SF=visframe_mainLand_west, ax_=ax, col="EW_meridian", cmap_=ListedColormap(['grey', 'white']))
 
-cent_plt = Albers_SF.plot(column='precip_variance', ax=ax, legend=False, cmap='seismic', norm=norm1)
+cent_plt = Albers_SF.plot(column=y_var, ax=ax, legend=False, cmap='seismic', norm=norm1)
 
 # first two arguments are x and y of the legend 
 # on the left side of it. The last two are length and width of the bar
 cax = ax.inset_axes(inset_axes_)
-cbar1 = fig.colorbar(cent_plt.collections[1], ax=ax, orientation='horizontal', shrink=0.3, 
-                     cmap=cm.get_cmap('RdYlGn'), norm=norm1, cax=cax)
+cbar1 = fig.colorbar(cent_plt.collections[1], ax=ax, orientation='horizontal', shrink=0.3, norm=norm1, cax=cax)
+cbar1.set_label(f'min(precip.)', labelpad=1, fontdict=fontdict_normal);
+plt.title("minimum of precipitation", fontdict=fontdict_bold);
+ax.set_aspect('equal', adjustable='box')
+plt.tight_layout()
+# fig.subplots_adjust(top=0.91, bottom=0.01, left=-0.1, right=1)
+file_name = bio_plots + "precip_40Yr_min.png"
+plt.savefig(file_name, bbox_inches='tight', dpi=map_dpi_)
+
+del(cent_plt, cax, cbar1, norm1, min_max)
+
+# %%
+
+# %%
+y_var = 'precip_max'
+fig, ax = plt.subplots(1, 1, dpi=map_dpi_)
+ax.set_xticks([]); ax.set_yticks([])
+
+min_max = max(np.abs(Albers_SF[y_var].min()), np.abs(Albers_SF[y_var].max()))
+norm1 = Normalize(vmin=-min_max, vmax=min_max, clip=True)
+
+rcp.plot_SF(SF=visframe_mainLand_west, ax_=ax, col="EW_meridian", cmap_=ListedColormap(['grey', 'white']))
+
+cent_plt = Albers_SF.plot(column=y_var, ax=ax, legend=False, cmap='seismic', norm=norm1)
+
+# first two arguments are x and y of the legend 
+# on the left side of it. The last two are length and width of the bar
+cax = ax.inset_axes(inset_axes_)
+cbar1 = fig.colorbar(cent_plt.collections[1], ax=ax, orientation='horizontal', shrink=0.3, norm=norm1, cax=cax)
+cbar1.set_label(f'max(precip.)', labelpad=1, fontdict=fontdict_normal);
+plt.title("maximum of precipitation", fontdict=fontdict_bold);
+ax.set_aspect('equal', adjustable='box')
+plt.tight_layout()
+# fig.subplots_adjust(top=0.91, bottom=0.01, left=-0.1, right=1)
+file_name = bio_plots + "precip_40Yr_max.png"
+plt.savefig(file_name, bbox_inches='tight', dpi=map_dpi_)
+
+del(cent_plt, cax, cbar1, norm1, min_max)
+
+# %%
+
+# %%
+y_var = 'precip_mean'
+fig, ax = plt.subplots(1, 1, dpi=map_dpi_)
+ax.set_xticks([]); ax.set_yticks([])
+
+min_max = max(np.abs(Albers_SF[y_var].min()), np.abs(Albers_SF[y_var].max()))
+norm1 = Normalize(vmin=-min_max, vmax=min_max, clip=True)
+
+rcp.plot_SF(SF=visframe_mainLand_west, ax_=ax, col="EW_meridian", cmap_=ListedColormap(['grey', 'white']))
+
+cent_plt = Albers_SF.plot(column=y_var, ax=ax, legend=False, cmap='seismic', norm=norm1)
+
+# first two arguments are x and y of the legend 
+# on the left side of it. The last two are length and width of the bar
+cax = ax.inset_axes(inset_axes_)
+cbar1 = fig.colorbar(cent_plt.collections[1], ax=ax, orientation='horizontal', shrink=0.3, norm=norm1, cax=cax)
+cbar1.set_label(f'mean(precip.)', labelpad=1, fontdict=fontdict_normal);
+plt.title("mean of precipitation", fontdict=fontdict_bold);
+ax.set_aspect('equal', adjustable='box')
+plt.tight_layout()
+# fig.subplots_adjust(top=0.91, bottom=0.01, left=-0.1, right=1)
+file_name = bio_plots + "precip_40Yr_mean.png"
+plt.savefig(file_name, bbox_inches='tight', dpi=map_dpi_)
+
+del(cent_plt, cax, cbar1, norm1, min_max)
+
+# %%
+
+# %%
+y_var = 'precip_median'
+fig, ax = plt.subplots(1, 1, dpi=map_dpi_)
+ax.set_xticks([]); ax.set_yticks([])
+
+min_max = max(np.abs(Albers_SF[y_var].min()), np.abs(Albers_SF[y_var].max()))
+norm1 = Normalize(vmin=-min_max, vmax=min_max, clip=True)
+
+rcp.plot_SF(SF=visframe_mainLand_west, ax_=ax, col="EW_meridian", cmap_=ListedColormap(['grey', 'white']))
+
+cent_plt = Albers_SF.plot(column=y_var, ax=ax, legend=False, cmap='seismic', norm=norm1)
+
+# first two arguments are x and y of the legend 
+# on the left side of it. The last two are length and width of the bar
+cax = ax.inset_axes(inset_axes_)
+cbar1 = fig.colorbar(cent_plt.collections[1], ax=ax, orientation='horizontal', shrink=0.3, norm=norm1, cax=cax)
+cbar1.set_label(f'median(precip.)', labelpad=1, fontdict=fontdict_normal);
+plt.title("median of precipitation", fontdict=fontdict_bold);
+ax.set_aspect('equal', adjustable='box')
+plt.tight_layout()
+# fig.subplots_adjust(top=0.91, bottom=0.01, left=-0.1, right=1)
+file_name = bio_plots + "precip_40Yr_median.png"
+plt.savefig(file_name, bbox_inches='tight', dpi=map_dpi_)
+
+del(cent_plt, cax, cbar1, norm1, min_max)
+
+# %%
+
+# %%
+y_var = 'precip_variance'
+
+# fig, ax = plt.subplots(1, 1, figsize=(2, 2), sharex=True, sharey=True, dpi=map_dpi_)
+fig, ax = plt.subplots(1, 1, dpi=map_dpi_)
+ax.set_xticks([]); ax.set_yticks([])
+
+min_max = max(np.abs(Albers_SF[y_var].min()), np.abs(Albers_SF[y_var].max()))
+norm1 = Normalize(vmin=-min_max, vmax=min_max, clip=True)
+
+rcp.plot_SF(SF=visframe_mainLand_west, ax_=ax, col="EW_meridian", cmap_=ListedColormap(['grey', 'white']))
+
+cent_plt = Albers_SF.plot(column=y_var, ax=ax, legend=False, cmap='seismic', norm=norm1)
+
+# first two arguments are x and y of the legend 
+# on the left side of it. The last two are length and width of the bar
+cax = ax.inset_axes(inset_axes_)
+cbar1 = fig.colorbar(cent_plt.collections[1], ax=ax, orientation='horizontal', shrink=0.3, norm=norm1, cax=cax)
 cbar1.set_label(f'$\sigma^2$(precip.)', labelpad=1, fontdict=fontdict_normal);
 plt.title("variance of precipitation", fontdict=fontdict_bold);
 ax.set_aspect('equal', adjustable='box')
@@ -500,8 +725,7 @@ cent_plt = Albers_SF.plot(column='precip_cv_times100', ax=ax, legend=False, cmap
 # first two arguments are x and y of the legend 
 # on the left side of it. The last two are length and width of the bar
 cax = ax.inset_axes(inset_axes_)
-cbar1 = fig.colorbar(cent_plt.collections[1], ax=ax, orientation='horizontal', shrink=0.3, 
-                     cmap=cm.get_cmap('RdYlGn'), norm=norm1, cax=cax)
+cbar1 = fig.colorbar(cent_plt.collections[1], ax=ax, orientation='horizontal', shrink=0.3, norm=norm1, cax=cax)
 cbar1.set_label(r'CV(precip.) $\times$ 100', labelpad=1, fontdict=fontdict_normal);
 plt.title(r"CV(precip.) $\times$ 100", fontdict=fontdict_bold);
 ax.set_aspect('equal', adjustable='box')
@@ -529,8 +753,7 @@ cent_plt = Albers_SF.plot(column='temp_cv_times100', ax=ax, legend=False, cmap='
 # first two arguments are x and y of the legend 
 # on the left side of it. The last two are length and width of the bar
 cax = ax.inset_axes(inset_axes_)
-cbar1 = fig.colorbar(cent_plt.collections[1], ax=ax, orientation='horizontal', shrink=0.3, 
-                     cmap=cm.get_cmap('RdYlGn'), norm=norm1, cax=cax)
+cbar1 = fig.colorbar(cent_plt.collections[1], ax=ax, orientation='horizontal', shrink=0.3, norm=norm1, cax=cax)
 cbar1.set_label(r'CV(temp.) $\times$ 100', labelpad=1, fontdict=fontdict_normal);
 plt.title(r"CV(temp.) $\times$ 100", fontdict=fontdict_bold);
 ax.set_aspect('equal', adjustable='box')
