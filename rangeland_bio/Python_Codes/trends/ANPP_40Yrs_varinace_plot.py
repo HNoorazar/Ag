@@ -83,22 +83,25 @@ bpszone_ANPP.sort_values(by=['fid', 'year'], inplace=True)
 bpszone_ANPP.head(2)
 
 # %%
-ANPP = pd.read_pickle(bio_reOrganized + "bpszone_ANPP_no2012.sav")
-ANPP = ANPP["bpszone_ANPP"]
-ANPP.rename(columns={"area_sqMeter": "area_sqmeter", 
-                     "count": "pixel_count",
-                     "mean" : "mean_lb_per_acr"}, inplace=True)
+# ANPP = pd.read_pickle(bio_reOrganized + "bpszone_ANPP_no2012.sav")
+# ANPP = ANPP["bpszone_ANPP"]
+# ANPP.rename(columns={"area_sqMeter": "area_sqmeter", 
+#                      "count": "pixel_count",
+#                      "mean" : "mean_lb_per_acr"}, inplace=True)
 
-ANPP.sort_values(by=['fid', 'year'], inplace=True)
+# ANPP.sort_values(by=['fid', 'year'], inplace=True)
+# ANPP.head(2)
+
+# %%
+filename = bio_reOrganized + f"bpszone_ANPP_no2012_detrended.sav"
+ANPP = pd.read_pickle(filename)
+ANPP = ANPP["ANPP_no2012_detrended"]
 ANPP.head(2)
 
 # %%
 col = "mean_lb_per_acr"
-sum(ANPP[col] - bpszone_ANPP[col])
-
-# %%
-col = "area_sqmeter"
-sum(ANPP[col] == bpszone_ANPP[col]) == len(ANPP)
+print (sum(ANPP[col] - bpszone_ANPP[col]))
+print (sum(ANPP["area_sqMeter"] == bpszone_ANPP["area_sqmeter"]) == len(ANPP))
 
 # %%
 filename = bio_reOrganized + "ANPP_MK_Spearman_no2012.sav"
@@ -141,6 +144,44 @@ cv_df.columns = ['fid', 'anpp_variance', 'anpp_mean', 'anpp_std', 'anpp_median',
 # Calculate coefficient of variation
 cv_df['anpp_cv'] = (cv_df['anpp_std'] / cv_df['anpp_mean'])*100
 cv_df.head(3)
+
+# %%
+detrended_anpp_cols = [x for x in ANPP.columns if "anpp_detrend" in x]
+detrended_anpp_cols
+
+# %%
+cv_df_detrendSens = ANPP.groupby('fid').agg({'anpp_detrendSens': ['var', 'mean', 'std',
+                                                                  'median', 'min', 'max']}).reset_index()
+cv_df_detrendSens.head(2)
+
+# Flatten column MultiIndex
+cv_df_detrendSens.columns = ['fid', 'anpp_detrendSens_variance', 'anpp_detrendSens_mean', 'anpp_detrendSens_std', 'anpp_detrendSens_median', 'anpp_detrendSens_min', 'anpp_detrendSens_max']
+
+# Calculate coefficient of variation
+cv_df_detrendSens['anpp_detrendSens_cv'] = (cv_df_detrendSens['anpp_detrendSens_std'] / cv_df_detrendSens['anpp_detrendSens_mean'])*100
+cv_df_detrendSens.head(3)
+
+# %%
+cv_df_detrendLinReg = ANPP.groupby('fid').agg({'anpp_detrendLinReg': ['var', 'mean', 'std',
+                                                                  'median', 'min', 'max']}).reset_index()
+cv_df_detrendLinReg.head(2)
+
+# Flatten column MultiIndex
+cv_df_detrendLinReg.columns = ['fid', 'anpp_detrendLinReg_variance', 
+                               'anpp_detrendLinReg_mean', 'anpp_detrendLinReg_std', 
+                               'anpp_detrendLinReg_median', 'anpp_detrendLinReg_min', 
+                               'anpp_detrendLinReg_max']
+
+# Calculate coefficient of variation
+cv_df_detrendLinReg['anpp_detrendLinReg_cv'] = (cv_df_detrendLinReg['anpp_detrendLinReg_std'] /
+                                                cv_df_detrendLinReg['anpp_detrendLinReg_mean'])*100
+cv_df_detrendLinReg.head(3)
+
+# %%
+cv_df = pd.merge(cv_df, cv_df_detrendSens, how="left", on="fid")
+cv_df = pd.merge(cv_df, cv_df_detrendLinReg, how="left", on="fid")
+cv_df = cv_df.round(3)
+cv_df.head(2)
 
 # %% [markdown]
 # # Make some plots
@@ -239,6 +280,42 @@ file_name = bio_plots + "ANPP_40Yr_variance_histogram.pdf"
 plt.savefig(file_name, bbox_inches='tight', dpi=map_dpi_)
 
 # %%
+
+# %%
+sharey_ = False ### set axis limits to be identical or not
+
+fig, axes = plt.subplots(1, 1, figsize=(7, 2), sharey=sharey_, sharex=True, dpi=dpi_)
+axes.grid(axis='y', alpha=0.7, zorder=0);
+
+axes.hist(Albers_SF_west["anpp_detrendLinReg_variance"].dropna(), 
+          zorder=3, bins=100, color='skyblue', edgecolor='black')
+
+axes.set_title('ANPP detrendLinReg variance distribution', color="k", fontdict=fontdict_bold);
+axes.set_xlabel(r'Variance of mean ANPP (lb/acre)', fontdict=fontdict_normal);
+axes.set_ylabel('count', fontdict=fontdict_normal);
+
+file_name = bio_plots + "ANPP_detrendLinReg_40Yr_variance_histogram.pdf"
+plt.savefig(file_name, bbox_inches='tight', dpi=map_dpi_)
+
+# %%
+sharey_ = False ### set axis limits to be identical or not
+
+fig, axes = plt.subplots(1, 1, figsize=(7, 2), sharey=sharey_, sharex=True, dpi=dpi_)
+axes.grid(axis='y', alpha=0.7, zorder=0);
+
+axes.hist(Albers_SF_west["anpp_detrendSens_variance"].dropna(), 
+          zorder=3, bins=100, color='skyblue', edgecolor='black')
+
+axes.set_title('ANPP detrendSens variance distribution', color="k", fontdict=fontdict_bold);
+axes.set_xlabel(r'Variance of mean ANPP (lb/acre)', fontdict=fontdict_normal);
+axes.set_ylabel('count', fontdict=fontdict_normal);
+
+file_name = bio_plots + "ANPP_detrendSens_40Yr_variance_histogram.pdf"
+plt.savefig(file_name, bbox_inches='tight', dpi=map_dpi_)
+
+# %%
+
+# %%
 sharey_ = False ### set axis limits to be identical or not
 
 fig, axes = plt.subplots(1, 1, figsize=(7, 2), sharey=sharey_, sharex=True, dpi=dpi_)
@@ -253,6 +330,44 @@ axes.set_ylabel('count', fontdict=fontdict_normal);
 
 file_name = bio_plots + "ANPP_40Yr_CV_histogram.pdf"
 plt.savefig(file_name, bbox_inches='tight', dpi=map_dpi_)
+
+# %%
+
+# %%
+sharey_ = False ### set axis limits to be identical or not
+
+fig, axes = plt.subplots(1, 1, figsize=(7, 2), sharey=sharey_, sharex=True, dpi=dpi_)
+axes.grid(axis='y', alpha=0.7, zorder=0);
+
+axes.hist(Albers_SF_west['anpp_detrendSens_cv'].dropna(), zorder=3,
+          bins=100, color='skyblue', edgecolor='black')
+
+axes.set_title(r'ANPP detrendSens CV distribution', color="k", fontdict=fontdict_bold);
+axes.set_xlabel(r'ANPP CV ($\sigma/\mu \times 100$)', fontdict=fontdict_normal);
+axes.set_ylabel('count', fontdict=fontdict_normal);
+
+file_name = bio_plots + "ANPP_detrendSens_40Yr_CV_histogram.pdf"
+plt.savefig(file_name, bbox_inches='tight', dpi=map_dpi_)
+
+# %%
+sharey_ = False ### set axis limits to be identical or not
+
+fig, axes = plt.subplots(1, 1, figsize=(7, 2), sharey=sharey_, sharex=True, dpi=dpi_)
+axes.grid(axis='y', alpha=0.7, zorder=0);
+
+data = Albers_SF_west.copy()
+data = data[np.isfinite(data['anpp_detrendLinReg_cv'])]
+axes.hist(data['anpp_detrendLinReg_cv'].dropna(), zorder=3,
+          bins=100, color='skyblue', edgecolor='black')
+
+axes.set_title(r'ANPP detrendLinReg CV distribution', color="k", fontdict=fontdict_bold);
+axes.set_xlabel(r'ANPP CV ($\sigma/\mu \times 100$)', fontdict=fontdict_normal);
+axes.set_ylabel('count', fontdict=fontdict_normal);
+
+file_name = bio_plots + "ANPP_detrendLinReg_40Yr_CV_histogram.pdf"
+plt.savefig(file_name, bbox_inches='tight', dpi=map_dpi_)
+
+# %%
 
 # %%
 tick_legend_FontSize = 12
@@ -279,6 +394,10 @@ print ()
 print (np.abs(Albers_SF_west['anpp_cv'].min()))
 print (np.abs(Albers_SF_west['anpp_cv'].max()))
 
+
+# %%
+
+# %%
 
 # %%
 y_var = "anpp_min"
@@ -308,6 +427,48 @@ plt.savefig(file_name, bbox_inches='tight', dpi=map_dpi_)
 del(cent_plt, cax, cbar1, norm1, min_max)
 
 # %%
+y_var = "anpp_detrendSens_min"
+fig, ax = plt.subplots(1, 1, dpi=map_dpi_)
+ax.set_xticks([]); ax.set_yticks([])
+
+min_max = max(np.abs(Albers_SF_west[y_var].min()), np.abs(Albers_SF_west[y_var].max()))
+norm1 = Normalize(vmin=-min_max, vmax=min_max, clip=True)
+
+rcp.plot_SF(SF=visframe_mainLand_west, ax_=ax, col="EW_meridian", cmap_=ListedColormap(['grey', 'white']))
+cent_plt = Albers_SF_west.plot(column=y_var, ax=ax, legend=False, cmap='seismic', norm=norm1)
+
+cax = ax.inset_axes(inset_axes_)
+cbar1 = fig.colorbar(cent_plt.collections[1], ax=ax, orientation='horizontal', shrink=0.3, norm=norm1, cax=cax)
+cbar1.set_label(f'min(ANPP)', labelpad=1, fontdict=fontdict_normal);
+plt.title("ANPP (detrendSens) minimum", fontdict=fontdict_bold);
+
+file_name = bio_plots + "ANPP_detrendSens_40Yr_min.png"
+plt.savefig(file_name, bbox_inches='tight', dpi=map_dpi_)
+
+del(cent_plt, cax, cbar1, norm1, min_max)
+
+# %%
+
+# %%
+y_var = "anpp_detrendLinReg_min"
+fig, ax = plt.subplots(1, 1, dpi=map_dpi_)
+ax.set_xticks([]); ax.set_yticks([])
+min_max = max(np.abs(Albers_SF_west[y_var].min()), np.abs(Albers_SF_west[y_var].max()))
+norm1 = Normalize(vmin=-min_max, vmax=min_max, clip=True)
+rcp.plot_SF(SF=visframe_mainLand_west, ax_=ax, col="EW_meridian", cmap_=ListedColormap(['grey', 'white']))
+cent_plt = Albers_SF_west.plot(column=y_var, ax=ax, legend=False, cmap='seismic', norm=norm1)
+cax = ax.inset_axes(inset_axes_)
+cbar1 = fig.colorbar(cent_plt.collections[1], ax=ax, orientation='horizontal', shrink=0.3, norm=norm1, cax=cax)
+cbar1.set_label(f'min(ANPP)', labelpad=1, fontdict=fontdict_normal);
+plt.title("ANPP (detrendLinReg) minimum", fontdict=fontdict_bold);
+
+file_name = bio_plots + "ANPP_detrendLinReg_40Yr_min.png"
+plt.savefig(file_name, bbox_inches='tight', dpi=map_dpi_)
+del(cent_plt, cax, cbar1, norm1, min_max)
+
+# %%
+
+# %%
 
 # %%
 y_var = "anpp_max"
@@ -331,6 +492,51 @@ plt.title("ANPP maximum", fontdict=fontdict_bold);
 file_name = bio_plots + "ANPP_40Yr_max.png"
 plt.savefig(file_name, bbox_inches='tight', dpi=map_dpi_)
 
+del(cent_plt, cax, cbar1, norm1, min_max)
+
+# %%
+
+# %%
+y_var = "anpp_detrendSens_max"
+fig, ax = plt.subplots(1, 1, dpi=map_dpi_)
+ax.set_xticks([]); ax.set_yticks([])
+
+min_max = max(np.abs(Albers_SF_west[y_var].min()), np.abs(Albers_SF_west[y_var].max()))
+norm1 = Normalize(vmin=-min_max, vmax=min_max, clip=True)
+
+rcp.plot_SF(SF=visframe_mainLand_west, ax_=ax, col="EW_meridian", cmap_=ListedColormap(['grey', 'white']))
+cent_plt = Albers_SF_west.plot(column=y_var, ax=ax, legend=False, cmap='seismic', norm=norm1)
+
+cax = ax.inset_axes(inset_axes_)
+cbar1 = fig.colorbar(cent_plt.collections[1], ax=ax, orientation='horizontal', shrink=0.3, norm=norm1, cax=cax)
+cbar1.set_label(f'max(ANPP)', labelpad=1, fontdict=fontdict_normal);
+plt.title("ANPP (detrendSens) maximum", fontdict=fontdict_bold);
+
+file_name = bio_plots + "ANPP_detrendSens_40Yr_max.png"
+plt.savefig(file_name, bbox_inches='tight', dpi=map_dpi_)
+del(cent_plt, cax, cbar1, norm1, min_max)
+
+# %%
+
+# %%
+y_var = "anpp_detrendLinReg_max"
+fig, ax = plt.subplots(1, 1, dpi=map_dpi_)
+ax.set_xticks([]); ax.set_yticks([])
+
+min_max = max(np.abs(Albers_SF_west[y_var].min()), np.abs(Albers_SF_west[y_var].max()))
+norm1 = Normalize(vmin=-min_max, vmax=min_max, clip=True)
+
+rcp.plot_SF(SF=visframe_mainLand_west, ax_=ax, col="EW_meridian", cmap_=ListedColormap(['grey', 'white']))
+
+cent_plt = Albers_SF_west.plot(column=y_var, ax=ax, legend=False, cmap='seismic', norm=norm1)
+
+cax = ax.inset_axes(inset_axes_)
+cbar1 = fig.colorbar(cent_plt.collections[1], ax=ax, orientation='horizontal', shrink=0.3, norm=norm1, cax=cax)
+cbar1.set_label(f'max(ANPP)', labelpad=1, fontdict=fontdict_normal);
+plt.title("ANPP (detrendLinReg) maximum", fontdict=fontdict_bold);
+
+file_name = bio_plots + "ANPP_detrendLinReg_40Yr_max.png"
+plt.savefig(file_name, bbox_inches='tight', dpi=map_dpi_)
 del(cent_plt, cax, cbar1, norm1, min_max)
 
 # %%
@@ -362,6 +568,48 @@ del(cent_plt, cax, cbar1, norm1, min_max)
 # %%
 
 # %%
+y_var = "anpp_detrendLinReg_median"
+fig, ax = plt.subplots(1, 1, dpi=map_dpi_)
+ax.set_xticks([]); ax.set_yticks([])
+
+min_max = max(np.abs(Albers_SF_west[y_var].min()), np.abs(Albers_SF_west[y_var].max()))
+norm1 = Normalize(vmin=-min_max, vmax=min_max, clip=True)
+
+rcp.plot_SF(SF=visframe_mainLand_west, ax_=ax, col="EW_meridian", cmap_=ListedColormap(['grey', 'white']))
+
+cent_plt = Albers_SF_west.plot(column=y_var, ax=ax, legend=False, cmap='seismic', norm=norm1)
+cax = ax.inset_axes(inset_axes_)
+cbar1 = fig.colorbar(cent_plt.collections[1], ax=ax, orientation='horizontal', shrink=0.3, norm=norm1, cax=cax)
+cbar1.set_label(f'median(ANPP)', labelpad=1, fontdict=fontdict_normal);
+plt.title("ANPP detrendLinReg median", fontdict=fontdict_bold);
+
+file_name = bio_plots + "anpp_detrendLinReg_40Yr_median.png"
+plt.savefig(file_name, bbox_inches='tight', dpi=map_dpi_)
+
+del(cent_plt, cax, cbar1, norm1, min_max)
+
+# %%
+
+# %%
+y_var = "anpp_detrendSens_median"
+fig, ax = plt.subplots(1, 1, dpi=map_dpi_)
+ax.set_xticks([]); ax.set_yticks([])
+
+min_max = max(np.abs(Albers_SF_west[y_var].min()), np.abs(Albers_SF_west[y_var].max()))
+norm1 = Normalize(vmin=-min_max, vmax=min_max, clip=True)
+
+rcp.plot_SF(SF=visframe_mainLand_west, ax_=ax, col="EW_meridian", cmap_=ListedColormap(['grey', 'white']))
+
+cent_plt = Albers_SF_west.plot(column=y_var, ax=ax, legend=False, cmap='seismic', norm=norm1)
+cax = ax.inset_axes(inset_axes_)
+cbar1 = fig.colorbar(cent_plt.collections[1], ax=ax, orientation='horizontal', shrink=0.3, norm=norm1, cax=cax)
+cbar1.set_label(f'median(ANPP)', labelpad=1, fontdict=fontdict_normal);
+plt.title("ANPP detrendSens median", fontdict=fontdict_bold);
+
+file_name = bio_plots + "anpp_detrendSens_40Yr_median.png"
+plt.savefig(file_name, bbox_inches='tight', dpi=map_dpi_)
+
+del(cent_plt, cax, cbar1, norm1, min_max)
 
 # %%
 
@@ -392,6 +640,54 @@ file_name = bio_plots + "ANPP_40Yr_variance_divergeRB_GreyBG.png"
 plt.savefig(file_name, bbox_inches='tight', dpi=map_dpi_)
 
 del(cent_plt, cax, cbar1, norm1, min_max)
+
+# %%
+
+# %%
+y_var = "anpp_detrendSens_variance"
+fig, ax = plt.subplots(1, 1, dpi=map_dpi_)
+ax.set_xticks([]); ax.set_yticks([])
+
+min_max = max(np.abs(Albers_SF_west[y_var].min()), np.abs(Albers_SF_west[y_var].max()))
+norm1 = Normalize(vmin=-min_max, vmax=min_max, clip=True)
+
+rcp.plot_SF(SF=visframe_mainLand_west, ax_=ax, col="EW_meridian", cmap_=ListedColormap(['grey', 'white']))
+
+cent_plt = Albers_SF_west.plot(column=y_var, ax=ax, legend=False, cmap='seismic', norm=norm1)
+cax = ax.inset_axes(inset_axes_)
+cbar1 = fig.colorbar(cent_plt.collections[1], ax=ax, orientation='horizontal', shrink=0.3, norm=norm1, cax=cax)
+cbar1.set_label(f'$\sigma^2$(ANPP)', labelpad=1, fontdict=fontdict_normal);
+plt.title("ANPP detrendSens variance", fontdict=fontdict_bold);
+
+file_name = bio_plots + "anpp_detrendSens_40Yr_variance.png"
+plt.savefig(file_name, bbox_inches='tight', dpi=map_dpi_)
+
+del(cent_plt, cax, cbar1, norm1, min_max)
+
+# %%
+
+# %%
+y_var = "anpp_detrendLinReg_variance"
+fig, ax = plt.subplots(1, 1, dpi=map_dpi_)
+ax.set_xticks([]); ax.set_yticks([])
+
+min_max = max(np.abs(Albers_SF_west[y_var].min()), np.abs(Albers_SF_west[y_var].max()))
+norm1 = Normalize(vmin=-min_max, vmax=min_max, clip=True)
+
+rcp.plot_SF(SF=visframe_mainLand_west, ax_=ax, col="EW_meridian", cmap_=ListedColormap(['grey', 'white']))
+
+cent_plt = Albers_SF_west.plot(column=y_var, ax=ax, legend=False, cmap='seismic', norm=norm1)
+cax = ax.inset_axes(inset_axes_)
+cbar1 = fig.colorbar(cent_plt.collections[1], ax=ax, orientation='horizontal', shrink=0.3, norm=norm1, cax=cax)
+cbar1.set_label(f'$\sigma^2$(ANPP)', labelpad=1, fontdict=fontdict_normal);
+plt.title("ANPP detrendLinReg variance", fontdict=fontdict_bold);
+
+file_name = bio_plots + "anpp_detrendLinReg_40Yr_variance.png"
+plt.savefig(file_name, bbox_inches='tight', dpi=map_dpi_)
+
+del(cent_plt, cax, cbar1, norm1, min_max)
+
+# %%
 
 # %%
 
@@ -454,6 +750,90 @@ del(cent_plt1, cax1, cbar1, norm1, min_max1,
     cent_plt2, cax2, cbar2, norm2, min_max2)
 
 # %%
+
+# %%
+fig, axes = plt.subplots(1, 2, dpi=map_dpi_)
+(ax1, ax2) = axes
+ax1.set_xticks([]); ax1.set_yticks([])
+ax2.set_xticks([]); ax2.set_yticks([])
+
+rcp.plot_SF(SF=visframe_mainLand_west, ax_=ax1, col="EW_meridian", cmap_=ListedColormap(['grey', 'white']))
+rcp.plot_SF(SF=visframe_mainLand_west, ax_=ax2, col="EW_meridian", cmap_=ListedColormap(['grey', 'white']))
+
+min_max1 = max(np.abs(Albers_SF_west['anpp_detrendSens_cv'].min()), 
+               np.abs(Albers_SF_west['anpp_detrendSens_cv'].max()))
+min_max2 = max(np.abs(Albers_SF_west['anpp_detrendSens_variance'].min()), 
+               np.abs(Albers_SF_west['anpp_detrendSens_variance'].max()))
+
+norm1 = Normalize(vmin=-min_max1, vmax=min_max1, clip=True)
+norm2 = Normalize(vmin=-min_max2, vmax=min_max2, clip=True)
+
+cent_plt1 = Albers_SF_west.plot(column='anpp_detrendSens_cv',       ax=ax1, legend=False, 
+                                cmap='seismic', norm=norm1)
+cent_plt2 = Albers_SF_west.plot(column='anpp_detrendSens_variance', ax=ax2, legend=False, 
+                                cmap='seismic', norm=norm2)
+
+cax1 = ax1.inset_axes(inset_axes_)
+cax2 = ax2.inset_axes(inset_axes_)
+
+cbar1 = fig.colorbar(cent_plt1.collections[1], ax=ax1, orientation='horizontal', shrink=0.3, norm=norm1, cax=cax1)
+cbar2 = fig.colorbar(cent_plt2.collections[1], ax=ax2, orientation='horizontal', shrink=0.3, norm=norm2, cax=cax2)
+
+cbar1.set_label(r'CV(ANPP) $\times 100$', labelpad=1, fontdict=fontdict_normal);
+cbar2.set_label(f'$\sigma^2$(ANPP)', labelpad=1, fontdict=fontdict_normal);
+
+ax1.set_title("CV(ANPP detrendSens)", fontdict=fontdict_bold);
+ax2.set_title("variance of ANPP detrendSens", fontdict=fontdict_bold);
+plt.tight_layout()
+
+file_name = bio_plots + "anpp_detrendSens_40Yr_variance_and_CV.png"
+plt.savefig(file_name, bbox_inches='tight', dpi=map_dpi_)
+
+del(cent_plt1, cax1, cbar1, norm1, min_max1, 
+    cent_plt2, cax2, cbar2, norm2, min_max2)
+
+# %%
+
+# %%
+fig, axes = plt.subplots(1, 2, dpi=map_dpi_)
+(ax1, ax2) = axes
+ax1.set_xticks([]); ax1.set_yticks([])
+ax2.set_xticks([]); ax2.set_yticks([])
+
+rcp.plot_SF(SF=visframe_mainLand_west, ax_=ax1, col="EW_meridian", cmap_=ListedColormap(['grey', 'white']))
+rcp.plot_SF(SF=visframe_mainLand_west, ax_=ax2, col="EW_meridian", cmap_=ListedColormap(['grey', 'white']))
+
+min_max1 = max(np.abs(Albers_SF_west['anpp_detrendLinReg_cv'].min()), 
+               np.abs(Albers_SF_west['anpp_detrendLinReg_cv'].max()))
+min_max2 = max(np.abs(Albers_SF_west['anpp_detrendLinReg_variance'].min()), 
+               np.abs(Albers_SF_west['anpp_detrendLinReg_variance'].max()))
+
+norm1 = Normalize(vmin=-min_max1, vmax=min_max1, clip=True)
+norm2 = Normalize(vmin=-min_max2, vmax=min_max2, clip=True)
+
+cent_plt1 = Albers_SF_west.plot(column='anpp_detrendLinReg_cv',       ax=ax1, legend=False, 
+                                cmap='seismic', norm=norm1)
+cent_plt2 = Albers_SF_west.plot(column='anpp_detrendLinReg_variance', ax=ax2, legend=False, 
+                                cmap='seismic', norm=norm2)
+
+cax1 = ax1.inset_axes(inset_axes_)
+cax2 = ax2.inset_axes(inset_axes_)
+
+cbar1 = fig.colorbar(cent_plt1.collections[1], ax=ax1, orientation='horizontal', shrink=0.3, norm=norm1, cax=cax1)
+cbar2 = fig.colorbar(cent_plt2.collections[1], ax=ax2, orientation='horizontal', shrink=0.3, norm=norm2, cax=cax2)
+
+cbar1.set_label(r'CV(ANPP) $\times 100$', labelpad=1, fontdict=fontdict_normal);
+cbar2.set_label(f'$\sigma^2$(ANPP)', labelpad=1, fontdict=fontdict_normal);
+
+ax1.set_title("CV(ANPP detrendLinReg)", fontdict=fontdict_bold);
+ax2.set_title("variance of ANPP detrendLinReg", fontdict=fontdict_bold);
+plt.tight_layout()
+
+file_name = bio_plots + "anpp_detrendLinReg_40Yr_variance_and_CV.png"
+plt.savefig(file_name, bbox_inches='tight', dpi=map_dpi_)
+
+del(cent_plt1, cax1, cbar1, norm1, min_max1, 
+    cent_plt2, cax2, cbar2, norm2, min_max2)
 
 # %%
 

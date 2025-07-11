@@ -5,7 +5,7 @@
 #       extension: .py
 #       format_name: percent
 #       format_version: '1.3'
-#       jupytext_version: 1.16.1
+#       jupytext_version: 1.15.2
 #   kernelspec:
 #     display_name: Python 3 (ipykernel)
 #     language: python
@@ -54,7 +54,11 @@ print (list(colormaps)[:4])
 # %%
 
 # %%
-rangeland_bio_base = "/Users/hn/Documents/01_research_data/RangeLand_bio/"
+research_db = "/Users/hn/Documents/01_research_data/"
+rangeland_bio_base = research_db + "/RangeLand_bio/"
+
+common_data = research_db + "common_data/"
+
 rangeland_bio_data = rangeland_bio_base + "Data/"
 min_bio_dir = rangeland_bio_data + "Min_Data/"
 
@@ -70,7 +74,7 @@ bio_plots = rangeland_bio_base + "plots/"
 os.makedirs(bio_plots, exist_ok=True)
 
 # %%
-county_fips_dict = pd.read_pickle(rangeland_reOrganized + "county_fips.sav")
+county_fips_dict = pd.read_pickle(common_data + "county_fips.sav")
 
 county_fips = county_fips_dict["county_fips"]
 full_2_abb = county_fips_dict["full_2_abb"]
@@ -236,7 +240,7 @@ Albers_SF.plot(column='EW_meridian', categorical=True, legend=True);
 # %%
 from shapely.geometry import Polygon
 
-gdf = geopandas.read_file(rangeland_base +'cb_2018_us_state_500k.zip')
+gdf = geopandas.read_file(common_data +'cb_2018_us_state_500k.zip')
 
 gdf.rename(columns={"STUSPS": "state"}, inplace=True)
 gdf = gdf[~gdf.state.isin(["PR", "VI", "AS", "GU", "MP"])]
@@ -281,16 +285,10 @@ bps_weather.rename(columns={"rmin_min" : "min_of_dailyMin_rel_hum",
 bps_weather.head(2)
 
 drop_cols = ['alert', 'danger', 'emergency', 'thi_90', 'thi_std', "normal",
-             
              'min_of_dailyMin_rel_hum',
              'avg_of_dailyMin_rel_hum',
              'max_of_dailyMax_rel_hum',
-             'max_of_dailyAvg_rel_hum',
-             
-             'avg_of_dailyMaxTemp_C', 
-             'max_of_dailyMaxTemp_C', 
-             'avg_of_dailyMinTemp_C', 
-             'min_of_dailyMinTemp_C']
+             'max_of_dailyAvg_rel_hum']
 
 bps_weather.drop(columns = drop_cols, axis="columns", inplace=True)
 bps_weather = bps_weather[[bps_weather.columns[-1]] + list(bps_weather.columns[:-1])]
@@ -330,6 +328,9 @@ monthly_weather.head(2)
 print (f'{len(monthly_weather["fid"].unique())=}')
 
 # %%
+sorted(monthly_weather.columns)
+
+# %%
 # %%time
 monthly_weather_wide = monthly_weather.copy()
 monthly_weather_wide.sort_values(by= ['fid', 'year', "month"], inplace=True)
@@ -338,32 +339,64 @@ df1 = monthly_weather_wide[['fid', 'year', "month", 'avg_of_dailyAvg_rel_hum']].
 df2 = monthly_weather_wide[['fid', 'year', "month", 'avg_of_dailyAvgTemp_C']].copy()
 df3 = monthly_weather_wide[['fid', 'year', "month", 'thi_avg']].copy()
 df4 = monthly_weather_wide[['fid', 'year', "month", 'precip_mm_month']].copy()
+
+df5 = monthly_weather_wide[['fid', 'year', "month", 'avg_of_dailyMaxTemp_C']].copy()
+df6 = monthly_weather_wide[['fid', 'year', "month", 'avg_of_dailyMinTemp_C']].copy()
+df7 = monthly_weather_wide[['fid', 'year', "month", 'max_of_dailyMaxTemp_C']].copy()
+df8 = monthly_weather_wide[['fid', 'year', "month", 'min_of_dailyMinTemp_C']].copy()
 ########################################################################
 df1 = df1.pivot(index=['fid', 'year'], columns=['month'])
 df2 = df2.pivot(index=['fid', 'year'], columns=['month'])
 df3 = df3.pivot(index=['fid', 'year'], columns=['month'])
 df4 = df4.pivot(index=['fid', 'year'], columns=['month'])
+
+df5 = df5.pivot(index=['fid', 'year'], columns=['month'])
+df6 = df6.pivot(index=['fid', 'year'], columns=['month'])
+df7 = df7.pivot(index=['fid', 'year'], columns=['month'])
+df8 = df8.pivot(index=['fid', 'year'], columns=['month'])
+
 ########################################################################
 df1.reset_index(drop=False, inplace=True)
 df2.reset_index(drop=False, inplace=True)
 df3.reset_index(drop=False, inplace=True)
 df4.reset_index(drop=False, inplace=True)
+
+df5.reset_index(drop=False, inplace=True)
+df6.reset_index(drop=False, inplace=True)
+df7.reset_index(drop=False, inplace=True)
+df8.reset_index(drop=False, inplace=True)
+
 ########################################################################
 df1.columns = ["_".join(tup) for tup in df1.columns.to_flat_index()]
 df2.columns = ["_".join(tup) for tup in df2.columns.to_flat_index()]
 df3.columns = ["_".join(tup) for tup in df3.columns.to_flat_index()]
 df4.columns = ["_".join(tup) for tup in df4.columns.to_flat_index()]
+
+df5.columns = ["_".join(tup) for tup in df5.columns.to_flat_index()]
+df6.columns = ["_".join(tup) for tup in df6.columns.to_flat_index()]
+df7.columns = ["_".join(tup) for tup in df7.columns.to_flat_index()]
+df8.columns = ["_".join(tup) for tup in df8.columns.to_flat_index()]
 ########################################################################
 df1.rename(columns={"fid_": "fid", "year_":"year"}, inplace=True)
 df2.rename(columns={"fid_": "fid", "year_": "year"}, inplace=True)
 df3.rename(columns={"fid_": "fid", "year_": "year"}, inplace=True)
 df4.rename(columns={"fid_": "fid", "year_": "year"}, inplace=True)
 
+df5.rename(columns={"fid_": "fid", "year_":"year"}, inplace=True)
+df6.rename(columns={"fid_": "fid", "year_": "year"}, inplace=True)
+df7.rename(columns={"fid_": "fid", "year_": "year"}, inplace=True)
+df8.rename(columns={"fid_": "fid", "year_": "year"}, inplace=True)
+
 df1.head(2)
 
 wide_WA = pd.merge(df1, df2, how="left", on=["fid", "year"])
 wide_WA = pd.merge(wide_WA, df3, how="left", on=["fid", "year"])
 wide_WA = pd.merge(wide_WA, df4, how="left", on=["fid", "year"])
+
+wide_WA = pd.merge(wide_WA, df5, how="left", on=["fid", "year"])
+wide_WA = pd.merge(wide_WA, df6, how="left", on=["fid", "year"])
+wide_WA = pd.merge(wide_WA, df7, how="left", on=["fid", "year"])
+wide_WA = pd.merge(wide_WA, df8, how="left", on=["fid", "year"])
 
 # %%
 print (wide_WA.shape)

@@ -202,20 +202,43 @@ annual_weather.head(3)
 # # Compute variances
 
 # %%
-stats = ['var', 'mean', 'std', 'min', 'max', 'median']
+# stats = ['var', 'mean', 'std', 'min', 'max', 'median']
+stats = ['min', 'mean', 'median', 'max', 'var', 'std']
 cv_df = annual_weather.groupby('fid').agg({'avg_of_dailyAvgTemp_C': stats,
                                            'precip_mm': stats}).reset_index()
 
 # Flatten column MultiIndex
 cv_df.columns = ['fid', 
-                 'temp_variance', 'temp_mean', 'temp_std', 'temp_min', 'temp_max', 'temp_median',
+                 'temp_min', 'temp_mean', 'temp_median', 'temp_max', 'temp_variance', 'temp_std',
                  'precip_variance', 'precip_mean', 'precip_std', 'precip_min', 'precip_max', 'precip_median']
 
 # Calculate coefficient of variation
-cv_df['temp_cv_times100'] = 100 *  (cv_df['temp_std'] / cv_df['temp_mean'])
+cv_df['temp_cv_times100']   = 100 * (cv_df['temp_std'] / cv_df['temp_mean'])
 cv_df['precip_cv_times100'] = 100 * (cv_df['precip_std'] / cv_df['precip_mean'])
 
 cv_df.head(3)
+
+# %%
+cv_df2 = cv_df.copy()
+
+# %%
+# stats = ['var', 'mean', 'std', 'min', 'max', 'median']
+stats = ['min', 'mean', 'median', 'max', 'var', 'std']
+cv_df = annual_weather.groupby('fid').agg({'avg_of_dailyAvgTemp_C': stats,
+                                           'precip_mm': stats}).reset_index()
+
+# Flatten column MultiIndex
+cv_df.columns = ['fid', 
+                 'temp_min', 'temp_mean', 'temp_median', 'temp_max', 'temp_variance', 'temp_std',
+                 'precip_min', 'precip_mean', 'precip_median', 'precip_max', 'precip_variance', 'precip_std']
+
+# Calculate coefficient of variation
+cv_df['temp_cv_times100']   = 100 * (cv_df['temp_std'] / cv_df['temp_mean'])
+cv_df['precip_cv_times100'] = 100 * (cv_df['precip_std'] / cv_df['precip_mean'])
+
+cv_df.head(3)
+
+# %%
 
 # %%
 Albers_SF = pd.merge(Albers_SF, cv_df, how="left", on="fid")

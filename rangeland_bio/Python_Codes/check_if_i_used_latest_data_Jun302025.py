@@ -23,6 +23,7 @@
 # Let me check if I have used latest data!!! dammit
 
 # %%
+import os
 import pandas as pd
 
 # %%
@@ -124,5 +125,42 @@ A = np.array(([2, 5, 1], [1, 3, 5], [3, 1, 1]))
 
 # %%
 np.linalg.det(A)
+
+# %% [markdown]
+# ### Check GDDs
+
+# %%
+
+# %%
+dir_ = "/Users/hn/Documents/01_research_data/RangeLand/Data_large_notUsedYet/Min_data/Min_WeeklyClimateMean/"
+
+research_db = "/Users/hn/Documents/01_research_data/"
+rangeland_bio_base = research_db + "/RangeLand_bio/"
+
+common_data = research_db + "common_data/"
+
+rangeland_bio_data = rangeland_bio_base + "Data/"
+min_bio_dir = rangeland_bio_data + "Min_Data/"
+
+# %%
+os.listdir(dir_)
+
+# %%
+bps_weather = pd.read_csv(min_bio_dir + "bps_gridmet_mean_indices.csv")
+bps_weather.rename(columns=lambda x: x.lower().replace(' ', '_'), inplace=True)
+bps_weather.head(2)
+
+# %%
+print (len(bps_weather['bpshuc'].unique()))
+
+# %%
+df = pd.read_csv(dir_ + "ecozone_gridmet_mean_weekly_ppt_et0_gddetc.csv")
+print (len(df['ecozone'].unique()))
+df.head(2)
+
+# %%
+df = pd.read_csv(dir_ + "prfgrid_gridmet_mean_weekly_ppt_et0_gddetc.csv")
+print (len(df['prfgrid'].unique()))
+df.head(2)
 
 # %%
