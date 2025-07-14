@@ -273,7 +273,7 @@ for y_var in y_vars:
     all_treds_dict[key_] = MK_df
     print (f"{count} out of {len_y_vars}")
     count += 1
-    print ()
+    print ("================================================================")
 
 # %%
 

@@ -268,10 +268,10 @@ for a_pattern in patterns:
     cax1 = ax[1].inset_axes(inset_axes_)
     
     cbar0 = fig.colorbar(cent_plt0.collections[1], ax=ax[0], norm=norm0, cax=cax0,
-                         orientation='horizontal', shrink=0.3, cmap=cm.get_cmap('RdYlGn'))
+                         orientation='horizontal', shrink=0.3)
 
     cbar1 = fig.colorbar(cent_plt1.collections[1], ax=ax[1], norm=norm1, cax=cax1, 
-                         orientation='horizontal', shrink=0.3, cmap=cm.get_cmap('RdYlGn'))
+                         orientation='horizontal', shrink=0.3)
 
     cbar0.set_label(r'$\Delta(ACF1_{BP1})$', labelpad=1, fontdict=fontdict_normal);
     cbar1.set_label(r'ratio$(ACF1_{BP1})$' , labelpad=1, fontdict=fontdict_normal);
@@ -318,31 +318,33 @@ for y_var in delta_ratio_cols:
     filtered_outside = df[(df[y_var] < lower_bound) | (df[y_var] > upper_bound)]
 
     ############
-    min_max0 = max(np.abs(filtered_between[y_var].min()), np.abs(filtered_between[y_var].max()))
-    min_max1 = max(np.abs(filtered_outside[y_var].min()), np.abs(filtered_outside[y_var].max()))
+    min_max_between = max(np.abs(filtered_between[y_var].min()), np.abs(filtered_between[y_var].max()))
+    min_max_outside = max(np.abs(filtered_outside[y_var].min()), np.abs(filtered_outside[y_var].max()))
     
-    norm0 = Normalize(vmin= -min_max0, vmax=min_max0, clip=True)
-    norm1 = Normalize(vmin= -min_max1, vmax=min_max1, clip=True)
+    norm_between = Normalize(vmin= -min_max_between, vmax=min_max_between, clip=True)
+    norm_outside = Normalize(vmin= -min_max_outside, vmax=min_max_outside, clip=True)
     
-    cent_plt0 = filtered_between.plot(ax=ax[0], column=y_var, legend=False, cmap='seismic', norm=norm0)
-    cent_plt1 = filtered_outside.plot(ax=ax[1], column=y_var, legend=False, cmap='seismic', norm=norm1)
+    cent_plt_between = filtered_between.plot(ax=ax[0], column=y_var, 
+                                             legend=False, cmap='seismic', norm=norm_between)
+    cent_plt_outside = filtered_outside.plot(ax=ax[1], column=y_var, 
+                                             legend=False, cmap='seismic', norm=norm_outside)
 
     cax0 = ax[0].inset_axes(inset_axes_); 
     cax1 = ax[1].inset_axes(inset_axes_)
     
-    cbar0 = fig.colorbar(cent_plt0.collections[1], ax=ax[0], norm=norm0, cax=cax0,
-                         cmap=cm.get_cmap('RdYlGn'), shrink=0.3, orientation='horizontal')
+    cbar_between = fig.colorbar(cent_plt_between.collections[1], ax=ax[0], norm=norm_between, cax=cax0,
+                         shrink=0.3, orientation='horizontal')
     
-    cbar1 = fig.colorbar(cent_plt1.collections[1], ax=ax[1], norm=norm1, cax=cax1,
-                         cmap=cm.get_cmap('RdYlGn'), shrink=0.3, orientation='horizontal')
+    cbar_outside = fig.colorbar(cent_plt_outside.collections[1], ax=ax[1], norm=norm_outside, cax=cax1,
+                         shrink=0.3, orientation='horizontal')
 
     if "delta" in y_var:
-        cbar0.set_label(r'$\Delta(ACF1_{BP1})$', labelpad=1, fontdict=fontdict_normal);
-        cbar1.set_label(r'$\Delta(ACF1_{BP1})$', labelpad=1, fontdict=fontdict_normal);
+        cbar_between.set_label(r'$\Delta(ACF1_{BP1})$', labelpad=1, fontdict=fontdict_normal);
+        cbar_outside.set_label(r'$\Delta(ACF1_{BP1})$', labelpad=1, fontdict=fontdict_normal);
         pre_title = "diff."
     elif "ratio" in y_var:
-        cbar0.set_label(r'$ratio(ACF1_{BP1})$', labelpad=1, fontdict=fontdict_normal);
-        cbar1.set_label(r'$ratio(ACF1_{BP1})$', labelpad=1, fontdict=fontdict_normal;
+        cbar_between.set_label(r'$ratio(ACF1_{BP1})$', labelpad=1, fontdict=fontdict_normal);
+        cbar_outside.set_label(r'$ratio(ACF1_{BP1})$', labelpad=1, fontdict=fontdict_normal;
         pre_title = "ratio"
     
     t_ = y_var.replace("mean_lb_per_acr", 'anpp').split("_")[-1]
@@ -353,7 +355,8 @@ for y_var in delta_ratio_cols:
     file_name = curr_out_dir + t_ + "_BP1_divergeRB_greyBG.png"
     plt.savefig(file_name, bbox_inches='tight', dpi=map_dpi_)
     plt.close()
-    del(cent_plt0, cent_plt1, cax0, cax1, cbar0, cbar1, norm0, norm1, min_max0, min_max1,
+    del(cent_plt_between, cent_plt_outside, cax0, cax1, cbar_between, cbar_outside, 
+        norm_between, norm_outside, min_max_between, min_max_outside,
         filtered_between, filtered_outside)
 
 # %%
