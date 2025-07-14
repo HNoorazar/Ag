@@ -81,7 +81,6 @@ os.makedirs(breakpoint_plot_base, exist_ok=True)
 breakpoint_TS_dir = bio_plots + "breakpoints_TS/"
 os.makedirs(breakpoint_TS_dir, exist_ok=True)
 
-
 G_breakpoint_TS_dir = breakpoint_TS_dir + "/greening/"
 B_breakpoint_TS_dir = breakpoint_TS_dir + "/browning/"
 noTrend_breakpoint_TS_dir = breakpoint_TS_dir + "/notrend/"
@@ -116,12 +115,9 @@ Albers_SF_west.head(2)
 # %%
 
 # %%
-sorted(Albers_SF_west.columns)
-
-# %%
 # Merge the dataframes on 'fid'
 weather = weather.merge(Albers_SF_west[['fid', 'sen_m_prec', 'sen_m_temp',
-                                               'sens_intercept_prec', 'sens_intercept_temp']], 
+                                        'sens_intercept_prec', 'sens_intercept_temp']], 
                         on='fid', how='left')
 weather.head(2)
 
@@ -131,7 +127,6 @@ weather.head(2)
 # ### Sens prediction 
 #
 # must not be based on year since that test only lookst at y values.
-#
 
 # %%
 weather['row_number_perfid'] = weather.groupby('fid').cumcount()

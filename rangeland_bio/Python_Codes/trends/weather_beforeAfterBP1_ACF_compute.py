@@ -165,20 +165,20 @@ weather_detrended = weather_detrended[cols_]
 unique_fids = ANPP_breaks['fid'].unique()
 # Initialize empty DataFrame with desired columns
 ACFs_df_temp = pd.DataFrame({'fid': unique_fids,
-                        'BP1' : np.nan,
-                        'n_before': np.nan,
-                        'n_after': np.nan,
-                        'ACF_before_temp': np.nan,
-                        'ACF_after_temp': np.nan,
+                             'BP1' : np.nan,
+                             'n_before': np.nan,
+                             'n_after': np.nan,
+                             'ACF_before_temp': np.nan,
+                             'ACF_after_temp': np.nan,
+                             
+                             'ACF_before_temp_detrendLinReg': np.nan,
+                             'ACF_after_temp_detrendLinReg': np.nan,
                        
-                        'ACF_before_temp_detrendLinReg': np.nan,
-                        'ACF_after_temp_detrendLinReg': np.nan,
+                             'ACF_before_temp_detrendDiff': np.nan,
+                             'ACF_after_temp_detrendDiff': np.nan,
                        
-                        'ACF_before_temp_detrendDiff': np.nan,
-                        'ACF_after_temp_detrendDiff': np.nan,
-                       
-                        'ACF_before_temp_detrendSens': np.nan,
-                        'ACF_after_temp_detrendSens': np.nan})
+                             'ACF_before_temp_detrendSens': np.nan,
+                             'ACF_after_temp_detrendSens': np.nan})
 
 
 ACFs_df_temp = ACFs_df_temp.set_index('fid')

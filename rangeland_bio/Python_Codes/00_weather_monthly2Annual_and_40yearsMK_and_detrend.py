@@ -187,24 +187,6 @@ if not ("EW_meridian" in annual_weather.columns):
 annual_weather.head(2)
 
 # %%
-# out_name = bio_reOrganized + "bpszone_annual_tempPrecip_byHN.csv"
-out_name = bio_reOrganized + "bpszone_annual_weather_byHN.csv"
-annual_weather.to_csv(out_name, index = False)
-
-# %%
-filename = bio_reOrganized + "bpszone_annual_weather_byHN.sav"
-
-export_ = {"bpszone_annual_weather_byHN": annual_weather, 
-           "source_code" : "00_weather_monthly2Annual_and_MK",
-           "Author": "HN",
-           "Date" : datetime.now().strftime('%Y-%m-%d %H:%M:%S')}
-
-pickle.dump(export_, open(filename, 'wb'))
-
-# %%
-annual_weather.head(2)
-
-# %%
 annual_weather.drop(columns=['state_1', 'state_2'], inplace=True)
 
 # %% [markdown]
@@ -212,6 +194,11 @@ annual_weather.drop(columns=['state_1', 'state_2'], inplace=True)
 
 # %%
 sorted(annual_weather.columns)
+
+# %%
+
+# %% [markdown]
+# # MK on weather variables
 
 # %%
 # %%time
@@ -305,9 +292,94 @@ pickle.dump(export_, open(filename, 'wb'))
 print (Albers_SF.shape)
 print (weather_MK_df.shape)
 
+# %% [markdown]
+# # Detrend
+# ### Add detrending to this notebook from ```deTrend_weather.ipynb```
+
+
 # %%
-Albers_SF = pd.merge(Albers_SF, weather_MK_df, on="fid", how="left")
-Albers_SF.head(2)
+weather_MK_df.head(2)
+
+# %%
+annual_weather.head(2)
+
+# %%
+sens_cols = ["fid"] + [x for x in weather_MK_df.columns if ("slope" in x) or ("intercept" in x)]
+sens_cols
+
+# %%
+annual_weather_detrend = annual_weather.copy()
+annual_weather_detrend = pd.merge(annual_weather_detrend, weather_MK_df[sens_cols], how="left", on="fid")
+annual_weather_detrend.head(2)
+
+# %% [markdown]
+# ### Sens prediction 
+#
+# must not be based on year since that test only lookst at y values.
+
+# %%
+annual_weather_detrend['row_number_perfid'] = annual_weather_detrend.groupby('fid').cumcount()
+annual_weather_detrend.head(2)
+
+# %%
+sorted(annual_weather.columns)
+
+# %%
+for y_var in y_vars:
+    annual_weather_detrend[f"{y_var}_senPred"] = annual_weather_detrend["row_number_perfid"] * \
+                                                     annual_weather_detrend[f"sen_slope_{y_var}"] + \
+                                                       annual_weather_detrend[f"sens_intercept_{y_var}"]
+    
+    annual_weather_detrend[f"{y_var}_detrendSens"] = annual_weather_detrend[y_var] - \
+                                                            annual_weather_detrend[f"{y_var}_senPred"]
+    
+annual_weather_detrend.head(2)
+
+# %%
+## detrend using Simple Linear regression
+
+# %%
+
+# %%
+
+# %%
+
+# %%
+
+# %%
+## out_name = bio_reOrganized + "bpszone_annual_tempPrecip_byHN.csv"
+# out_name = bio_reOrganized + "bpszone_annual_weather_and_deTrended_byHN.csv"
+# annual_weather.to_csv(out_name, index = False)
+
+
+# filename = bio_reOrganized + "bpszone_annual_weather_and_deTrended_byHN.sav"
+
+# export_ = {"bpszone_annual_weather_byHN": annual_weather, 
+#            "source_code" : "00_weather_monthly2Annual_and_MK",
+#            "Author": "HN",
+#            "Date" : datetime.now().strftime('%Y-%m-%d %H:%M:%S')}
+
+# pickle.dump(export_, open(filename, 'wb'))
+
+# %%
+# # out_name = bio_reOrganized + "bpszone_annual_tempPrecip_byHN.csv"
+# out_name = bio_reOrganized + "bpszone_annual_weather_byHN.csv"
+# annual_weather.to_csv(out_name, index = False)
+
+
+
+# filename = bio_reOrganized + "bpszone_annual_weather_byHN.sav"
+
+# export_ = {"bpszone_annual_weather_byHN": annual_weather, 
+#            "source_code" : "00_weather_monthly2Annual_and_MK",
+#            "Author": "HN",
+#            "Date" : datetime.now().strftime('%Y-%m-%d %H:%M:%S')}
+
+# pickle.dump(export_, open(filename, 'wb'))
+
+# %% [markdown]
+# # We had these here before, 
+# and ```slope``` was changed to ```m``` at some point but names are too long, so, there is no point
 
 # %%
 # # %%time
@@ -315,9 +387,6 @@ Albers_SF.head(2)
 # Albers_SF.to_file(filename=f_name, driver='ESRI Shapefile')
 
 
-# %%
-
-# %%
 # # %%time
 # f_name = bio_reOrganized + 'Albers_SF_west_weather_MK_Spearman.shp.zip'
 # A = geopandas.read_file(f_name)
