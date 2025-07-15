@@ -112,12 +112,15 @@ breakpoints_dir = rangeland_bio_data + "breakpoints/"
 # ANPP.head(2)
 
 # %%
-weather = pd.read_pickle(bio_reOrganized + "bpszone_annual_weather_byHN.sav")
+weather = pd.read_pickle(bio_reOrganized + "bpszone_annualWeatherByHN_and_deTrended.sav")
+print (weather.keys())
+print (weather['source_code'])
 weather = weather['bpszone_annual_weather_byHN']
-weather.drop(columns=["state_1", "state_2", "state_majority_area", "EW_meridian"], inplace=True)
+# weather.drop(columns=["state_1", "state_2", "state_majority_area", "EW_meridian"], inplace=True)
 weather.head(2)
 
 # %%
+list(weather.columns)
 
 # %%
 ANPP_breaks = pd.read_csv(breakpoints_dir + "ANPP_break_points.csv")
@@ -171,13 +174,24 @@ print (ANPP_breaks.shape)
 weather.head(2)
 
 # %%
-y_vars = ['avg_of_dailyAvgTemp_C',
-          'avg_of_dailyAvg_rel_hum',
-          'avg_of_monthlymax_of_dailyMaxTemp_C',
-          'avg_of_monthlymin_of_dailyMinTemp_C',
-          'max_of_monthlyAvg_of_dailyMaxTemp_C',
-          'min_of_monthlyAvg_of_dailyMinTemp_C',
-          'precip_mm']
+static_columns = ['fid', 'year', 'state_majority_area', 'EW_meridian']
+y_vars = [x for x in weather.columns if not (x in static_columns)]
+y_vars
+
+# %% [markdown]
+# # Some FIDs have no breakpoints. Toss them
+
+# %%
+lag = 1
+
+# %%
+print (len(weather["fid"].unique()))
+print (len(ANPP_breaks["fid"].unique()))
+
+# %%
+fids_ = list(ANPP_breaks['fid'].unique())
+weather = weather[weather['fid'].isin(fids_)]
+
 
 # %%
 # %%time
@@ -210,28 +224,42 @@ for _, row in ANPP_breaks.iterrows():
                   f'{y_var}_mean_after': None,
                   f'{y_var}_median_before': None,
                   f'{y_var}_median_after': None,
+                  f'{y_var}_variance_before': None,
+                  f'{y_var}_variance_after': None,
+                  f'{y_var}_ACF1_before': None,
+                  f'{y_var}_ACF1_after': None,
                  }
-
+        # Why 3? is 2 enough?
+        # We can count the number of cases that we had 2
         if len(before) >= 3:
             trend, _, _, _, _, _, _, slope, intercept = mk.original_test(before)
             result[f'{y_var}_trend_before'] = trend
             result[f'{y_var}_slope_before'] = slope.round(2)
             result[f'{y_var}_intercept_before'] = intercept.round(2)
 
-
         if len(after) >= 3:
             trend, _, _, _, _, _, _, slope, intercept = mk.original_test(after)
             result[f'{y_var}_trend_after'] = trend
             result[f'{y_var}_slope_after'] = slope.round(2)
             result[f'{y_var}_intercept_after'] = intercept.round(2)
-            
+
+        #########  Mean. Median. Variance.
         if len(before) >= 1:
-            result[f'{y_var}_mean_before'] = np.mean(before)
-            result[f'{y_var}_median_before'] = np.median(before)
+            result[f'{y_var}_mean_before'] = before.mean()
+            result[f'{y_var}_median_before'] = before.median()
+            result[f'{y_var}_variance_before'] = before.var()
 
         if len(after) >= 1:
-            result[f'{y_var}_mean_after'] = np.mean(after)
-            result[f'{y_var}_median_after'] = np.median(after)
+            result[f'{y_var}_mean_after'] = after.mean()
+            result[f'{y_var}_median_after'] = after.median()
+            result[f'{y_var}_variance_after'] = after.var()
+            
+        autocorr = before.autocorr(lag=lag) if before.nunique() > 1 else np.nan
+        result[f'{y_var}_ACF1_before'] = autocorr
+        
+        autocorr = after.autocorr(lag=lag) if after.nunique() > 1 else np.nan
+        result[f'{y_var}_ACF1_after'] = autocorr
+    
         a_fid_results.update(result)
 
     results.append(a_fid_results)
@@ -241,16 +269,79 @@ slope_results = pd.DataFrame(results)
 slope_results.head(3)
 
 # %%
-slope_results.columns
+print (slope_results.shape)
+
+# %%
+list(slope_results.columns)
+
+# %%
+
+# %% [markdown]
+# # Compute variance before and after ANPP-BP1
+
+# %%
+# # %%time
+
+# mean_median_variance_dict = []
+
+# for y_var in y_vars:
+#     for stat_ in ["mean", "median", "variance"]:
+#         result_temp = weather.groupby('fid').apply(rc.calculate_stat_beforeAfterBP, 
+#                                                    y_col=y_var, stat=stat_).reset_index()
+#         mean_median_variance_dict.append(result_temp)
+
+# %%
+slope_results.head(2)
+
+# %% [markdown]
+# ## Compute differences and ratios here
+
+# %%
+weather_ANPPBP1 = slope_results.copy()
+
+# %%
+stats_tuple_ = ("slope", "mean", "median", "variance", "ACF1")
+y_cols = [x for x in weather_ANPPBP1.columns if any(k in x for k in stats_tuple_)]
+y_cols[:4]
+
+# %%
+## remove before and after to get patterns
+y_cols_patterns = [x.replace('before', '').replace('after', '') for x in y_cols]
+y_cols_patterns = list(set(y_cols_patterns))
+y_cols_patterns[:4]
+
+# %%
+for a_pattern in y_cols_patterns:
+    weather_ANPPBP1[f'{a_pattern}diff'] = weather_ANPPBP1[f"{a_pattern}after"] - \
+                                                 weather_ANPPBP1[f"{a_pattern}before"]
+    
+    weather_ANPPBP1[f"{a_pattern}ratio"] = weather_ANPPBP1[f"{a_pattern}after"] / \
+                                                  weather_ANPPBP1[f"{a_pattern}before"]
+weather_ANPPBP1.head(2)
+
+# %%
+weather_ANPPBP1.shape
+
+# %% [markdown]
+# ## Separate the diff/ratio DF from the actual values
+
+# %%
+diff_ratio_cols = [x for x in weather_ANPPBP1 if ("diff" in x) or ("ratio" in x)]
+keep_cols = ["fid", "BP_1", "n_before", "n_after"] + diff_ratio_cols
+
+# %%
+weather_ANPPBP1 = weather_ANPPBP1[keep_cols]
+weather_ANPPBP1.shape
 
 # %%
 
 # %%
-filename = breakpoints_dir + "weather_sensSlope_beforeAfter_ANPPBP1.sav"
+filename = breakpoints_dir + "01_weather_Sen_ACF_stats_beforeAfter_ANPPBP1.sav"
 
 export_ = {
-    "sensSlope_beforeAfter_ANPPBP1": slope_results,
-    "source_code": "01_WeatherSenSlopes_beforeAfter_ANPPBP1_compute",
+    "sensSlope_stats_ACF_beforeAfter_ANPPBP1": slope_results,
+    "weather_diffsRatios": weather_ANPPBP1,
+    "source_code": "01_weather_Sen_ACF_stats_beforeAfter_ANPPBP1_compute",
     "Author": "HN",
     "Date": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
 }
@@ -259,6 +350,8 @@ pickle.dump(export_, open(filename, 'wb'))
 
 # filename = breakpoints_dir + "weather_sensSlope_beforeAfter_ANPPBP1.csv"
 # slope_results.to_csv(filename, index=False)
+
+# %%
 
 # %%
 
@@ -329,17 +422,3 @@ pickle.dump(export_, open(filename, 'wb'))
 # # Create results DataFrame
 # MK_results = pd.DataFrame(all_results)
 # MK_results.head(2)
-
-# %%
-
-# %%
-
-# %%
-
-# %%
-
-# %%
-
-# %%
-
-# %%

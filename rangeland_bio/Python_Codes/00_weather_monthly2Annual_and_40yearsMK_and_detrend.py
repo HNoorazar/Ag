@@ -46,6 +46,11 @@ sys.path.append("/Users/hn/Documents/00_GitHub/Ag/rangeland/Python_Codes/")
 import rangeland_core as rc
 
 # %%
+dpi_, map_dpi_=300, 500
+custom_cmap_coral = ListedColormap(['lightcoral', 'black'])
+custom_cmap_BW = ListedColormap(['white', 'black'])
+cmap_G = cm.get_cmap('Greens') # 'PRGn', 'YlGn'
+cmap_R = cm.get_cmap('Reds') 
 
 # %%
 research_db = "/Users/hn/Documents/01_research_data/"
@@ -220,11 +225,9 @@ MK_test_cols = ["sens_slope", "sens_intercept", "Tau", "MK_score",
 
 for y_var in y_vars:
     MK_df = annual_weather[["fid"]].copy()
-    print (MK_df.shape)
     MK_df.drop_duplicates(inplace=True)
     MK_df.reset_index(drop=True, inplace=True)
-    print (MK_df.shape)
-    
+
     ##### z: normalized test statistics
     ##### Tau: Kendall Tau
     MK_df = pd.concat([MK_df, pd.DataFrame(columns = MK_test_cols)])
@@ -282,7 +285,7 @@ weather_MK_df.head(2)
 filename = bio_reOrganized + "weather_MK_Spearman.sav"
 
 export_ = {"weather_MK_df": weather_MK_df, 
-           "source_code" : "00_weather_monthly2Annual_and_MK",
+           "source_code" : "00_weather_monthly2Annual_and_40yearsMK_and_detrend",
            "Author": "HN",
            "Date" : datetime.now().strftime('%Y-%m-%d %H:%M:%S')}
 
@@ -327,7 +330,7 @@ sorted(annual_weather.columns)
 # %%
 for y_var in y_vars:
     annual_weather_detrend[f"{y_var}_senPred"] = annual_weather_detrend["row_number_perfid"] * \
-                                                     annual_weather_detrend[f"sen_slope_{y_var}"] + \
+                                                     annual_weather_detrend[f"sens_slope_{y_var}"] + \
                                                        annual_weather_detrend[f"sens_intercept_{y_var}"]
     
     annual_weather_detrend[f"{y_var}_detrendSens"] = annual_weather_detrend[y_var] - \
@@ -335,31 +338,136 @@ for y_var in y_vars:
     
 annual_weather_detrend.head(2)
 
-# %%
-## detrend using Simple Linear regression
+# %% [markdown]
+# ## detrend using Simple Linear regression
 
 # %%
+from sklearn.linear_model import LinearRegression
+
+unique_fids = annual_weather_detrend['fid'].unique()
+len(unique_fids)
 
 # %%
 
 # %%
+# regression_df is optional to save slopes and intercepts
+regression_df = pd.DataFrame({'fid': unique_fids})
+for y_var in y_vars:
+    regression_df[f'{y_var}_linReg_slope'] = np.nan
+    
+    # Prepare a column to store detrended values
+    annual_weather_detrend[f'{y_var}_detrendLinReg'] = np.nan
+
+regression_df = regression_df.set_index('fid')
+regression_df.head(2)
+
+# %%
+annual_weather_detrend.head(2)
+
+# %%
+# %%time
+
+# Loop over each fid group
+for fid, group in annual_weather_detrend.groupby('fid'):
+    for y_var in y_vars:
+        ########
+        ########     Temp
+        ########
+        # Reshape year for sklearn
+        X = group['year'].values.reshape(-1, 1)
+        y = group[y_var].values
+
+        # Fit linear regression
+        model = LinearRegression()
+        model.fit(X, y)
+        yhat = model.predict(X)
+        annual_weather_detrend.loc[group.index, f'{y_var}_detrendLinReg'] = y - yhat
+
+        # Optionally store slope/intercept
+        regression_df.loc[fid, f'{y_var}_linReg_slope'] = model.coef_[0]
+        regression_df.loc[fid, f'{y_var}_linReg_intercept'] = model.intercept_
+
+    
+regression_df.reset_index(drop=False, inplace=True)
+regression_df.head(2)
+
+# %%
+font = {"size": 14}
+matplotlib.rc("font", **font)
+tick_legend_FontSize = 10
+params = {"font.family": "Palatino",
+          "legend.fontsize": tick_legend_FontSize * 1.2,
+          "axes.labelsize": tick_legend_FontSize * 1.2,
+          "axes.titlesize": tick_legend_FontSize * 1.2,
+          "xtick.labelsize": tick_legend_FontSize * 1.1,
+          "ytick.labelsize": tick_legend_FontSize * 1.1,
+          "axes.titlepad": 10,
+          "xtick.bottom": True,
+          "ytick.left": True,
+          "xtick.labelbottom": True,
+          "ytick.labelleft": True,
+         'axes.linewidth' : .05}
+plt.rcParams.update(params)
+
+# %%
+a_fid = 1
+y_var = y_vars[0]
+fig, axes = plt.subplots(1, 1, figsize=(10, 3), sharex=True, sharey=False, dpi=dpi_);
+df = annual_weather_detrend[annual_weather_detrend.fid == a_fid]
+axes.plot(df["year"], df[f'{y_var}_detrendLinReg'], color="dodgerblue", linewidth=3, label="Lin. Reg. detrend");
+axes.plot(df["year"], df[f'{y_var}_detrendSens'], color="red", linewidth=3, label="Sen's detrend");
+
+##############################################################################################
+axes.legend(loc='best');
+axes.set_title(f"FID: {a_fid} ({y_var})", fontdict={'family': 'serif', 'weight': 'bold'})
+
+# %%
+sens_pred_cols = [x for x in annual_weather_detrend.columns if "Pred" in x]
+annual_weather_detrend.drop(columns=sens_pred_cols, inplace=True)
+
+# %%
+annual_weather_detrend.drop(columns=["row_number_perfid"], inplace=True)
+
+# %%
+sensSlopes_interc_cols = [x for x in annual_weather_detrend.columns if "sens" in x]
+sensSlopes_interc_cols
+
+# %%
+sensSlopes_interc_df = annual_weather_detrend[['fid'] + sensSlopes_interc_cols].copy()
+print (sensSlopes_interc_df.shape)
+sensSlopes_interc_df.drop_duplicates(inplace=True)
+print (sensSlopes_interc_df.shape)
+sensSlopes_interc_df.head(2)
+
+# %%
+regression_df.head(2)
+
+# %%
+annual_weather_detrend.drop(columns=sensSlopes_interc_cols, inplace=True)
+print (annual_weather_detrend.shape)
+annual_weather_detrend.head(2)
+
+# %%
+# regressions data
+regression_df = pd.merge(regression_df, sensSlopes_interc_df, how="left", on="fid")
 
 # %%
 
 # %%
-## out_name = bio_reOrganized + "bpszone_annual_tempPrecip_byHN.csv"
-# out_name = bio_reOrganized + "bpszone_annual_weather_and_deTrended_byHN.csv"
-# annual_weather.to_csv(out_name, index = False)
+# %%time
 
+out_name = bio_reOrganized + "bpszone_annualWeatherByHN_and_deTrended.csv"
+annual_weather_detrend.to_csv(out_name, index = False)
 
-# filename = bio_reOrganized + "bpszone_annual_weather_and_deTrended_byHN.sav"
+filename = bio_reOrganized + "bpszone_annualWeatherByHN_and_deTrended.sav"
 
-# export_ = {"bpszone_annual_weather_byHN": annual_weather, 
-#            "source_code" : "00_weather_monthly2Annual_and_MK",
-#            "Author": "HN",
-#            "Date" : datetime.now().strftime('%Y-%m-%d %H:%M:%S')}
+export_ = {"bpszone_annual_weather_byHN": annual_weather_detrend, 
+           "slopes_interceps" : regression_df,
+           "source_code" : "00_weather_monthly2Annual_and_40yearsMK_and_detrend",
+           "Author": "HN",
+           "Date" : datetime.now().strftime('%Y-%m-%d %H:%M:%S')}
 
-# pickle.dump(export_, open(filename, 'wb'))
+pickle.dump(export_, open(filename, 'wb'))
 
 # %%
 # # out_name = bio_reOrganized + "bpszone_annual_tempPrecip_byHN.csv"
@@ -379,7 +487,7 @@ annual_weather_detrend.head(2)
 
 # %% [markdown]
 # # We had these here before, 
-# and ```slope``` was changed to ```m``` at some point but names are too long, so, there is no point
+# and ```slope``` was changed to ```m``` at some point but names are too long and shapefile will truncate them, so, there is no point
 
 # %%
 # # %%time

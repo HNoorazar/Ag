@@ -32,6 +32,51 @@ There are scipy.linalg.block_diag() and scipy.sparse.block_diag()
 """
 
 
+def calculate_stat_beforeAfterBP(group, y_col, stat):
+    breakpoint_year = group["BP_1"].iloc[0]  # Get the BP_1 year for the group
+
+    # Split the data into before and after the breakpoint year
+    before_bp = group[group["year"] < breakpoint_year]
+    after_bp = group[group["year"] >= breakpoint_year]
+
+    # Calculate variances
+    if stat == "variance":
+        stat_before = before_bp[y_col].var() if not before_bp.empty else None
+        stat_after = after_bp[y_col].var() if not after_bp.empty else None
+    elif stat == "mean":
+        stat_before = before_bp[y_col].mean() if not before_bp.empty else None
+        stat_after = after_bp[y_col].mean() if not after_bp.empty else None
+    elif stat == "median":
+        stat_before = before_bp[y_col].median() if not before_bp.empty else None
+        stat_after = after_bp[y_col].median() if not after_bp.empty else None
+
+    return pd.Series(
+        {
+            f"{y_col}_{stat}_before": stat_before,
+            f"{y_col}_{stat}_after": stat_after,
+        }
+    )
+
+
+def calculate_variance_beforeAfterBP(group, y_col):
+    breakpoint_year = group["BP_1"].iloc[0]  # Get the BP_1 year for the group
+
+    # Split the data into before and after the breakpoint year
+    before_bp = group[group["year"] < breakpoint_year]
+    after_bp = group[group["year"] >= breakpoint_year]
+
+    # Calculate variances
+    variance_before = before_bp[y_col].var() if not before_bp.empty else None
+    variance_after = after_bp[y_col].var() if not after_bp.empty else None
+
+    return pd.Series(
+        {
+            f"{y_col}_variance_before": variance_before,
+            f"{y_col}_variance_after": variance_after,
+        }
+    )
+
+
 def rolling_variance_df_prealloc(df, y_var="mean_lb_per_acr", window_size=5):
     # Step 1: Count how many total windows we'll need
     total_windows = 0
