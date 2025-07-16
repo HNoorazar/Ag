@@ -37,12 +37,13 @@ common_data = research_data_ + "common_data/"
 NDVI_weather_base = research_data_ + "NDVI_v_Weather/"
 NDVI_weather_data_dir = NDVI_weather_base + "data/"
 
-
 rolling_variances_dir = rangeland_bio_data + "rolling_variances/"
 os.makedirs(rolling_variances_dir, exist_ok=True)
 #####################################################################################
-weather_detrended = pd.read_pickle(bio_reOrganized + "weather_detrended.sav")
-weather_detrended = weather_detrended["weather_detrended"]
+ff_ = bio_reOrganized + "bpszone_annualWeatherByHN_and_deTrended.sav"
+weather_detrended = pd.read_pickle(ff_)
+weather_detrended = weather_detrended["bpszone_annual_weather_byHN"]
+
 weather_detrended.head(2)
 
 if "diff".lower() in y_.lower():
@@ -55,13 +56,15 @@ variances = rc.rolling_variance_df_prealloc(
 
 ws_str = str(ws)
 
-if y_ == "avg_of_dailyAvgTemp_C":
-    fnamePref = f"rolling_variance_ws{ws_str}_temp"
-elif y_ == "precip_mm":
-    fnamePref = f"rolling_variance_ws{ws_str}_prec"
+# if y_ == "avg_of_dailyAvgTemp_C":
+#     fnamePref = f"rolling_variance_ws{ws_str}_temp"
+# elif y_ == "precip_mm":
+#     fnamePref = f"rolling_variance_ws{ws_str}_prec"
 
-else:
-    fnamePref = f"rolling_variance_ws{ws_str}_{y_}"
+# else:
+#     fnamePref = f"rolling_variance_ws{ws_str}_{y_}"
+
+fnamePref = f"rolling_variance_ws{ws_str}_{y_}"
 
 filename = rolling_variances_dir + fnamePref + ".sav"
 

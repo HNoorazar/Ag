@@ -41,29 +41,26 @@ NDVI_weather_data_dir = NDVI_weather_base + "data/"
 ACF_data = rangeland_bio_data + "ACF1/"
 os.makedirs(ACF_data, exist_ok=True)
 #####################################################################################
-weather_detrended = pd.read_pickle(bio_reOrganized + "weather_detrended.sav")
-weather_detrended = weather_detrended["weather_detrended"]
+ff_ = bio_reOrganized + "bpszone_annualWeatherByHN_and_deTrended.sav"
+weather_detrended = pd.read_pickle(ff_)
+weather_detrended = weather_detrended["bpszone_annual_weather_byHN"]
 
 weather_detrended.head(2)
 
-if "diff".lower() in y_.lower():
-    weather_detrended.dropna(subset=[y_], inplace=True)
-    weather_detrended.reset_index(drop=True, inplace=True)
+## On july 25, I am eliminated first-diff deterending
+# if "diff".lower() in y_.lower():
+#     weather_detrended.dropna(subset=[y_], inplace=True)
+#     weather_detrended.reset_index(drop=True, inplace=True)
+
+weather_detrended.dropna(subset=[y_], inplace=True)
+weather_detrended.reset_index(drop=True, inplace=True)
 
 ACF1s_window = rc.rolling_autocorr_df_prealloc(
     df=weather_detrended, y_var=y_, window_size=ws, lag=1
 )
 
 ws_str = str(ws)
-
-if y_ == "avg_of_dailyAvgTemp_C":
-    fnamePref = f"rolling_autocorrelations_ws{ws_str}_temp"
-elif y_ == "precip_mm":
-    fnamePref = f"rolling_autocorrelations_ws{ws_str}_prec"
-
-else:
-    fnamePref = f"rolling_autocorrelations_ws{ws_str}_{y_}"
-
+fnamePref = f"rolling_ACF1_ws{ws_str}_{y_}"
 
 export_ = {
     fnamePref: ACF1s_window,

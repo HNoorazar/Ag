@@ -12,7 +12,10 @@
 #     name: python3
 # ---
 
-# %%
+# %% [markdown]
+# # this notebook died on my computer.
+#
+# So, lets put it on Kamiak
 
 # %%
 import warnings
@@ -286,10 +289,6 @@ ax.set_aspect('equal', adjustable='box')
 del(cent_plt, cax, cbar1, norm1, min_max)
 
 # %%
-
-# %%
-
-# %%
 for y_var in diff_ratio_cols:
     fig, ax = plt.subplots(1, 1, dpi=map_dpi_)
     ax.set_xticks([]); ax.set_yticks([])
@@ -301,7 +300,6 @@ for y_var in diff_ratio_cols:
 
     cax = ax.inset_axes(inset_axes_)
     cbar1 = fig.colorbar(cent_plt.collections[1], ax=ax, orientation='horizontal', shrink=0.3, norm=norm1, cax=cax)
-    # pre = r'$\Delta$'
     cbar1.set_label(f'{y_var}', labelpad=1, fontdict=fontdict_normal);
     plt.title(f"{y_var} (ANPP-BP1)", fontdict=fontdict_bold);
     file_name = breakpoint_plot_base + f"{y_var}_ANPPBP1.png"
@@ -339,13 +337,14 @@ plt.rcParams.update(params)
 inset_axes_ = [0.15, 0.13, 0.45, 0.03]
 
 # %%
+y_var
 
 # %%
 y_var = diff_ratio_cols[0]
 a_percent = 5
 
 # %%
-fig, ax = plt.subplots(1, 2, dpi=100, gridspec_kw={'hspace': 0.02, 'wspace': 0.05})
+fig, ax = plt.subplots(1, 2, dpi=200, gridspec_kw={'hspace': 0.02, 'wspace': 0.05})
 ax[0].set_xticks([]); ax[0].set_yticks([]);
 ax[1].set_xticks([]); ax[1].set_yticks([]);
 

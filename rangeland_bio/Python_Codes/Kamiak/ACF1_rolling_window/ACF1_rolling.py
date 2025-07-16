@@ -57,9 +57,9 @@ ACF1s_window = rc.rolling_autocorr_df_prealloc(df=ANPP, y_var=y_, window_size=ws
 
 ws_str = str(ws)
 fnamePref = (
-    f"rolling_autocorrelations_ws{ws_str}_anpp"
+    f"rolling_ACF1_ws{ws_str}_anpp"
     if y_ == "mean_lb_per_acr"
-    else f"rolling_autocorrelations_ws{ws_str}_{y_}"
+    else f"rolling_ACF1_ws{ws_str}_{y_}"
 )
 filename = ACF_data + fnamePref + ".sav"
 
