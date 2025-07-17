@@ -1,11 +1,11 @@
 #!/bin/bash
 ##SBATCH --partition=kamiak
 ##SBATCH --constraint=cascadelake
-#SBATCH --partition=rajagopalan
+#SBATCH --partition=rajagopalan,kamiak
 #SBATCH --requeue
-#SBATCH --job-name=ACF1_rolling_window_size # Job Name
+#SBATCH --job-name=weather_trend_roll_y_ # Job Name
 #SBATCH --time=0-1:00:00    # Wall clock time limit in Days-HH:MM:SS
-#SBATCH --mem=8GB 
+#SBATCH --mem=20GB 
 #SBATCH --nodes=1            # Node count required for the job
 #SBATCH --ntasks-per-node=1  # Number of tasks to be launched per Node
 #SBATCH --ntasks=1           # Number of tasks per array job
@@ -13,8 +13,8 @@
 ####SBATCH --array=0-30000
 
 ###SBATCH -k o
-#SBATCH --output=/home/h.noorazar/rangeland_bio/rolling_ACF1/error/ACF1_rolling_window_size_y_.o
-#SBATCH  --error=/home/h.noorazar/rangeland_bio/rolling_ACF1/error/ACF1_rolling_window_size_y_.e
+#SBATCH --output=/home/h.noorazar/rangeland_bio/02_ACF_variance_rolling_win_trend/error/weather_trend_rolling_y_.o
+#SBATCH  --error=/home/h.noorazar/rangeland_bio/02_ACF_variance_rolling_win_trend/error/weather_trend_rolling_y_.e
 echo
 echo "--- We are now in $PWD, running an R script ..."
 echo
@@ -54,7 +54,7 @@ echo "--------- continue on ---------"
 # Run python code for matrix
 # ----------------------------------------------------------------
 
-python /home/h.noorazar/rangeland_bio/rolling_ACF1/ACF1_rolling.py window_size y_
+python /home/h.noorazar/rangeland_bio/02_ACF_variance_rolling_win_trend/02_ACF_or_variance_moving_window_compute_trend_weather.py y_
 
 
 echo Time is `date`

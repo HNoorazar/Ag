@@ -4,6 +4,7 @@ warnings.filterwarnings("ignore")
 from datetime import datetime
 import pandas as pd
 import numpy as np
+import gc
 import random
 import os, os.path, pickle, sys
 import pymannkendall as mk
@@ -256,6 +257,7 @@ for y_var in diff_ratio_cols:
     plt.savefig(file_name, bbox_inches="tight", dpi=map_dpi_)
     plt.close(fig)
     del (fig, cent_plt, cax, cbar1, norm1, min_max)
+    gc.collect()
 
 
 ### Remove 5% and 10% from either side
@@ -390,7 +392,9 @@ for a_percent in [5, 10]:
                 min_max_between,
                 min_max_outside,
             )
+            gc.collect()
         except:
             plt.close(fig)
             del fig
+            gc.collect()
             pass

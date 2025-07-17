@@ -3,7 +3,7 @@
 ##SBATCH --constraint=cascadelake
 #SBATCH --partition=rajagopalan
 #SBATCH --requeue
-#SBATCH --job-name=weather_ACF1_rolling_window_size # Job Name
+#SBATCH --job-name=ACF1_rolling_window_size # Job Name
 #SBATCH --time=0-1:00:00    # Wall clock time limit in Days-HH:MM:SS
 #SBATCH --mem=8GB 
 #SBATCH --nodes=1            # Node count required for the job
@@ -13,8 +13,8 @@
 ####SBATCH --array=0-30000
 
 ###SBATCH -k o
-#SBATCH --output=/home/h.noorazar/rangeland_bio/rolling_ACF1/error/weather_ACF1_rolling_window_size_y_.o
-#SBATCH  --error=/home/h.noorazar/rangeland_bio/rolling_ACF1/error/weather_ACF1_rolling_window_size_y_.e
+#SBATCH --output=/home/h.noorazar/rangeland_bio/01_rolling_ACF1/error/ACF1_rolling_window_size_y_.o
+#SBATCH  --error=/home/h.noorazar/rangeland_bio/01_rolling_ACF1/error/ACF1_rolling_window_size_y_.e
 echo
 echo "--- We are now in $PWD, running an R script ..."
 echo
@@ -54,7 +54,7 @@ echo "--------- continue on ---------"
 # Run python code for matrix
 # ----------------------------------------------------------------
 
-python /home/h.noorazar/rangeland_bio/rolling_ACF1/weather_ACF1_rolling.py window_size y_
+python /home/h.noorazar/rangeland_bio/01_rolling_ACF1/ACF1_rolling.py window_size y_
 
 
 echo Time is `date`

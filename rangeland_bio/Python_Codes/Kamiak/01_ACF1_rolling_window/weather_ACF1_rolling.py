@@ -38,7 +38,7 @@ NDVI_weather_base = research_data_ + "NDVI_v_Weather/"
 NDVI_weather_data_dir = NDVI_weather_base + "data/"
 
 
-ACF_data = rangeland_bio_data + "ACF1/"
+ACF_data = rangeland_bio_data + "rolling_ACF1/"
 os.makedirs(ACF_data, exist_ok=True)
 #####################################################################################
 ff_ = bio_reOrganized + "bpszone_annualWeatherByHN_and_deTrended.sav"

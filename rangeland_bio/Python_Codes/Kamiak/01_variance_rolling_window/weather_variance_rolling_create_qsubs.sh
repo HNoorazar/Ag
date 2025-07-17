@@ -1,5 +1,5 @@
 #!/bin/bash
-cd /home/h.noorazar/rangeland_bio/rolling_variance/
+cd /home/h.noorazar/rangeland_bio/01_rolling_variance/
 
 ####for y_ in avg_of_dailyAvgTemp_C temp_detrendLinReg temp_detrendDiff temp_detrendSens precip_mm prec_detrendLinReg prec_detrendDiff prec_detrendSens
 for y_ in avg_of_dailyAvgTemp_C \

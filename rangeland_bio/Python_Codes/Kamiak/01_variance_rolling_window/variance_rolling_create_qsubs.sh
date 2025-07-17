@@ -1,5 +1,5 @@
 #!/bin/bash
-cd /home/h.noorazar/rangeland_bio/rolling_variance/
+cd /home/h.noorazar/rangeland_bio/01_rolling_variance/
 
 outer=1
 

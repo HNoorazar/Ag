@@ -13,8 +13,8 @@
 ####SBATCH --array=0-30000
 
 ###SBATCH -k o
-#SBATCH --output=/home/h.noorazar/rangeland_bio/rolling_variance/error/variance_rolling_window_size_y_.o
-#SBATCH  --error=/home/h.noorazar/rangeland_bio/rolling_variance/error/variance_rolling_window_size_y_.e
+#SBATCH --output=/home/h.noorazar/rangeland_bio/01_rolling_variance/error/variance_rolling_window_size_y_.o
+#SBATCH  --error=/home/h.noorazar/rangeland_bio/01_rolling_variance/error/variance_rolling_window_size_y_.e
 echo
 echo "--- We are now in $PWD, running an R script ..."
 echo
@@ -54,7 +54,7 @@ echo "--------- continue on ---------"
 # Run python code for matrix
 # ----------------------------------------------------------------
 
-python /home/h.noorazar/rangeland_bio/rolling_variance/variance_rolling.py window_size y_
+python /home/h.noorazar/rangeland_bio/01_rolling_variance/variance_rolling.py window_size y_
 
 
 echo Time is `date`

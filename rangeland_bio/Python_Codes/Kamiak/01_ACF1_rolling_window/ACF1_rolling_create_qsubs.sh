@@ -1,5 +1,5 @@
 #!/bin/bash
-cd /home/h.noorazar/rangeland_bio/rolling_ACF1/
+cd /home/h.noorazar/rangeland_bio/01_rolling_ACF1/
 
 outer=1
 

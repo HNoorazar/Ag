@@ -1,6 +1,6 @@
 #!/bin/bash
 
-cd /home/h.noorazar/rangeland_bio/rolling_variance/qsubs
+cd /home/h.noorazar/rangeland_bio/01_rolling_variance/qsubs
 
 for y_ in mean_lb_per_acr anpp_detrendLinReg anpp_detrendDiff anpp_detrendSens
 do
