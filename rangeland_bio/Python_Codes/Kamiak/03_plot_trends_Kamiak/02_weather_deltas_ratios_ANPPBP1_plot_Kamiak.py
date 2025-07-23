@@ -274,8 +274,10 @@ for y_var in diff_ratio_cols:
     del (fig, cent_plt, cax, cbar1, norm1, min_max)
     gc.collect()
 
-
-### Remove 5% and 10% from either side
+###########################################################################################
+#######
+####### Remove 5% and 10% from either side; outlier
+#######
 percents = [5, 10]
 
 tick_legend_FontSize = 7
@@ -300,7 +302,7 @@ inset_axes_ = [0.15, 0.13, 0.45, 0.03]
 
 for a_percent in [5, 10]:
     for y_var in diff_ratio_cols:
-        #         print (a_percent, y_var)
+        # print (a_percent, y_var)
         fig, ax = plt.subplots(
             1, 2, dpi=map_dpi_, gridspec_kw={"hspace": 0.02, "wspace": 0.05}
         )

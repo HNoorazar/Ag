@@ -174,7 +174,7 @@ visframe_mainLand_west = visframe_mainLand_west[~visframe_mainLand_west.state.is
 # f_name = bio_reOrganized + 'Albers_SF_west_ANPP_MK_Spearman.shp.zip'
 f_name = bio_reOrganized + 'Albers_SF_west_ANPP_MK_Spearman_no2012.shp.zip'
 SF_west = geopandas.read_file(f_name)
-SF_west["centroid"] = SF_west["geometry"].centroid
+# SF_west["centroid"] = SF_west["geometry"].centroid
 SF_west.head(2)
 
 # %%
