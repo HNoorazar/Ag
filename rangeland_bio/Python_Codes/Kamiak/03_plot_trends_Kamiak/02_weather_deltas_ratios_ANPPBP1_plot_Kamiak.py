@@ -1,7 +1,7 @@
 import warnings
 
 warnings.filterwarnings("ignore")
-from datetime import datetime
+
 import pandas as pd
 import numpy as np
 import gc
@@ -37,9 +37,20 @@ import importlib
 importlib.reload(rc)
 importlib.reload(rpc)
 
+from datetime import datetime
+from datetime import date
+import time
+
+start_time = time.time()
 ###########################################################################################
 #######
+#######    Terminal arguments
 #######
+diff_or_ratio = str(sys.argv[1])  # must be either "ratio" or "diff"
+
+###########################################################################################
+#######
+#######    Some plotting parameters
 #######
 # %%
 dpi_, map_dpi_ = 300, 500
@@ -194,7 +205,7 @@ Albers_SF_west.reset_index(drop=True, inplace=True)
 
 # %%
 # cols_ = ["fid", "temp_slope_diff", "temp_slope_ratio", "precip_slope_diff", "precip_slope_ratio"]
-diff_ratio_cols = [x for x in weather_ANPPBP1 if (("diff" in x) or ("ratio" in x))]
+diff_ratio_cols = [x for x in weather_ANPPBP1 if (diff_or_ratio in x)]
 cols_ = ["fid"] + diff_ratio_cols
 
 Albers_SF_west = pd.merge(Albers_SF_west, weather_ANPPBP1[cols_], how="left", on="fid")
@@ -402,3 +413,6 @@ for a_percent in [5, 10]:
             del fig
             gc.collect()
             pass
+
+end_time = time.time()
+print("it took {:.0f} minutes to run this code.".format((end_time - start_time) / 60))

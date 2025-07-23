@@ -12,7 +12,6 @@ import warnings
 
 warnings.filterwarnings("ignore")
 import gc
-from datetime import datetime
 import pandas as pd
 import numpy as np
 import random
@@ -35,13 +34,16 @@ sys.path.append("/home/h.noorazar/rangeland/")
 import rangeland_core as rc
 import rangeland_plot_core as rpc
 
+from datetime import datetime
+from datetime import date
+import time
 
+start_time = time.time()
 ###########################################################################################
 #######
 #######    Terminal arguments
 #######
 acf_or_variance = str(sys.argv[1])
-
 
 ###########################################################################################
 #######
@@ -398,3 +400,6 @@ for a_variable in weather_variables:
                 pass
 
     #############
+
+end_time = time.time()
+print("it took {:.0f} minutes to run this code.".format((end_time - start_time) / 60))

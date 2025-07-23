@@ -17,9 +17,6 @@
 import warnings
 
 warnings.filterwarnings("ignore")
-from datetime import datetime
-from datetime import date
-import time
 import pandas as pd
 import numpy as np
 import random
@@ -34,6 +31,10 @@ sys.path.append("/home/h.noorazar/rangeland/")
 import rangeland_core as rc
 import rangeland_plot_core as rpc
 
+
+from datetime import datetime
+from datetime import date
+import time
 
 start_time = time.time()
 ###############################################################
