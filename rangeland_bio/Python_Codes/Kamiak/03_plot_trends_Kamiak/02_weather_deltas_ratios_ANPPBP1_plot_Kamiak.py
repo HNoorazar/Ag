@@ -57,7 +57,10 @@ from matplotlib import colormaps
 
 print(list(colormaps)[:4])
 
-# %%
+###########################################################################################
+#######
+#######    Directories
+#######
 
 research_db = "/data/project/agaid/h.noorazar/"
 common_data = research_db + "common_data/"
@@ -219,7 +222,8 @@ plt.rcParams.update(params)
 
 print(len(diff_ratio_cols))
 diff_ratio_cols[:4]
-
+print("line 222 len(diff_ratio_cols)")
+print(len(diff_ratio_cols))
 for y_var in diff_ratio_cols:
     fig, ax = plt.subplots(1, 1, dpi=map_dpi_)
     ax.set_xticks([])

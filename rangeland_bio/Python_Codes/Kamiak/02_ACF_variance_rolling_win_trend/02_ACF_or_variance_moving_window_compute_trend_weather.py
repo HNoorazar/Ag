@@ -2,7 +2,8 @@
 # We are modifying this notebook on July 16, 2025, to have more weather variables in it and eliminate
 # first-diff detrending.
 #
-# The reason for "0_1" in the name of this notebook is that first we need to compute ACF1s for rolling windows, and that is done in "weather_ACF1_rolling.py" on Kamiak.
+# The reason for "0_1" in the name of this notebook is that first we need to compute ACF1s
+# for rolling windows, and that is done in "weather_ACF1_rolling.py" on Kamiak.
 #
 # And, I am adding variance trend computations to this notebook as well;
 # I am merging ```variance_moving_window_compute_trend_weather.ipynb``` into this current notebook.
@@ -17,6 +18,8 @@ import warnings
 
 warnings.filterwarnings("ignore")
 from datetime import datetime
+from datetime import date
+import time
 import pandas as pd
 import numpy as np
 import random
@@ -31,6 +34,8 @@ sys.path.append("/home/h.noorazar/rangeland/")
 import rangeland_core as rc
 import rangeland_plot_core as rpc
 
+
+start_time = time.time()
 ###############################################################
 #######
 #######    Terminal Arguments
@@ -164,6 +169,8 @@ elif variable_ == "variance":
 
 pickle.dump(export_, open(filename, "wb"))
 
-# %%
+end_time = time.time()
+print("it took {:.0f} minutes to run this code.".format((end_time - start_time) / 60))
 
+# %%
 # %%
