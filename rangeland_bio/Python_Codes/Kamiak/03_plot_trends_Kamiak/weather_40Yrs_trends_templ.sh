@@ -3,7 +3,7 @@
 ##SBATCH --constraint=cascadelake
 #SBATCH --partition=rajagopalan
 #SBATCH --requeue
-#SBATCH --job-name=rollingTrendPlot_acf_or_varianc
+#SBATCH --job-name=longTerm_plot_what
 #SBATCH --time=01-00:00:00    # Wall clock time limit in Days-HH:MM:SS
 #SBATCH --mem=300GB 
 #SBATCH --nodes=1            # Node count required for the job
@@ -13,8 +13,8 @@
 ####SBATCH --array=0-30000
 
 ###SBATCH -k o
-#SBATCH --output=/home/h.noorazar/rangeland_bio/03_plot_trends_Kamiak/error/03_ACFsigma_moving_window_plot_trend_weather_acf_or_variance.o
-#SBATCH  --error=/home/h.noorazar/rangeland_bio/03_plot_trends_Kamiak/error/03_ACFsigma_moving_window_plot_trend_weather_acf_or_variance.e
+#SBATCH --output=/home/h.noorazar/rangeland_bio/03_plot_trends_Kamiak/error/weather_40Yrs_trends_plot_what.o
+#SBATCH  --error=/home/h.noorazar/rangeland_bio/03_plot_trends_Kamiak/error/weather_40Yrs_trends_plot_what.e
 echo
 echo "--- We are now in $PWD, running an R script ..."
 echo
@@ -54,7 +54,7 @@ echo "--------- continue on ---------"
 # Run python code for matrix
 # ----------------------------------------------------------------
 
-python /home/h.noorazar/rangeland_bio/03_plot_trends_Kamiak/03_ACFsigma_moving_window_plot_trend_weather_kamiak.py acf_or_variance
+python /home/h.noorazar/rangeland_bio/03_plot_trends_Kamiak/weather_40Yrs_trends.py plot_what
 
 echo end Time is `date`
 echo

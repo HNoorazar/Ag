@@ -75,8 +75,6 @@ os.makedirs(bio_reOrganized, exist_ok=True)
 
 bio_plots = rangeland_bio_base + "plots/"
 os.makedirs(bio_plots, exist_ok=True)
-
-
 ###########################################################################################
 #######
 #######    read data
@@ -344,7 +342,13 @@ except:
 
 for a_variable in weather_variables:
     outdir = (
-        bio_plots + acf_or_variance + "_" + a_variable + "/slope/individual_colorbar/"
+        bio_plots
+        + "rollingWindow"
+        + "_"
+        + acf_or_variance
+        + "_"
+        + a_variable
+        + "/slope_individual_colorbar/"
     )
     os.makedirs(outdir, exist_ok=True)
 
