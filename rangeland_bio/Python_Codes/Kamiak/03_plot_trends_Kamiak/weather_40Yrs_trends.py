@@ -423,10 +423,10 @@ for y_var in list(grouped_stats.columns)[1:]:
     cleaned = Albers_SF.dropna(subset=[y_var]).copy()
 
     min_max = max(np.abs(cleaned[y_var].min()), np.abs(cleaned[y_var].max()))
-    norm1 = Normalize(vmin=-min_max, vmax=min_max, clip=True)
+    norm = Normalize(vmin=-min_max, vmax=min_max, clip=True)
 
     cent_plt = cleaned.plot(
-        column=y_var, ax=ax, legend=False, cmap="seismic", norm=norm1
+        column=y_var, ax=ax, legend=False, cmap="seismic", norm=norm
     )
 
     cax = ax.inset_axes(inset_axes_)
@@ -435,7 +435,7 @@ for y_var in list(grouped_stats.columns)[1:]:
         ax=ax,
         orientation="horizontal",
         shrink=0.3,
-        norm=norm1,
+        norm=norm,
         cax=cax,
     )
     cbar1.set_label(f"{y_var}", labelpad=1, fontdict=fontdict_normal, fontsize=7)
@@ -448,7 +448,7 @@ for y_var in list(grouped_stats.columns)[1:]:
     plt.close(fig)
     gc.collect()
     counter += 1
-    del (cent_plt, cax, cbar1, norm1, min_max)
+    del (cent_plt, cax, cbar1, norm, min_max)
 
 # %%
 
@@ -522,29 +522,34 @@ for y_var in list(grouped_stats.columns)[1:]:
             SF=visframe_mainLand_west, ax_=ax3, col="EW_meridian", cmap_=best_cmap_
         )
 
-        ######
         cbar_label = rf"{y_var}"
         ###############################################################
+        ###
         ### plot lower
+        ###
         min_max = max(np.abs(lower_df[y_var].min()), np.abs(lower_df[y_var].max()))
-        norm1 = Normalize(vmin=-min_max, vmax=min_max, clip=True)
+        norm = Normalize(vmin=-min_max, vmax=min_max, clip=True)
         cent_plt1 = lower_df.plot(
-            column=y_var, ax=ax1, legend=False, cmap="seismic", norm=norm1
+            column=y_var, ax=ax1, legend=False, cmap="seismic", norm=norm
         )
         ###############################################################
+        ###
         ### plot between
+        ###
         min_max = np.abs(between_df[y_var]).max()
-        norm2 = Normalize(vmin=-min_max, vmax=min_max, clip=True)
+        norm = Normalize(vmin=-min_max, vmax=min_max, clip=True)
         cent_plt2 = between_df.plot(
-            column=y_var, ax=ax2, legend=False, cmap="seismic", norm=norm2
+            column=y_var, ax=ax2, legend=False, cmap="seismic", norm=norm
         )
         ###############################################################
+        ###
+        ### plot upper
+        ###
         min_max = np.abs(upper_df[y_var]).max()
-        norm3 = Normalize(vmin=-min_max, vmax=min_max, clip=True)
+        norm = Normalize(vmin=-min_max, vmax=min_max, clip=True)
         cent_plt3 = upper_df.plot(
-            column=y_var, ax=ax3, legend=False, cmap="seismic", norm=norm3
+            column=y_var, ax=ax3, legend=False, cmap="seismic", norm=norm
         )
-
         ######################################################
         cax = ax1.inset_axes(inset_axes_)
         cbar1 = fig.colorbar(
@@ -607,4 +612,4 @@ for y_var in list(grouped_stats.columns)[1:]:
         plt.savefig(file_name, bbox_inches="tight", dpi=map_dpi_)
         plt.close(fig)
         gc.collect()
-        del (cax, cax, cbar, cbar1, cbar2, cbar3, min_max, norm3)
+        del (cax, cbar1, cbar2, cbar3, min_max, norm)
