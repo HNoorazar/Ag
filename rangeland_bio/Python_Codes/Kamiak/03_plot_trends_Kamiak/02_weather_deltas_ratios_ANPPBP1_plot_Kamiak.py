@@ -29,7 +29,7 @@ from matplotlib import cm
 
 sys.path.append("/home/h.noorazar/rangeland/")
 import rangeland_core as rc
-import rangeland_plot_core as rpc
+import rangeland_plot_core as rcp
 
 # %%
 import importlib
@@ -214,7 +214,7 @@ Albers_SF_west.head(2)
 # %%
 tick_legend_FontSize = 9
 params = {
-    "font.family": "Palatino",
+    # "font.family": "Palatino",
     "legend.fontsize": tick_legend_FontSize,
     "axes.labelsize": tick_legend_FontSize * 0.71,
     "axes.titlesize": tick_legend_FontSize * 1,
@@ -282,7 +282,7 @@ percents = [5, 10]
 
 tick_legend_FontSize = 7
 params = {
-    "font.family": "Palatino",
+    # "font.family": "Palatino",
     "legend.fontsize": tick_legend_FontSize,
     "axes.labelsize": tick_legend_FontSize * 0.71,
     "axes.titlesize": tick_legend_FontSize * 1,

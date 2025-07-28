@@ -38,7 +38,7 @@ from matplotlib import cm
 
 sys.path.append("/home/h.noorazar/rangeland/")
 import rangeland_core as rc
-import rangeland_plot_core as rpc
+import rangeland_plot_core as rcp
 
 from datetime import datetime
 from datetime import date
@@ -298,7 +298,7 @@ font = {"size": 14}
 matplotlib.rc("font", **font)
 font_base = 10
 params = {
-    "font.family": "Palatino",
+    # "font.family": "Palatino",
     "legend.fontsize": font_base * 1,
     "axes.labelsize": font_base * 1.2,
     "axes.titlesize": font_base * 1.2,
@@ -314,6 +314,10 @@ params = {
 
 plt.rcParams.update(params)
 sharey_ = False
+print(
+    "number of variables to plot is below (done for histograms and maps and maps with no outliers): "
+)
+print(len(list(grouped_stats.columns)[1:]))
 
 for variable_ in list(grouped_stats.columns)[1:]:
     fig, axes = plt.subplots(
@@ -454,7 +458,7 @@ for y_var in list(grouped_stats.columns)[1:]:
 #######
 font_base = 10
 params = {
-    "font.family": "Palatino",
+    # "font.family": "Palatino",
     "legend.fontsize": font_base * 0.7,
     "axes.labelsize": font_base * 0.71,
     "axes.titlesize": font_base * 1,
@@ -603,4 +607,4 @@ for y_var in list(grouped_stats.columns)[1:]:
         plt.savefig(file_name, bbox_inches="tight", dpi=map_dpi_)
         plt.close(fig)
         gc.collect()
-        del (cax, cax1, cax2, cax3, cbar, cbar1, cbar2, cbar3, min_max, norm3)
+        del (cax, cax, cbar, cbar1, cbar2, cbar3, min_max, norm3)

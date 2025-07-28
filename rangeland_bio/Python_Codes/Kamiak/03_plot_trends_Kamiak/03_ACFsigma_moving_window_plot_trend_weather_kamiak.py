@@ -32,7 +32,7 @@ from matplotlib import cm
 
 sys.path.append("/home/h.noorazar/rangeland/")
 import rangeland_core as rc
-import rangeland_plot_core as rpc
+import rangeland_plot_core as rcp
 
 from datetime import datetime
 from datetime import date
@@ -228,7 +228,7 @@ weather_variables[:5]
 # %%
 tick_legend_FontSize = 8
 params = {
-    "font.family": "Palatino",
+    # "font.family": "Palatino",
     "legend.fontsize": tick_legend_FontSize * 0.2,  # this does not work below
     "axes.labelsize": tick_legend_FontSize * 1,
     "axes.titlesize": tick_legend_FontSize * 1.1,

@@ -84,18 +84,6 @@ os.makedirs(bio_plots, exist_ok=True)
 breakpoint_plot_base = bio_plots + "breakpoints/"
 os.makedirs(breakpoint_plot_base, exist_ok=True)
 
-breakpoint_TS_dir = bio_plots + "breakpoints_TS/"
-os.makedirs(breakpoint_TS_dir, exist_ok=True)
-
-
-G_breakpoint_TS_dir = breakpoint_TS_dir + "/greening/"
-B_breakpoint_TS_dir = breakpoint_TS_dir + "/browning/"
-noTrend_breakpoint_TS_dir = breakpoint_TS_dir + "/notrend/"
-
-os.makedirs(G_breakpoint_TS_dir, exist_ok=True)
-os.makedirs(B_breakpoint_TS_dir, exist_ok=True)
-os.makedirs(noTrend_breakpoint_TS_dir, exist_ok=True)
-
 # %%
 breakpoint_TS_sen_dir = breakpoint_plot_base + "breakpoints_TS_sensSlope/"
 # os.makedirs(breakpoint_TS_sen_dir, exist_ok=True)
@@ -111,8 +99,6 @@ filename = breakpoints_dir + "sensSlope_beforeAfter_BP1.sav"
 sensSlope_beforeAfter_BP1 = pd.read_pickle(filename)
 
 print (sensSlope_beforeAfter_BP1.keys())
-
-# %%
 
 # %%
 sensSlope_beforeAfter_BP1 = sensSlope_beforeAfter_BP1["sensSlope_beforeAfter_BP1"]
