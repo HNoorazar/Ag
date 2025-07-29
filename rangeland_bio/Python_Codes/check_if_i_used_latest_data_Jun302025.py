@@ -27,6 +27,25 @@ import os
 import pandas as pd
 
 # %%
+bio_reOrganized = "/Users/hn/Documents/01_research_data/RangeLand_bio/Data/reOrganized/"
+
+filename = bio_reOrganized + "bpszone_annualWeatherByHN_and_deTrended.sav"
+A = pd.read_pickle(filename)
+print(A.keys())
+
+
+bps_weather = A["bpszone_annual_weather_byHN"]
+slopes_interceps = A["slopes_interceps"]
+
+slopes_interceps.head(2)
+
+# %%
+
+# %%
+intercept_cols = [x for x in slopes_interceps.columns if "intercep" in x]
+intercept_cols
+
+# %%
 sept_17 = "/Users/hn/Documents/01_research_data/RangeLand_bio/Data/Min_Data/stat_09172024/"
 old_dir = "/Users/hn/Documents/01_research_data/RangeLand_bio/Data/reOrganized/"
 

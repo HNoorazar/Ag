@@ -194,12 +194,15 @@ print(A.keys())
 
 bps_weather = A["bpszone_annual_weather_byHN"]
 slopes_interceps = A["slopes_interceps"]
-
+## added the following lines on July 29. We do not need plot of interceps
+intercept_cols = [x for x in slopes_interceps.columns if "intercep" in x]
+intercept_cols
+slopes_interceps.drop(columns=intercept_cols, inplace=True)
 slopes_interceps.head(2)
 
 # %%
 if plot_what == "stats":
-    bio_plots = bio_plots + "longterm_stats/"
+    bio_plots = bio_plots + "weather_longterm_stats/"
     os.makedirs(bio_plots, exist_ok=True)
 
     plotting_df = bps_weather.copy()
@@ -262,12 +265,12 @@ if plot_what == "stats":
     grouped_stats.head(3)
 
 elif plot_what == "trends":
-    bio_plots = bio_plots + "longterm_trends/"
+    bio_plots = bio_plots + "weather_longterm_trends/"
     os.makedirs(bio_plots, exist_ok=True)
     grouped_stats = slopes_interceps.copy()
 
 elif plot_what == "ACF1":
-    bio_plots = bio_plots + "longterm_ACF1/"
+    bio_plots = bio_plots + "weather_longterm_ACF1/"
     os.makedirs(bio_plots, exist_ok=True)
 
     def compute_autocorr(group):

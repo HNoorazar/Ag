@@ -343,6 +343,7 @@ except:
 for a_variable in weather_variables:
     outdir = (
         bio_plots
+        + "rolling_windows/"
         + "rollingWindow"
         + "_"
         + acf_or_variance
@@ -393,8 +394,8 @@ for a_variable in weather_variables:
             cbar1.set_label(L_, labelpad=2, fontdict=fontdict_normal)
             plt.tight_layout()
             plt.title(L_ + f" ({last_part})", y=0.98, fontdict=fontdict_bold_sup)
-            file_name = outdir + f"{col}.png"
             ax.set_aspect("equal", adjustable="box")
+            file_name = outdir + f"{col}.png"
             plt.savefig(file_name, bbox_inches="tight", dpi=map_dpi_)
             plt.close(fig)
             try:
