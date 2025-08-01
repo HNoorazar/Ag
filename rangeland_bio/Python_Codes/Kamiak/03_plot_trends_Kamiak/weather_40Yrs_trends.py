@@ -446,7 +446,11 @@ for y_var in list(grouped_stats.columns)[1:]:
 
     ax.set_aspect("equal", adjustable="box")
     plt.tight_layout()
-    file_name = bio_plots + f"longterm_map_{y_var}.png"
+    # do we need longterm_map_ here? we have removed it in outlier below.
+    # we can drop it since folder name has longterm in it.
+    # Removed on Aug. 1. 2025, but the plots we already have includes this
+    # part in their names.
+    file_name = bio_plots + f"{y_var}.png"
     plt.savefig(file_name, bbox_inches="tight", dpi=map_dpi_)
     plt.close(fig)
     gc.collect()
@@ -499,7 +503,7 @@ for y_var in list(grouped_stats.columns)[1:]:
         between_df = df_cleaned[
             (df_cleaned[y_var] >= lower_bound) & (df_cleaned[y_var] <= upper_bound)
         ]
-        upper_df = df_cleaned[df_cleaned[y_var] <= upper_bound]
+        upper_df = df_cleaned[df_cleaned[y_var] >= upper_bound]
 
         fig, axes = plt.subplots(
             1, 3, figsize=(12, 4), sharex=True, sharey=True, dpi=map_dpi_
