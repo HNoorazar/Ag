@@ -16,9 +16,15 @@
 # # Convert Monthly weather to annual
 # and compute MK for them.
 #
+# ---------------------
+# This file was called ```00_weather_monthly2Annual_and_40yearsMK_and_detrend.ipynb```.
+# Now we have to add drought indices to output.
+#
 # This was called ``MK_weather``. We are adding min and max of weather stuff and numbering notebooks
 #
 # Jul. 11, 2025
+#
+# ------------------
 
 # %%
 import warnings
@@ -68,6 +74,8 @@ os.makedirs(bio_reOrganized, exist_ok=True)
 
 bio_plots = rangeland_bio_base + "plots/"
 os.makedirs(bio_plots, exist_ok=True)
+
+# %%
 
 # %%
 county_fips_dict = pd.read_pickle(common_data + "county_fips.sav")

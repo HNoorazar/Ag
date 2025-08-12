@@ -261,6 +261,114 @@ num_locs = len(bpszone_ANPP["fid"].unique())
 num_locs
 
 # %% [markdown]
+# ## Read and drought indices
+
+# %%
+# %%time
+
+# This line is added on Aug. 12 2025. We have already worked with precipitation before.
+drought_dir = rangeland_bio_data + "Min_Data/" + "DroughtIndices/" 
+drought_indices = pd.read_csv(drought_dir + "pbs_gridmet_mean_drought_indices_ppt_et0_speietc.csv")
+drought_indices.rename(columns={"bpshuc": "fid"}, inplace=True)
+
+# pick western side
+drought_indices = drought_indices[drought_indices.fid.isin(list(Albers_SF.fid.unique()))]
+
+print (drought_indices['total_fraction'].unique())
+print (drought_indices['total_fraction'].unique().min())
+
+drought_indices.drop(columns=['ppt', 'tavg','total_fraction'], inplace=True)
+drought_indices.head(2)
+
+# %%
+import re
+drought_indices.columns = [re.sub(r'_(\d+)_mon', r'_\1mon', col) for col in drought_indices.columns]
+drought_indices.head(2)
+
+# %%
+annual_ets = drought_indices.groupby(['fid', 'year']).agg({'et0': 'sum', 'etr': 'sum'}).reset_index()
+annual_ets.rename(columns={"et0": "et0_annualSum",
+                           "etr": "etr_annualSum"}, inplace=True)
+annual_ets.head(2)
+
+# %%
+# Convert to wide for SPEI. But, the same for et and etr? 
+# Create a dictionary to map month numbers to month names
+month_map = {1: 'Jan', 2: 'Feb', 3: 'Mar', 4: 'Apr', 5: 'May', 6: 'Jun',
+             7: 'Jul', 8: 'Aug', 9: 'Sep', 10: 'Oct', 11: 'Nov', 12: 'Dec'}
+
+# Replace the month column values using the dictionary
+drought_indices['month'] = drought_indices['month'].map(month_map)
+drought_indices.head(2)
+
+# %%
+# %%time
+drought_wide = drought_indices.melt(id_vars=['year', 'fid', 'month'], 
+                                    value_vars=['et0', 'etr', 
+                                                'spei_1mon', 'spei_2mon', 'spei_3mon', 'spei_6mon', 
+                                                'spei_9mon', 'spei_12mon', 'spei_24mon'], 
+                                    var_name='variable', value_name='value')
+# Create a new column 'variable_month' to concatenate variable with month
+drought_wide['variable_month'] = drought_wide['variable'] + '_' + drought_wide['month']
+# Now pivot the DataFrame to turn it wide
+drought_wide = drought_wide.pivot_table(index=['year', 'fid'], columns='variable_month', 
+                                        values='value', aggfunc='first')
+drought_wide.reset_index(inplace=True, drop=False)
+drought_wide.head(2)
+
+# %%
+drought_wide = pd.merge(drought_wide, annual_ets, how="left", on=["fid", "year"])
+drought_wide.head(2)
+
+# %%
+# did not help with size of files.
+
+drought_wide = drought_wide.round(2)
+drought_indices = drought_indices.round(2)
+
+# %%
+# %%time
+
+filename = bio_reOrganized + "drought_wide_and_tall.sav"
+export_ = {"drought_wide": drought_wide, 
+           "drought_tall": drought_indices,
+           "source_code" : "Min_2_Min_v1.1",
+           "Author": "HN",
+           "Date" : datetime.now().strftime('%Y-%m-%d %H:%M:%S')}
+
+pickle.dump(export_, open(filename, 'wb'))
+
+# %%
+# %%time
+
+filename = bio_reOrganized + "drought_wide.sav"
+export_ = {"drought_wide": drought_wide, 
+           "source_code" : "Min_2_Min_v1.1",
+           "Author": "HN",
+           "Date" : datetime.now().strftime('%Y-%m-%d %H:%M:%S')}
+
+pickle.dump(export_, open(filename, 'wb'))
+
+# %%
+# %%time
+
+filename = bio_reOrganized + "drought_tall.sav"
+export_ = {"drought_tall": drought_indices,
+           "source_code" : "Min_2_Min_v1.1",
+           "Author": "HN",
+           "Date" : datetime.now().strftime('%Y-%m-%d %H:%M:%S')}
+
+pickle.dump(export_, open(filename, 'wb'))
+
+# %%
+drought_indices.head(2)
+
+# %%
+del(annual_ets, drought_indices, drought_wide)
+
+# %%
+
+# %% [markdown]
 # ## Read and dump weather data
 
 # %%
@@ -301,8 +409,6 @@ Albers_SF.EW_meridian.unique()
 print (bps_weather.shape)
 bps_weather = bps_weather[bps_weather.fid.isin(list(Albers_SF.fid.unique()))]
 print (bps_weather.shape)
-
-# %%
 
 # %%
 filename = bio_reOrganized + "bps_weather.sav"
