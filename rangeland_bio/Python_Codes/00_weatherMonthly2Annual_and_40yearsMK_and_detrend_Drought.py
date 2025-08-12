@@ -203,12 +203,38 @@ annual_weather.head(2)
 annual_weather.drop(columns=['state_1', 'state_2'], inplace=True)
 
 # %% [markdown]
+# ## Read Drought
+
+# %%
+drought_wide = pd.read_pickle(bio_reOrganized + "drought_wide.sav")
+drought_wide = drought_wide['drought_wide']
+drought_wide.head(2)
+
+# %%
+annual_weather.head(2)
+
+# %% [markdown]
 # # MK test and Spearman's rank for Weather
 
 # %%
 sorted(annual_weather.columns)
 
 # %%
+print (annual_weather.shape)
+annual_weather = pd.merge(annual_weather, drought_wide, 
+                          how="left", on=["fid", "year"])
+print (annual_weather.shape)
+
+# %%
+non_ys = ['EW_meridian', 'fid','year', 'state_majority_area']
+y_vars = [x for x in annual_weather.columns if (not (x in non_ys))]
+len_y_vars = len(y_vars)
+len_y_vars
+
+# %% [markdown]
+# # <font color='red'>STOP</font>
+#
+# **<font color='red'>Move to Kamiak</font>**
 
 # %% [markdown]
 # # MK on weather variables
@@ -216,15 +242,6 @@ sorted(annual_weather.columns)
 # %%
 # %%time
 
-y_vars = ['avg_of_dailyAvgTemp_C',
-          'avg_of_dailyAvg_rel_hum',
-          'avg_of_monthlymax_of_dailyMaxTemp_C',
-          'avg_of_monthlymin_of_dailyMinTemp_C',
-          'max_of_monthlyAvg_of_dailyMaxTemp_C',
-          'min_of_monthlyAvg_of_dailyMinTemp_C',
-          'precip_mm',
-          'thi_avg',]
-len_y_vars = len(y_vars)
 count=1
 
 all_treds_dict = {}
@@ -291,9 +308,11 @@ weather_MK_df.head(2)
 
 # %%
 filename = bio_reOrganized + "weather_MK_Spearman.sav"
+filename = bio_reOrganized + "weather_drought_MK_Spearman.sav" # Aug 12, 2025
 
-export_ = {"weather_MK_df": weather_MK_df, 
-           "source_code" : "00_weather_monthly2Annual_and_40yearsMK_and_detrend",
+export_ = {"weather_drought_MK_df": weather_MK_df, 
+           # "source_code" : "00_weather_monthly2Annual_and_40yearsMK_and_detrend",
+           "source_code" : "00_weatherMonthly2Annual_and_40yearsMK_and_detrend_Drought",
            "Author": "HN",
            "Date" : datetime.now().strftime('%Y-%m-%d %H:%M:%S')}
 
@@ -465,13 +484,15 @@ regression_df = pd.merge(regression_df, sensSlopes_interc_df, how="left", on="fi
 # %%time
 
 out_name = bio_reOrganized + "bpszone_annualWeatherByHN_and_deTrended.csv"
+out_name = bio_reOrganized + "bpszone_annualWeatherDroughtByHN_and_deTrended.csv"
 annual_weather_detrend.to_csv(out_name, index = False)
 
 filename = bio_reOrganized + "bpszone_annualWeatherByHN_and_deTrended.sav"
+filename = bio_reOrganized + "bpszone_annualWeatherDroughtByHN_and_deTrended.sav"
 
 export_ = {"bpszone_annual_weather_byHN": annual_weather_detrend, 
            "slopes_interceps" : regression_df,
-           "source_code" : "00_weather_monthly2Annual_and_40yearsMK_and_detrend",
+           "source_code" : "00_weatherMonthly2Annual_and_40yearsMK_and_detrend_Drought",
            "Author": "HN",
            "Date" : datetime.now().strftime('%Y-%m-%d %H:%M:%S')}
 
