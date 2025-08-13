@@ -33,10 +33,13 @@ from matplotlib.colors import ListedColormap, Normalize
 from matplotlib import cm
 
 from datetime import datetime
+from datetime import date
+import time
 
 sys.path.append("/home/h.noorazar/rangeland/")
 import rangeland_core as rc
 
+start_time = time.time()
 
 # %%
 dpi_, map_dpi_ = 300, 500
@@ -224,9 +227,6 @@ print(annual_weather.shape)
 non_ys = ["EW_meridian", "fid", "year", "state_majority_area"]
 y_vars = [x for x in annual_weather.columns if (not (x in non_ys))]
 len_y_vars = len(y_vars)
-len_y_vars
-
-
 #####################################################################################
 #####################################################################################
 #####################################################################################
@@ -313,7 +313,7 @@ weather_MK_df = reduce(
 weather_MK_df.head(2)
 
 # %%
-filename = bio_reOrganized + "weather_MK_Spearman.sav"
+# filename = bio_reOrganized + "weather_MK_Spearman.sav"
 filename = bio_reOrganized + "weather_drought_MK_Spearman.sav"  # Aug 12, 2025
 
 export_ = {
@@ -323,9 +323,10 @@ export_ = {
     "Author": "HN",
     "Date": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
 }
-
+print("line 326")
+print(filename)
 pickle.dump(export_, open(filename, "wb"))
-
+print("line 329")
 # %%
 print(Albers_SF.shape)
 print(weather_MK_df.shape)
@@ -333,8 +334,6 @@ print(weather_MK_df.shape)
 # %% [markdown]
 # # Detrend
 # ### Add detrending to this notebook from ```deTrend_weather.ipynb```
-
-
 # %%
 weather_MK_df.head(2)
 
@@ -368,7 +367,7 @@ annual_weather_detrend.head(2)
 # %%
 sorted(annual_weather.columns)
 
-# %%
+print("line 371")
 for y_var in y_vars:
     annual_weather_detrend[f"{y_var}_senPred"] = (
         annual_weather_detrend["row_number_perfid"]
@@ -382,10 +381,13 @@ for y_var in y_vars:
 
 annual_weather_detrend.head(2)
 
-# %% [markdown]
-# ## detrend using Simple Linear regression
-
-# %%
+############################################################
+############################################################
+############################################################
+######
+###### detrend using Simple Linear regression
+######
+print("line 390")
 from sklearn.linear_model import LinearRegression
 
 unique_fids = annual_weather_detrend["fid"].unique()
@@ -407,16 +409,10 @@ regression_df.head(2)
 
 # %%
 annual_weather_detrend.head(2)
-
-# %%
-# %%time
-
+print("line 412")
 # Loop over each fid group
 for fid, group in annual_weather_detrend.groupby("fid"):
     for y_var in y_vars:
-        ########
-        ########     Temp
-        ########
         # Reshape year for sklearn
         X = group["year"].values.reshape(-1, 1)
         y = group[y_var].values
@@ -435,53 +431,7 @@ for fid, group in annual_weather_detrend.groupby("fid"):
 regression_df.reset_index(drop=False, inplace=True)
 regression_df.head(2)
 
-# %%
-font = {"size": 14}
-matplotlib.rc("font", **font)
-tick_legend_FontSize = 10
-params = {
-    "font.family": "Palatino",
-    "legend.fontsize": tick_legend_FontSize * 1.2,
-    "axes.labelsize": tick_legend_FontSize * 1.2,
-    "axes.titlesize": tick_legend_FontSize * 1.2,
-    "xtick.labelsize": tick_legend_FontSize * 1.1,
-    "ytick.labelsize": tick_legend_FontSize * 1.1,
-    "axes.titlepad": 10,
-    "xtick.bottom": True,
-    "ytick.left": True,
-    "xtick.labelbottom": True,
-    "ytick.labelleft": True,
-    "axes.linewidth": 0.05,
-}
-plt.rcParams.update(params)
-
-# %%
-a_fid = 1
-y_var = y_vars[0]
-fig, axes = plt.subplots(1, 1, figsize=(10, 3), sharex=True, sharey=False, dpi=dpi_)
-df = annual_weather_detrend[annual_weather_detrend.fid == a_fid]
-axes.plot(
-    df["year"],
-    df[f"{y_var}_detrendLinReg"],
-    color="dodgerblue",
-    linewidth=3,
-    label="Lin. Reg. detrend",
-)
-axes.plot(
-    df["year"],
-    df[f"{y_var}_detrendSens"],
-    color="red",
-    linewidth=3,
-    label="Sen's detrend",
-)
-
 ##############################################################################################
-axes.legend(loc="best")
-axes.set_title(
-    f"FID: {a_fid} ({y_var})", fontdict={"family": "serif", "weight": "bold"}
-)
-
-# %%
 sens_pred_cols = [x for x in annual_weather_detrend.columns if "Pred" in x]
 annual_weather_detrend.drop(columns=sens_pred_cols, inplace=True)
 
@@ -507,22 +457,19 @@ annual_weather_detrend.drop(columns=sensSlopes_interc_cols, inplace=True)
 print(annual_weather_detrend.shape)
 annual_weather_detrend.head(2)
 
-# %%
+
 # regressions data
 regression_df = pd.merge(regression_df, sensSlopes_interc_df, how="left", on="fid")
 
-# %%
 
-# %%
-# %%time
-
-out_name = bio_reOrganized + "bpszone_annualWeatherByHN_and_deTrended.csv"
+# out_name = bio_reOrganized + "bpszone_annualWeatherByHN_and_deTrended.csv"
 out_name = bio_reOrganized + "bpszone_annualWeatherDroughtByHN_and_deTrended.csv"
 annual_weather_detrend.to_csv(out_name, index=False)
 
-filename = bio_reOrganized + "bpszone_annualWeatherByHN_and_deTrended.sav"
+# filename = bio_reOrganized + "bpszone_annualWeatherByHN_and_deTrended.sav"
 filename = bio_reOrganized + "bpszone_annualWeatherDroughtByHN_and_deTrended.sav"
-
+print("line 471")
+print(filename)
 export_ = {
     "bpszone_annual_weather_byHN": annual_weather_detrend,
     "slopes_interceps": regression_df,
@@ -530,36 +477,7 @@ export_ = {
     "Author": "HN",
     "Date": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
 }
-
+print("line 480")
 pickle.dump(export_, open(filename, "wb"))
-
-# %%
-# # out_name = bio_reOrganized + "bpszone_annual_tempPrecip_byHN.csv"
-# out_name = bio_reOrganized + "bpszone_annual_weather_byHN.csv"
-# annual_weather.to_csv(out_name, index = False)
-
-# filename = bio_reOrganized + "bpszone_annual_weather_byHN.sav"
-
-# export_ = {"bpszone_annual_weather_byHN": annual_weather,
-#            "source_code" : "00_weather_monthly2Annual_and_MK",
-#            "Author": "HN",
-#            "Date" : datetime.now().strftime('%Y-%m-%d %H:%M:%S')}
-
-# pickle.dump(export_, open(filename, 'wb'))
-
-# %% [markdown]
-# # We had these here before,
-# and ```slope``` was changed to ```m``` at some point but names are too long and shapefile will truncate them, so, there is no point
-
-# %%
-# # %%time
-# f_name = bio_reOrganized + 'Albers_SF_west_weather_MK_Spearman.shp.zip'
-# Albers_SF.to_file(filename=f_name, driver='ESRI Shapefile')
-
-
-# # %%time
-# f_name = bio_reOrganized + 'Albers_SF_west_weather_MK_Spearman.shp.zip'
-# A = geopandas.read_file(f_name)
-# A.head(2)
-
-# %%
+end_time = time.time()
+print("it took {:.0f} minutes to run this code.".format((end_time - start_time) / 60))

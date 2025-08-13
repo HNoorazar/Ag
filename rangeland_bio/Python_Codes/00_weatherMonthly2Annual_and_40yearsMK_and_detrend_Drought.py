@@ -52,7 +52,7 @@ sys.path.append("/Users/hn/Documents/00_GitHub/Ag/rangeland/Python_Codes/")
 import rangeland_core as rc
 
 # %%
-dpi_, map_dpi_=300, 500
+dpi_, map_dpi_ = 300, 500
 custom_cmap_coral = ListedColormap(['lightcoral', 'black'])
 custom_cmap_BW = ListedColormap(['white', 'black'])
 cmap_G = cm.get_cmap('Greens') # 'PRGn', 'YlGn'
