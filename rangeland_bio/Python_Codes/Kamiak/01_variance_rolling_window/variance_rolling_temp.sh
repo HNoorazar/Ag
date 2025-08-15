@@ -1,7 +1,7 @@
 #!/bin/bash
 ##SBATCH --partition=kamiak
 ##SBATCH --constraint=cascadelake
-#SBATCH --partition=rajagopalan
+#SBATCH --partition=rajagopalan,stockle,cahnrs,cahnrs_gpu,kamiak
 #SBATCH --requeue
 #SBATCH --job-name=var_roll_window_size_y_ # Job Name
 #SBATCH --time=0-10:00:00    # Wall clock time limit in Days-HH:MM:SS

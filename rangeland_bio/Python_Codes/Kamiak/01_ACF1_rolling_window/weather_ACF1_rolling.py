@@ -22,36 +22,35 @@ import rangeland_core as rc
 
 start_time = time.time()
 #####################################################################################
+#############
+#############   Terminal Arguments
+#############
 ws = int(sys.argv[1])
 y_ = str(sys.argv[2])
 #####################################################################################
 #####################################################################################
 #####################################################################################
-
+#############
+#############   Data Directories
+#############
 research_data_ = "/data/project/agaid/h.noorazar/"
 rangeland_bio_base = research_data_ + "rangeland_bio/"
 rangeland_bio_data = rangeland_bio_base + "Data/"
 bio_reOrganized = rangeland_bio_data + "reOrganized/"
 common_data = research_data_ + "common_data/"
-
 NDVI_weather_base = research_data_ + "NDVI_v_Weather/"
 NDVI_weather_data_dir = NDVI_weather_base + "data/"
-
-
 ACF_data = rangeland_bio_data + "rolling_ACF1/"
 os.makedirs(ACF_data, exist_ok=True)
 #####################################################################################
 ff_ = bio_reOrganized + "bpszone_annualWeatherByHN_and_deTrended.sav"
 weather_detrended = pd.read_pickle(ff_)
 weather_detrended = weather_detrended["bpszone_annual_weather_byHN"]
-
 weather_detrended.head(2)
-
 ## On july 25, I am eliminated first-diff deterending
 # if "diff".lower() in y_.lower():
 #     weather_detrended.dropna(subset=[y_], inplace=True)
 #     weather_detrended.reset_index(drop=True, inplace=True)
-
 weather_detrended.dropna(subset=[y_], inplace=True)
 weather_detrended.reset_index(drop=True, inplace=True)
 

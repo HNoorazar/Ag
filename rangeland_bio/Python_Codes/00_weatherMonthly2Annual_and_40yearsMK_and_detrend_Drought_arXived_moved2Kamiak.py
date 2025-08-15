@@ -70,8 +70,6 @@ rangeland_base = "/Users/hn/Documents/01_research_data/RangeLand/Data/"
 rangeland_reOrganized = rangeland_base + "reOrganized/"
 
 bio_reOrganized = rangeland_bio_data + "reOrganized/"
-os.makedirs(bio_reOrganized, exist_ok=True)
-
 bio_plots = rangeland_bio_base + "plots/"
 os.makedirs(bio_plots, exist_ok=True)
 

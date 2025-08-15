@@ -302,8 +302,8 @@ weather_MK_df = reduce(
     lambda left, right: pd.merge(left, right, on="fid", how="left"), df_list
 )
 
-# filename = bio_reOrganized + "weather_MK_Spearman.sav"
-filename = bio_reOrganized + "weather_drought_MK_Spearman.sav"  # Aug 12, 2025
+filename = bio_reOrganized + "weather_MK_Spearman.sav"
+# filename = bio_reOrganized + "weather_drought_MK_Spearman.sav"  # Aug 12, 2025
 
 export_ = {
     "weather_drought_MK_df": weather_MK_df,
@@ -415,25 +415,18 @@ regression_df.head(2)
 ##############################################################################################
 sens_pred_cols = [x for x in annual_weather_detrend.columns if "Pred" in x]
 annual_weather_detrend.drop(columns=sens_pred_cols, inplace=True)
-
-# %%
 annual_weather_detrend.drop(columns=["row_number_perfid"], inplace=True)
-
-# %%
 sensSlopes_interc_cols = [x for x in annual_weather_detrend.columns if "sens" in x]
-sensSlopes_interc_cols
+sensSlopes_interc_cols[:10]
 
-# %%
 sensSlopes_interc_df = annual_weather_detrend[["fid"] + sensSlopes_interc_cols].copy()
 print(sensSlopes_interc_df.shape)
 sensSlopes_interc_df.drop_duplicates(inplace=True)
 print(sensSlopes_interc_df.shape)
 sensSlopes_interc_df.head(2)
 
-# %%
 regression_df.head(2)
 
-# %%
 annual_weather_detrend.drop(columns=sensSlopes_interc_cols, inplace=True)
 print(annual_weather_detrend.shape)
 annual_weather_detrend.head(2)
@@ -443,12 +436,12 @@ annual_weather_detrend.head(2)
 regression_df = pd.merge(regression_df, sensSlopes_interc_df, how="left", on="fid")
 
 
-# out_name = bio_reOrganized + "bpszone_annualWeatherByHN_and_deTrended.csv"
-out_name = bio_reOrganized + "bpszone_annualWeatherDroughtByHN_and_deTrended.csv"
+out_name = bio_reOrganized + "bpszone_annualWeatherByHN_and_deTrended.csv"
+# out_name = bio_reOrganized + "bpszone_annualWeatherDroughtByHN_and_deTrended.csv"
 annual_weather_detrend.to_csv(out_name, index=False)
 
-# filename = bio_reOrganized + "bpszone_annualWeatherByHN_and_deTrended.sav"
-filename = bio_reOrganized + "bpszone_annualWeatherDroughtByHN_and_deTrended.sav"
+filename = bio_reOrganized + "bpszone_annualWeatherByHN_and_deTrended.sav"
+# filename = bio_reOrganized + "bpszone_annualWeatherDroughtByHN_and_deTrended.sav"
 print("line 456")
 print(filename)
 export_ = {
@@ -458,7 +451,7 @@ export_ = {
     "Author": "HN",
     "Date": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
 }
-print("line 465")
 pickle.dump(export_, open(filename, "wb"))
+print("line 465")
 end_time = time.time()
 print("it took {:.0f} minutes to run this code.".format((end_time - start_time) / 60))
