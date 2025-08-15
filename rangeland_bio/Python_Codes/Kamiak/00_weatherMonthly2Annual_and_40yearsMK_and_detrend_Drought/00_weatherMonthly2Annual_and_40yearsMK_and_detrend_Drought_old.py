@@ -35,8 +35,6 @@ from matplotlib import cm
 from datetime import datetime
 from datetime import date
 import time
-from functools import reduce
-from sklearn.linear_model import LinearRegression
 
 sys.path.append("/home/h.noorazar/rangeland/")
 import rangeland_core as rc
@@ -61,17 +59,7 @@ common_data = research_data_ + "common_data/"
 #####################################################################################
 #####################################################################################
 #####################################################################################
-"""
-   ANPP is from 1984. So, Let us filter things from 1984.
-   This problem came up when I included the drought indices that 
-   Min gave us was from 1984. So, here when I merged them with weather data
-   we have a few years of NAs. Hence, some error
-
-"""
-#####################################################################################
-#####################################################################################
-#####################################################################################
-
+# %%
 county_fips_dict = pd.read_pickle(common_data + "county_fips.sav")
 county_fips = county_fips_dict["county_fips"]
 full_2_abb = county_fips_dict["full_2_abb"]
@@ -84,8 +72,11 @@ state_fips = county_fips_dict["state_fips"]
 state_fips = state_fips[state_fips.state != "VI"].copy()
 state_fips.head(2)
 
-### Read the shapefile
+# %% [markdown]
+# ## Read the shapefile
 # And keep the vegtype in subsequent dataframes
+
+# %%
 # %%time
 Albers_SF_name = bio_reOrganized + "Albers_BioRangeland_Min_Ehsan"
 Albers_SF = geopandas.read_file(Albers_SF_name)
@@ -95,9 +86,13 @@ Albers_SF.rename(
 )
 Albers_SF.head(2)
 
+# %%
 len(Albers_SF["fid"].unique())
 
-## Focus only on West Meridian
+# %% [markdown]
+# # Focus only on West Meridian
+
+# %%
 print((Albers_SF["state_majority_area"] == Albers_SF["state_1"]).sum())
 print((Albers_SF["state_majority_area"] == Albers_SF["state_2"]).sum())
 print(Albers_SF.shape)
@@ -133,18 +128,14 @@ print((list(Albers_SF.index) == Albers_SF.fid).sum())
 Albers_SF.drop(columns=["value"], inplace=True)
 Albers_SF.head(2)
 
-### Read weather Data
+# %% [markdown]
+# ## Read weather Data
 
 # %%
 filename = bio_reOrganized + "bps_weather.sav"
 bps_weather = pd.read_pickle(filename)
 bps_weather = bps_weather["bps_weather"]
 bps_weather["fid"].unique()[-8::]
-############
-############   Filter weather data from 1984. Aug. 14. 2025 this filter was added.
-############   Do we want to do this? or just use less data for drought indices.
-############
-bps_weather = bps_weather[bps_weather["year"] >= 1984].copy()
 
 # %%
 west_FIDs = list(Albers_SF["fid"])
@@ -186,8 +177,12 @@ annual_weather.rename(
 annual_weather.head(3)
 
 # %% [markdown]
-#### Check if all locations have all years in it
+# ### Check if all locations have all years in it
+
+# %%
 len(annual_weather[annual_weather.fid == 1])
+
+# %%
 annual_weather.head(2)
 
 # %%
@@ -199,27 +194,36 @@ cols_ = ["fid", "state_majority_area", "state_1", "state_2", "EW_meridian"]
 if not ("EW_meridian" in annual_weather.columns):
     annual_weather = pd.merge(annual_weather, Albers_SF[cols_], how="left", on="fid")
 
-annual_weather.drop(columns=["state_1", "state_2"], inplace=True)
 annual_weather.head(2)
+
+# %%
+annual_weather.drop(columns=["state_1", "state_2"], inplace=True)
+
 #####################################################################################
 #####################################################################################
 #####################################################################################
-######
-###### Read Drought
-######
+# ## Read Drought
+
+# %%
 drought_wide = pd.read_pickle(bio_reOrganized + "drought_wide.sav")
 drought_wide = drought_wide["drought_wide"]
 drought_wide.head(2)
 
+# %%
 annual_weather.head(2)
 
+# %% [markdown]
 # # MK test and Spearman's rank for Weather
+
+# %%
 sorted(annual_weather.columns)
 
+# %%
 print(annual_weather.shape)
 annual_weather = pd.merge(annual_weather, drought_wide, how="left", on=["fid", "year"])
 print(annual_weather.shape)
 
+# %%
 non_ys = ["EW_meridian", "fid", "year", "state_majority_area"]
 y_vars = [x for x in annual_weather.columns if (not (x in non_ys))]
 len_y_vars = len(y_vars)
@@ -229,9 +233,6 @@ len_y_vars = len(y_vars)
 ############
 ############ MK on weather variables
 ############
-#################################################################
-################################################################# Beginning of Done Part
-#################################################################
 count = 1
 all_treds_dict = {}
 MK_test_cols = [
@@ -293,7 +294,14 @@ for y_var in y_vars:
     count += 1
     print("================================================================")
 
+# %%
+
+# %%
+from functools import reduce
+
+# %%
 # temp_ACF_trends_MK_dict[list(temp_ACF_dict.keys())[0]].head(3)
+
 # Convert dict values to a list of DataFrames
 df_list = list(all_treds_dict.values())
 
@@ -302,6 +310,9 @@ weather_MK_df = reduce(
     lambda left, right: pd.merge(left, right, on="fid", how="left"), df_list
 )
 
+weather_MK_df.head(2)
+
+# %%
 # filename = bio_reOrganized + "weather_MK_Spearman.sav"
 filename = bio_reOrganized + "weather_drought_MK_Spearman.sav"  # Aug 12, 2025
 
@@ -312,102 +323,110 @@ export_ = {
     "Author": "HN",
     "Date": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
 }
-
-print("line 317")
+print("line 326")
 print(filename)
 pickle.dump(export_, open(filename, "wb"))
-print("line 320")
-
-################################################################# End of Done Part
+print("line 329")
+# %%
 print(Albers_SF.shape)
 print(weather_MK_df.shape)
 
-## Detrend
-#### Add detrending to this notebook from ```deTrend_weather.ipynb```
+# %% [markdown]
+# # Detrend
+# ### Add detrending to this notebook from ```deTrend_weather.ipynb```
+# %%
 weather_MK_df.head(2)
+
+# %%
 annual_weather.head(2)
 
+# %%
 sens_cols = ["fid"] + [
     x for x in weather_MK_df.columns if ("slope" in x) or ("intercept" in x)
 ]
 sens_cols
+
+# %%
 annual_weather_detrend = annual_weather.copy()
 annual_weather_detrend = pd.merge(
     annual_weather_detrend, weather_MK_df[sens_cols], how="left", on="fid"
 )
 annual_weather_detrend.head(2)
 
+# %% [markdown]
 # ### Sens prediction
+#
 # must not be based on year since that test only lookst at y values.
+
+# %%
 annual_weather_detrend["row_number_perfid"] = annual_weather_detrend.groupby(
     "fid"
 ).cumcount()
 annual_weather_detrend.head(2)
+
+# %%
 sorted(annual_weather.columns)
 
-print("line 349")
+print("line 371")
 for y_var in y_vars:
     annual_weather_detrend[f"{y_var}_senPred"] = (
         annual_weather_detrend["row_number_perfid"]
         * annual_weather_detrend[f"sens_slope_{y_var}"]
         + annual_weather_detrend[f"sens_intercept_{y_var}"]
     )
+
     annual_weather_detrend[f"{y_var}_detrendSens"] = (
         annual_weather_detrend[y_var] - annual_weather_detrend[f"{y_var}_senPred"]
     )
 
 annual_weather_detrend.head(2)
+
 ############################################################
 ############################################################
 ############################################################
 ######
 ###### detrend using Simple Linear regression
 ######
-print("line 367")
+print("line 390")
+from sklearn.linear_model import LinearRegression
+
 unique_fids = annual_weather_detrend["fid"].unique()
 len(unique_fids)
+
+# %%
+
+# %%
 # regression_df is optional to save slopes and intercepts
 regression_df = pd.DataFrame({"fid": unique_fids})
 for y_var in y_vars:
     regression_df[f"{y_var}_linReg_slope"] = np.nan
+
     # Prepare a column to store detrended values
     annual_weather_detrend[f"{y_var}_detrendLinReg"] = np.nan
 
 regression_df = regression_df.set_index("fid")
 regression_df.head(2)
+
+# %%
 annual_weather_detrend.head(2)
-print("line 380")
+print("line 412")
 # Loop over each fid group
 for fid, group in annual_weather_detrend.groupby("fid"):
     for y_var in y_vars:
         # Reshape year for sklearn
         X = group["year"].values.reshape(-1, 1)
         y = group[y_var].values
-        ##
-        ## This commented block is for when we have mismatched years for different y variables.
-        ##
-        mask = ~np.isnan(y)
-        X_masked = X[mask]
-        y_masked = y[mask]
-        if len(y_masked) == 0:
-            continue  # nothing to fit
-        # Fit your model
+
+        # Fit linear regression
         model = LinearRegression()
-        model.fit(X_masked, y_masked)
-        yhat_masked = model.predict(X_masked)
-        # Prepare full-size residuals array
-        residuals = np.full_like(y, np.nan, dtype=float)
-        residuals[mask] = y_masked - yhat_masked
-        # Assign back aligned with group.index
-        annual_weather_detrend.loc[group.index, f"{y_var}_detrendLinReg"] = residuals
-        # Fit linear regression Commented out on Aug. 14. 2025 and replaced it with what is above.
-        # model = LinearRegression()
-        # model.fit(X, y)
-        # yhat = model.predict(X)
-        # annual_weather_detrend.loc[group.index, f"{y_var}_detrendLinReg"] = y - yhat
+        model.fit(X, y)
+        yhat = model.predict(X)
+        annual_weather_detrend.loc[group.index, f"{y_var}_detrendLinReg"] = y - yhat
+
         # Optionally store slope/intercept
         regression_df.loc[fid, f"{y_var}_linReg_slope"] = model.coef_[0]
         regression_df.loc[fid, f"{y_var}_linReg_intercept"] = model.intercept_
+
 
 regression_df.reset_index(drop=False, inplace=True)
 regression_df.head(2)
@@ -449,7 +468,7 @@ annual_weather_detrend.to_csv(out_name, index=False)
 
 # filename = bio_reOrganized + "bpszone_annualWeatherByHN_and_deTrended.sav"
 filename = bio_reOrganized + "bpszone_annualWeatherDroughtByHN_and_deTrended.sav"
-print("line 456")
+print("line 471")
 print(filename)
 export_ = {
     "bpszone_annual_weather_byHN": annual_weather_detrend,
@@ -458,7 +477,7 @@ export_ = {
     "Author": "HN",
     "Date": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
 }
-print("line 465")
+print("line 480")
 pickle.dump(export_, open(filename, "wb"))
 end_time = time.time()
 print("it took {:.0f} minutes to run this code.".format((end_time - start_time) / 60))
