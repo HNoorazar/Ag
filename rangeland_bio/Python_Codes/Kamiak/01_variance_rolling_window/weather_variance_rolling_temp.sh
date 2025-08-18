@@ -4,7 +4,7 @@
 #SBATCH --partition=rajagopalan,kamiak,stockle,cahnrs
 #SBATCH --requeue
 #SBATCH --job-name=weather_var_roll_window_size_y_ # Job Name
-#SBATCH --time=0-1:00:00    # Wall clock time limit in Days-HH:MM:SS
+#SBATCH --time=0-5:00:00    # Wall clock time limit in Days-HH:MM:SS
 #SBATCH --mem=16GB 
 #SBATCH --nodes=1            # Node count required for the job
 #SBATCH --ntasks-per-node=1  # Number of tasks to be launched per Node
@@ -14,8 +14,8 @@
 ####SBATCH --array=0-30000%150 # %100 means let it run 150 jobs at a time. 30000 is total number of jobs.
 
 ###SBATCH -k o
-#SBATCH --output=/home/h.noorazar/rangeland_bio/01_rolling_variance/error/weather_variance_rolling_window_size_y_.o
-#SBATCH  --error=/home/h.noorazar/rangeland_bio/01_rolling_variance/error/weather_variance_rolling_window_size_y_.e
+#SBATCH --output=/home/h.noorazar/rangeland_bio/01_rolling_variance/error/we_varnc_rolling_window_size_y_.o
+#SBATCH  --error=/home/h.noorazar/rangeland_bio/01_rolling_variance/error/we_varnc_rolling_window_size_y_.e
 echo
 echo "--- We are now in $PWD, running an script ..."
 echo
