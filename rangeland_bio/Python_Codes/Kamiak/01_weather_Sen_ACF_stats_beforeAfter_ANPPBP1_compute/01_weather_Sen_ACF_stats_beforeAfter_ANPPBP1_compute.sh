@@ -1,11 +1,11 @@
 #!/bin/bash
 ##SBATCH --partition=kamiak
 ##SBATCH --constraint=cascadelake
-#SBATCH --partition=rajagopalan
+#SBATCH --partition=rajagopalan,kamiak
 #SBATCH --requeue
-#SBATCH --job-name=longTerm_plot_what
+#SBATCH --job-name=weather_Sen_ACF_stats_beforeAfter_ANPPBP1_compute
 #SBATCH --time=01-00:00:00    # Wall clock time limit in Days-HH:MM:SS
-#SBATCH --mem=300GB 
+#SBATCH --mem=80GB 
 #SBATCH --nodes=1            # Node count required for the job
 #SBATCH --ntasks-per-node=1  # Number of tasks to be launched per Node
 #SBATCH --ntasks=1           # Number of tasks per array job
@@ -13,8 +13,8 @@
 ####SBATCH --array=0-30000
 
 ###SBATCH -k o
-#SBATCH --output=/home/h.noorazar/rangeland_bio/03_plot_trends_Kamiak/error/weather_40Yrs_trends_plot_what.o
-#SBATCH  --error=/home/h.noorazar/rangeland_bio/03_plot_trends_Kamiak/error/weather_40Yrs_trends_plot_what.e
+#SBATCH --output=/home/h.noorazar/rangeland_bio/01_weather_Sen_ACF_stats_beforeAfter_ANPPBP1_compute/error/weather_Sen_ACF_stats_beforeAfter_ANPPBP1_compute.o
+#SBATCH --error=/home/h.noorazar/rangeland_bio/01_weather_Sen_ACF_stats_beforeAfter_ANPPBP1_compute/error/weather_Sen_ACF_stats_beforeAfter_ANPPBP1_compute.e
 echo
 echo "--- We are now in $PWD, running an R script ..."
 echo
@@ -53,9 +53,8 @@ echo "--------- continue on ---------"
 # ----------------------------------------------------------------
 # Run python code for matrix
 # ----------------------------------------------------------------
-### plot_what : "stats" or "ACF1" or "trends"
-### variable_set : drought or weather
-python /home/h.noorazar/rangeland_bio/03_plot_trends_Kamiak/weather_40Yrs_trends.py plot_what variable_set
+
+python /home/h.noorazar/rangeland_bio/01_weather_Sen_ACF_stats_beforeAfter_ANPPBP1_compute/01_weather_Sen_ACF_stats_beforeAfter_ANPPBP1_compute.py
 
 echo end Time is `date`
 echo

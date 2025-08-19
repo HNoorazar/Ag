@@ -47,12 +47,18 @@ import time
 from matplotlib import colormaps
 
 start_time = time.time()
-###########################################################################################
+###############################################################
 #######
 #######    Terminal arguments
 #######
 plot_what = str(sys.argv[1])  # "stats" or "ACF1" or "trends"
-
+"""
+should be either "weather" or "drought". We added this line Aug. 19 2025.
+Drought was added later and has too many variables in it. So, we may need
+to break this down even further.
+Later we will have GDD, HDD, VPD, 
+"""
+variable_set = str(sys.argv[1])  # drought or weather
 ###########################################################################################
 #######
 #######    Some plotting parameters
@@ -189,18 +195,47 @@ west_FIDs = list(Albers_SF["fid"])
 ### Read weather Data
 filename = bio_reOrganized + "bpszone_annualWeatherByHN_and_deTrended.sav"
 A = pd.read_pickle(filename)
-print(A.keys())
-
-
 bps_weather = A["bpszone_annual_weather_byHN"]
 slopes_interceps = A["slopes_interceps"]
+
+drought_indices_slopes_interceps = [
+    x
+    for x in slopes_interceps.columns
+    if (("spei_" in x) or ("et0_" in x) or ("etr_" in x))
+]
+
+weather_indices_slopes_interceps = [
+    x for x in slopes_interceps.columns if not (x in drought_indices_slopes_interceps)
+]
+
+
+drought_indices_bps_weather = [
+    x for x in bps_weather.columns if (("spei_" in x) or ("et0_" in x) or ("etr_" in x))
+]
+
+weather_indices_bps_weather = [
+    x for x in bps_weather.columns if not (x in drought_indices_bps_weather)
+]
+
+weather_indices_slopes_interceps = list(weather_indices_slopes_interceps)
+weather_indices_bps_weather = list(weather_indices_bps_weather)
+
+drought_indices_slopes_interceps = ["fid"] + list(drought_indices_slopes_interceps)
+drought_indices_bps_weather = ["fid", "year"] + list(drought_indices_bps_weather)
+
+if variable_set == "drought":
+    slopes_interceps = slopes_interceps[drought_indices_slopes_interceps]
+    bps_weather = bps_weather[drought_indices_bps_weather]
+elif variable_set == "weather":
+    slopes_interceps = slopes_interceps[weather_indices_slopes_interceps]
+    bps_weather = bps_weather[weather_indices_bps_weather]
+
 ## added the following lines on July 29. We do not need plot of interceps
 intercept_cols = [x for x in slopes_interceps.columns if "intercep" in x]
-intercept_cols
 slopes_interceps.drop(columns=intercept_cols, inplace=True)
 slopes_interceps.head(2)
 
-# %%
+
 if plot_what == "stats":
     bio_plots = bio_plots + "weather_longterm_stats/"
     os.makedirs(bio_plots, exist_ok=True)

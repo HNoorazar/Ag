@@ -13,6 +13,9 @@
 # ---
 
 # %% [markdown]
+# On Aug 19, 2025 I am moving this to Kamiak
+#
+#
 # In this notebook we use breakpoints of ANPP and we compute Sen's slope before and after that breakpoint for weather variables, as well as mean/median before and after of ANPP-BP1
 #
 # The reason this notebook's name is starting with ```01_``` is that we need to convert monthly data of Min to annual scale. That is done in the notebook called ```00_weather_monthly2Annual_and_40yearsMK.ipynb```.
@@ -88,15 +91,6 @@ os.makedirs(breakpoint_plot_base, exist_ok=True)
 
 breakpoint_TS_dir = bio_plots + "breakpoints_TS/"
 os.makedirs(breakpoint_TS_dir, exist_ok=True)
-
-
-G_breakpoint_TS_dir = breakpoint_TS_dir + "/greening/"
-B_breakpoint_TS_dir = breakpoint_TS_dir + "/browning/"
-noTrend_breakpoint_TS_dir = breakpoint_TS_dir + "/notrend/"
-
-os.makedirs(G_breakpoint_TS_dir, exist_ok=True)
-os.makedirs(B_breakpoint_TS_dir, exist_ok=True)
-os.makedirs(noTrend_breakpoint_TS_dir, exist_ok=True)
 
 # %%
 breakpoint_TS_sen_dir = breakpoint_plot_base + "breakpoints_TS_sensSlope/"
