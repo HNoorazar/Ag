@@ -3,7 +3,7 @@
 ##SBATCH --constraint=cascadelake
 #SBATCH --partition=rajagopalan
 #SBATCH --requeue
-#SBATCH --job-name=longTerm_plot_what
+#SBATCH --job-name=longTerm_plot_what_variable_set
 #SBATCH --time=01-00:00:00    # Wall clock time limit in Days-HH:MM:SS
 #SBATCH --mem=300GB 
 #SBATCH --nodes=1            # Node count required for the job
@@ -13,8 +13,8 @@
 ####SBATCH --array=0-30000
 
 ###SBATCH -k o
-#SBATCH --output=/home/h.noorazar/rangeland_bio/03_plot_trends_Kamiak/error/weather_40Yrs_trends_plot_what.o
-#SBATCH  --error=/home/h.noorazar/rangeland_bio/03_plot_trends_Kamiak/error/weather_40Yrs_trends_plot_what.e
+#SBATCH --output=/home/h.noorazar/rangeland_bio/03_plot_trends_Kamiak/error/weather_40Yrs_plot_what_variable_set.o
+#SBATCH  --error=/home/h.noorazar/rangeland_bio/03_plot_trends_Kamiak/error/weather_40Yrs_plot_what_variable_set.e
 echo
 echo "--- We are now in $PWD, running an R script ..."
 echo

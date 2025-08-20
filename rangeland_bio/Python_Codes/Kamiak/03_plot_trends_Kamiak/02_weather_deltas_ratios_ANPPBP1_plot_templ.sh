@@ -53,8 +53,9 @@ echo "--------- continue on ---------"
 # ----------------------------------------------------------------
 # Run python code for matrix
 # ----------------------------------------------------------------
-
-python /home/h.noorazar/rangeland_bio/03_plot_trends_Kamiak/02_weather_deltas_ratios_ANPPBP1_plot_Kamiak.py diff_or_ratio
+#### variable_set is drought or weather
+#### batch_number is 1-14. hard coded. Look at .py file
+python /home/h.noorazar/rangeland_bio/03_plot_trends_Kamiak/02_weather_deltas_ratios_ANPPBP1_plot_Kamiak.py diff_or_ratio variable_set
 
 echo end Time is `date`
 echo

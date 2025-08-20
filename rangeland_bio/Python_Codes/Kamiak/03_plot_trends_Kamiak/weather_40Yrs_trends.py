@@ -58,7 +58,7 @@ Drought was added later and has too many variables in it. So, we may need
 to break this down even further.
 Later we will have GDD, HDD, VPD, 
 """
-variable_set = str(sys.argv[1])  # drought or weather
+variable_set = str(sys.argv[2])  # drought or weather
 ###########################################################################################
 #######
 #######    Some plotting parameters
@@ -75,7 +75,6 @@ fontdict_normal = {"family": "serif", "weight": "normal"}
 fontdict_bold = {"family": "serif", "weight": "bold"}
 inset_axes_ = [0.1, 0.13, 0.45, 0.03]
 inset_axes_ = [0.1, 0.18, 0.45, 0.03]  # tight layout
-
 ###########################################################################################
 #######
 #######    Directories
@@ -95,7 +94,6 @@ os.makedirs(bio_plots, exist_ok=True)
 #######    read data
 #######
 county_fips_dict = pd.read_pickle(common_data + "county_fips.sav")
-
 county_fips = county_fips_dict["county_fips"]
 full_2_abb = county_fips_dict["full_2_abb"]
 abb_2_full_dict = county_fips_dict["abb_2_full_dict"]
@@ -106,12 +104,10 @@ state_fips = county_fips_dict["state_fips"]
 
 state_fips = state_fips[state_fips.state != "VI"].copy()
 state_fips.head(2)
-
 ############################
 ############################
 ############################
 gdf = geopandas.read_file(common_data + "cb_2018_us_state_500k.zip")
-
 gdf.rename(columns={"STUSPS": "state"}, inplace=True)
 gdf = gdf[~gdf.state.isin(["PR", "VI", "AS", "GU", "MP"])]
 gdf = pd.merge(gdf, state_fips[["EW_meridian", "state"]], how="left", on="state")
@@ -123,13 +119,11 @@ visframe_mainLand_west = visframe[visframe.EW_meridian.isin(["W"])].copy()
 visframe_mainLand_west = visframe_mainLand_west[
     ~visframe_mainLand_west.state.isin(["AK", "HI"])
 ].copy()
-
 ############################
 ############################
 ############################
 # ## Read the shapefile
 # And keep the vegtype in subsequent dataframes
-
 Albers_SF_name = bio_reOrganized + "Albers_BioRangeland_Min_Ehsan"
 Albers_SF = geopandas.read_file(Albers_SF_name)
 Albers_SF.rename(columns=lambda x: x.lower().replace(" ", "_"), inplace=True)
@@ -139,15 +133,13 @@ Albers_SF.rename(
 Albers_SF.head(2)
 
 ## Focus only on West Meridian
-
-# %%
 print((Albers_SF["state_majority_area"] == Albers_SF["state_1"]).sum())
 print((Albers_SF["state_majority_area"] == Albers_SF["state_2"]).sum())
 print(Albers_SF.shape)
 print(len(Albers_SF) - (Albers_SF["state_1"] == Albers_SF["state_2"]).sum())
 print((Albers_SF["state_1"] == Albers_SF["state_2"]).sum())
 
-# %%
+
 Albers_SF = pd.merge(
     Albers_SF,
     state_fips[["EW_meridian", "state_full"]],
@@ -162,7 +154,7 @@ Albers_SF = Albers_SF[Albers_SF["EW_meridian"] == "W"].copy()
 print(Albers_SF.shape)
 Albers_SF.head(2)
 
-# %%
+
 print(len(Albers_SF["fid"].unique()))
 print(len(Albers_SF["value"].unique()))
 print(len(Albers_SF["hucsgree_4"].unique()))
@@ -172,8 +164,6 @@ print((list(Albers_SF.index) == Albers_SF.fid).sum())
 
 Albers_SF.drop(columns=["value"], inplace=True)
 Albers_SF.head(2)
-
-# %%
 Albers_SF.drop(
     columns=[
         "hucsgree_4",
@@ -188,7 +178,6 @@ Albers_SF.drop(
 )
 
 west_FIDs = list(Albers_SF["fid"])
-
 ############################
 ############################
 ############################
@@ -208,7 +197,6 @@ weather_indices_slopes_interceps = [
     x for x in slopes_interceps.columns if not (x in drought_indices_slopes_interceps)
 ]
 
-
 drought_indices_bps_weather = [
     x for x in bps_weather.columns if (("spei_" in x) or ("et0_" in x) or ("etr_" in x))
 ]
@@ -221,7 +209,12 @@ weather_indices_slopes_interceps = list(weather_indices_slopes_interceps)
 weather_indices_bps_weather = list(weather_indices_bps_weather)
 
 drought_indices_slopes_interceps = ["fid"] + list(drought_indices_slopes_interceps)
-drought_indices_bps_weather = ["fid", "year"] + list(drought_indices_bps_weather)
+drought_indices_bps_weather = [
+    "fid",
+    "year",
+    "state_majority_area",
+    "EW_meridian",
+] + list(drought_indices_bps_weather)
 
 if variable_set == "drought":
     slopes_interceps = slopes_interceps[drought_indices_slopes_interceps]
@@ -229,12 +222,14 @@ if variable_set == "drought":
 elif variable_set == "weather":
     slopes_interceps = slopes_interceps[weather_indices_slopes_interceps]
     bps_weather = bps_weather[weather_indices_bps_weather]
+else:
+    print("Bad Condition! Exiting the script.")
+    sys.exit()  # This will stop the script
 
 ## added the following lines on July 29. We do not need plot of interceps
 intercept_cols = [x for x in slopes_interceps.columns if "intercep" in x]
 slopes_interceps.drop(columns=intercept_cols, inplace=True)
 slopes_interceps.head(2)
-
 
 if plot_what == "stats":
     bio_plots = bio_plots + "weather_longterm_stats/"
@@ -655,3 +650,5 @@ for y_var in list(grouped_stats.columns)[1:]:
         plt.close(fig)
         gc.collect()
         del (cax, cbar1, cbar2, cbar3, min_max, norm)
+end_time = time.time()
+print("it took {:.0f} minutes to run this code.".format((end_time - start_time) / 60))

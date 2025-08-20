@@ -31,12 +31,6 @@ sys.path.append("/home/h.noorazar/rangeland/")
 import rangeland_core as rc
 import rangeland_plot_core as rcp
 
-# %%
-import importlib
-
-importlib.reload(rc)
-importlib.reload(rpc)
-
 from datetime import datetime
 from datetime import date
 import time
@@ -47,12 +41,20 @@ start_time = time.time()
 #######    Terminal arguments
 #######
 diff_or_ratio = str(sys.argv[1])  # must be either "ratio" or "diff"
+"""
+should be either "weather" or "drought". We added this line Aug. 19 2025.
+Drought was added later and has too many variables in it. So, we may need
+to break this down even further.
+Later we will have GDD, HDD, VPD, 
+"""
+variable_set = str(sys.argv[2])  # drought or weather
 
+# should be from 1-14. We have 14 batches as of Aug 20, 2025
+batch_number = int(sys.argv[3])  # 1-14.
 ###########################################################################################
 #######
 #######    Some plotting parameters
 #######
-# %%
 dpi_, map_dpi_ = 300, 500
 custom_cmap_coral = ListedColormap(["lightcoral", "black"])
 custom_cmap_BW = ListedColormap(["white", "black"])
@@ -72,22 +74,17 @@ print(list(colormaps)[:4])
 #######
 #######    Directories
 #######
-
 research_db = "/data/project/agaid/h.noorazar/"
 common_data = research_db + "common_data/"
 rangeland_bio_base = research_db + "/rangeland_bio/"
 rangeland_bio_data = rangeland_bio_base + "Data/"
 
 bio_reOrganized = rangeland_bio_data + "reOrganized/"
-os.makedirs(bio_reOrganized, exist_ok=True)
-
 bio_plots = rangeland_bio_base + "plots/"
-os.makedirs(bio_plots, exist_ok=True)
-
 breakpoint_plot_base = bio_plots + "breakpoints/"
-os.makedirs(breakpoint_plot_base, exist_ok=True)
-
 breakpoint_TS_dir = bio_plots + "breakpoints_TS/"
+
+os.makedirs(breakpoint_plot_base, exist_ok=True)
 os.makedirs(breakpoint_TS_dir, exist_ok=True)
 
 breakpoints_dir = rangeland_bio_data + "breakpoints/"
@@ -102,13 +99,10 @@ print(list(weather_ANPPBP1.keys()))
 print()
 print(f"{weather_ANPPBP1['Date'] = }")
 print(f"{weather_ANPPBP1['source_code'] = }")
-
 weather_ANPPBP1 = weather_ANPPBP1["weather_diffsRatios"]
-weather_ANPPBP1.head(2)
 
 
 county_fips_dict = pd.read_pickle(common_data + "county_fips.sav")
-
 county_fips = county_fips_dict["county_fips"]
 full_2_abb = county_fips_dict["full_2_abb"]
 abb_2_full_dict = county_fips_dict["abb_2_full_dict"]
@@ -118,28 +112,23 @@ SoI = county_fips_dict["SoI"]
 state_fips = county_fips_dict["state_fips"]
 
 state_fips = state_fips[state_fips.state != "VI"].copy()
-state_fips.head(2)
 
 # %%
 # %%time
 from shapely.geometry import Polygon
 
 gdf = geopandas.read_file(common_data + "cb_2018_us_state_500k.zip")
-
 gdf.rename(columns={"STUSPS": "state"}, inplace=True)
 gdf = gdf[~gdf.state.isin(["PR", "VI", "AS", "GU", "MP"])]
 gdf = pd.merge(gdf, state_fips[["EW_meridian", "state"]], how="left", on="state")
 
-# %%
 visframe = gdf.to_crs({"init": "epsg:5070"})
 visframe_mainLand = visframe[~visframe.state.isin(["AK", "HI"])].copy()
-
 visframe_mainLand_west = visframe[visframe.EW_meridian.isin(["W"])].copy()
 visframe_mainLand_west = visframe_mainLand_west[
     ~visframe_mainLand_west.state.isin(["AK", "HI"])
 ].copy()
 
-# %%
 # %%time
 f_name = bio_reOrganized + "Albers_SF_west_ANPP_MK_Spearman_no2012.shp.zip"
 Albers_SF_west = geopandas.read_file(f_name)
@@ -156,8 +145,6 @@ Albers_SF_west.rename(
     },
     inplace=True,
 )
-
-Albers_SF_west.head(2)
 
 # %%
 ### There might be a confusion using the names I have used
@@ -192,10 +179,6 @@ Albers_SF_west.drop(
     inplace=True,
 )
 
-# %%
-weather_ANPPBP1.head(2)
-
-# %%
 ## Some FIDs did not have breakpoint in their ANPP time series.
 # S subset Albers_SF_west to those that did:
 Albers_SF_west = Albers_SF_west[
@@ -203,7 +186,48 @@ Albers_SF_west = Albers_SF_west[
 ]
 Albers_SF_west.reset_index(drop=True, inplace=True)
 
-# %%
+########## subset whether drought or otherwise.
+########## drought or weather
+drought_indices = [
+    x
+    for x in weather_ANPPBP1.columns
+    if (("spei_" in x) or ("et0_" in x) or ("etr_" in x))
+]
+weather_indices = [x for x in weather_ANPPBP1.columns if not (x in drought_indices)]
+drought_indices = ["fid", "BP_1", "n_before", "n_after"] + drought_indices
+
+
+"""
+number_of_batches here needs to be hard coded into .sh files
+"""
+subset_size = int(len(weather_indices))  # 244
+number_of_batches = int(np.ceil(len(drought_indices) / subset_size))  # 14
+
+if variable_set == "drought":
+    weather_ANPPBP1 = weather_ANPPBP1[drought_indices]
+    """
+    there are too many drought indices!
+    Aug. 20, 2025 there are 3304 = len(drought_indices)
+    while there are 244 = len(weather_indices)
+    So, we need to manipulate this for sake of memory management on Kamiak!
+    This is gonna be hard coded.
+
+    So, in order to make each batch of length size 244 we need 14 batches.
+    other than fid, stuff, columns to be plotted are 3,300.
+
+    """
+    drought_indices_4plot = drought_indices[4:]
+    start = (batch_number - 1) * subset_size
+    end = batch_number * subset_size
+    drought_indices_4plot = drought_indices_4plot[start:end]
+    weather_ANPPBP1 = weather_ANPPBP1[drought_indices[:4] + drought_indices_4plot]
+
+elif variable_set == "weather":
+    weather_indices = weather_indices[weather_indices]
+else:
+    print("Bad Condition! Exiting the script.")
+    sys.exit()  # This will stop the script
+
 # cols_ = ["fid", "temp_slope_diff", "temp_slope_ratio", "precip_slope_diff", "precip_slope_ratio"]
 diff_ratio_cols = [x for x in weather_ANPPBP1 if (diff_or_ratio in x)]
 cols_ = ["fid"] + diff_ratio_cols
