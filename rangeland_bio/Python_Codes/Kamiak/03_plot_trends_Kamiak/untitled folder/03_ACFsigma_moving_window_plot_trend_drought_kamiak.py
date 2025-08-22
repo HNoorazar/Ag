@@ -33,7 +33,7 @@ from matplotlib import cm
 sys.path.append("/home/h.noorazar/rangeland/")
 import rangeland_core as rc
 import rangeland_plot_core as rcp
-
+from shapely.geometry import Polygon
 from datetime import datetime
 from datetime import date
 import time
@@ -44,7 +44,7 @@ start_time = time.time()
 #######    Terminal arguments
 #######
 acf_or_variance = str(sys.argv[1])  # options: ACF1 or variance
-variable_set = str(sys.argv[2])  # options: weather or drought
+
 ###########################################################################################
 #######
 #######    Some plotting parameters
@@ -60,7 +60,6 @@ fontdict_normal = {"family": "serif", "weight": "normal"}
 fontdict_bold = {"family": "serif", "weight": "bold"}
 fontdict_bold_sup = {"family": "serif", "fontweight": "bold", "fontsize": 6}
 inset_axes_ = [0.1, 0.14, 0.45, 0.03]
-
 ###########################################################################################
 #######
 #######    Directories
@@ -92,17 +91,12 @@ state_fips = county_fips_dict["state_fips"]
 state_fips = state_fips[state_fips.state != "VI"].copy()
 state_fips.head(2)
 
-# %%
-from shapely.geometry import Polygon
-
 gdf = geopandas.read_file(common_data + "cb_2018_us_state_500k.zip")
-# gdf = geopandas.read_file(common_data +'cb_2018_us_state_500k')
-
 gdf.rename(columns={"STUSPS": "state"}, inplace=True)
 gdf = gdf[~gdf.state.isin(["PR", "VI", "AS", "GU", "MP"])]
 gdf = pd.merge(gdf, state_fips[["EW_meridian", "state"]], how="left", on="state")
 
-# %%
+
 visframe = gdf.to_crs({"init": "epsg:5070"})
 visframe_mainLand = visframe[~visframe.state.isin(["AK", "HI"])].copy()
 
@@ -170,7 +164,6 @@ elif acf_or_variance == "variance":
     trends_MK_df = pd.read_pickle(filename)
     trends_MK_df = trends_MK_df["weather_variances_trends_MK_df"]
 
-
 drought_indices = [
     x
     for x in trends_MK_df.columns
@@ -179,14 +172,9 @@ drought_indices = [
 weather_indices = [x for x in trends_MK_df.columns if not (x in drought_indices)]
 drought_indices = ["fid"] + drought_indices
 
-if variable_set == "drought":
-    print(len(trends_MK_df.columns))
-    trends_MK_df = trends_MK_df[drought_indices]
-    print(len(trends_MK_df.columns))
-elif variable_set == "weather":
-    print(len(trends_MK_df.columns))
-    trends_MK_df = trends_MK_df[weather_indices]
-    print(len(trends_MK_df.columns))
+print(len(trends_MK_df.columns))
+trends_MK_df = trends_MK_df[drought_indices]
+print(len(trends_MK_df.columns))
 
 # %%
 # In the new version of the code that computed trends, ACF or variance was removed from column names.
@@ -198,7 +186,9 @@ elif variable_set == "weather":
 
 # trends_MK_df.head(2)
 
+# %%
 # drop trend and p-value columns
+
 bad_cols = [
     col
     for col in trends_MK_df.columns
@@ -206,8 +196,7 @@ bad_cols = [
 ]
 trends_MK_df.drop(columns=bad_cols, inplace=True)
 
-# %%
-len(trends_MK_df.columns)
+print(len(trends_MK_df.columns))
 
 # %%
 SF_west = pd.merge(SF_west, trends_MK_df, how="left", on="fid")
@@ -235,7 +224,6 @@ weather_variables = [
 weather_variables = list(set(weather_variables))
 print(len(weather_variables))
 weather_variables[:5]
-
 
 # %%
 tick_legend_FontSize = 8

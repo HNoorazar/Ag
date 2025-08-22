@@ -319,7 +319,7 @@ elif plot_what == "ACF1":
 del (bps_weather, slopes_interceps)
 
 grouped_stats.head(3)
-
+print("line 322")
 # %%
 Albers_SF = pd.merge(Albers_SF, grouped_stats, how="left", on="fid")
 Albers_SF.head(2)
@@ -370,7 +370,7 @@ for variable_ in list(grouped_stats.columns)[1:]:
     plt.close(fig)
     gc.collect()
 
-
+print("line 373")
 ## Distribution of CV of temp is bad! so many outliers.
 #
 # ```CV```s will have outliers due to division by zero.
@@ -414,8 +414,6 @@ for variable_ in list(grouped_stats.columns)[1:]:
         plt.savefig(file_name, bbox_inches="tight", dpi=map_dpi_)
         plt.close(fig)
         gc.collect()
-
-
 del variable_
 ###########################################################################################
 #######
@@ -436,16 +434,14 @@ params = {
     "ytick.labelleft": False,
     "axes.linewidth": 0.05,
 }
-
 plt.rcParams.update(params)
-
 fontdict_normal = {"family": "serif", "weight": "normal"}
 fontdict_bold = {"family": "serif", "weight": "bold"}
 
-
 counter = 1
 for y_var in list(grouped_stats.columns)[1:]:
-    print(f"{counter} / {len(list(grouped_stats.columns)[1:])}")
+    if counter % 10 == 0:
+        print(f"{counter} / {len(list(grouped_stats.columns)[1:])}")
     fig, ax = plt.subplots(1, 1, dpi=map_dpi_)
     ax.set_xticks([])
     ax.set_yticks([])
@@ -488,7 +484,7 @@ for y_var in list(grouped_stats.columns)[1:]:
     del (cent_plt, cax, cbar1, norm, min_max)
 
 # %%
-
+print("line 487")
 ###########################################################################################
 #######
 #######    Plot Maps with outliers on the subplots
@@ -509,18 +505,21 @@ params = {
     "ytick.labelleft": False,
     "axes.linewidth": 0.05,
 }
-
 plt.rcParams.update(params)
-
 fontdict_normal = {"family": "serif", "weight": "normal"}
 fontdict_bold = {"family": "serif", "weight": "bold"}
-
+print("line 511")
 font_c = 0.8
 inset_axes_ = [0.15, 0.12, 0.45, 0.03]  # tight layout
+
+counter = 1
 for y_var in list(grouped_stats.columns)[1:]:
     for a_percent in [5, 10]:
+        if counter % 10 == 0:
+            print(f"{counter} / {len(list(grouped_stats.columns)[1:])}")
+            print(f"{y_var=}")
+        counter += 1
         perc_ = a_percent / 100
-
         # The following line is already done above.
         # clean_series = Albers_SF[y_var].replace([np.inf, -np.inf], np.nan).dropna()
         df_cleaned = Albers_SF.dropna(subset=[y_var])
@@ -589,58 +588,70 @@ for y_var in list(grouped_stats.columns)[1:]:
         )
         ######################################################
         cax = ax1.inset_axes(inset_axes_)
-        cbar1 = fig.colorbar(
-            cent_plt1.collections[1],
-            ax=ax1,
-            orientation="horizontal",
-            shrink=0.3,
-            cax=cax,
-        )
-        cbar1.ax.tick_params(labelsize=font_base * font_c)
-        cbar1.set_label(
-            cbar_label,
-            labelpad=1,
-            fontdict=fontdict_normal,
-            fontsize=font_base * font_c,
-        )
+        print("---------------------- 591 -----------------------")
+        print(len(cent_plt1.collections))
+        print(cent_plt1.collections)
+        try:
+            cbar1 = fig.colorbar(
+                cent_plt1.collections[1],
+                ax=ax1,
+                orientation="horizontal",
+                shrink=0.3,
+                cax=cax,
+            )
+            cbar1.ax.tick_params(labelsize=font_base * font_c)
+            cbar1.set_label(
+                cbar_label,
+                labelpad=1,
+                fontdict=fontdict_normal,
+                fontsize=font_base * font_c,
+            )
+        except IndexError:
+            print(f"index error, {y_var = }")
+
         ax1.set_title(rf"lower {a_percent}%", fontdict=fontdict_bold)
         ######################################################
-
         cax = ax2.inset_axes(inset_axes_)
-        cbar2 = fig.colorbar(
-            cent_plt2.collections[1],
-            ax=ax2,
-            orientation="horizontal",
-            shrink=0.3,
-            cax=cax,
-        )
-        cbar2.ax.tick_params(labelsize=font_base * font_c)
-        cbar2.set_label(
-            cbar_label,
-            labelpad=1,
-            fontdict=fontdict_normal,
-            fontsize=font_base * font_c,
-        )
+        try:
+            cbar2 = fig.colorbar(
+                cent_plt2.collections[1],
+                ax=ax2,
+                orientation="horizontal",
+                shrink=0.3,
+                cax=cax,
+            )
+            cbar2.ax.tick_params(labelsize=font_base * font_c)
+            cbar2.set_label(
+                cbar_label,
+                labelpad=1,
+                fontdict=fontdict_normal,
+                fontsize=font_base * font_c,
+            )
+        except IndexError:
+            print(f"index error, {y_var = }")
         ax2.set_title(
             r"between [{}%, {}%]".format(a_percent, 100 - a_percent),
             fontdict=fontdict_bold,
         )
         ######################################################
-        cax = ax3.inset_axes(inset_axes_)
-        cbar3 = fig.colorbar(
-            cent_plt2.collections[1],
-            ax=ax3,
-            orientation="horizontal",
-            shrink=0.3,
-            cax=cax,
-        )
-        cbar3.ax.tick_params(labelsize=font_base * font_c)
-        cbar3.set_label(
-            cbar_label,
-            labelpad=1,
-            fontdict=fontdict_normal,
-            fontsize=font_base * font_c,
-        )
+        try:
+            cax = ax3.inset_axes(inset_axes_)
+            cbar3 = fig.colorbar(
+                cent_plt2.collections[1],
+                ax=ax3,
+                orientation="horizontal",
+                shrink=0.3,
+                cax=cax,
+            )
+            cbar3.ax.tick_params(labelsize=font_base * font_c)
+            cbar3.set_label(
+                cbar_label,
+                labelpad=1,
+                fontdict=fontdict_normal,
+                fontsize=font_base * font_c,
+            )
+        except IndexError:
+            print(f"index error, {y_var = }")
         ax3.set_title(rf"upper {a_percent}%", fontdict=fontdict_bold)
 
         ######################################################

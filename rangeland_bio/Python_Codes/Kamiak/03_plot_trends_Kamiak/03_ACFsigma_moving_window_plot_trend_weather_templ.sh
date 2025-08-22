@@ -3,7 +3,7 @@
 ##SBATCH --constraint=cascadelake
 #SBATCH --partition=rajagopalan
 #SBATCH --requeue
-#SBATCH --job-name=rollingTrendPlot_acf_or_varianc
+#SBATCH --job-name=rollingTrendPlot_acf_or_variance_variable_set
 #SBATCH --time=01-00:00:00    # Wall clock time limit in Days-HH:MM:SS
 #SBATCH --mem=300GB 
 #SBATCH --nodes=1            # Node count required for the job
@@ -13,8 +13,8 @@
 ####SBATCH --array=0-30000
 
 ###SBATCH -k o
-#SBATCH --output=/home/h.noorazar/rangeland_bio/03_plot_trends_Kamiak/error/03_ACFsigma_moving_window_plot_trend_weather_acf_or_variance.o
-#SBATCH  --error=/home/h.noorazar/rangeland_bio/03_plot_trends_Kamiak/error/03_ACFsigma_moving_window_plot_trend_weather_acf_or_variance.e
+#SBATCH --output=/home/h.noorazar/rangeland_bio/03_plot_trends_Kamiak/error/03_ACFsigma_moving_window_plot_trend_weather_acf_or_variance_variable_set.o
+#SBATCH  --error=/home/h.noorazar/rangeland_bio/03_plot_trends_Kamiak/error/03_ACFsigma_moving_window_plot_trend_weather_acf_or_variance_variable_set.e
 echo
 echo "--- We are now in $PWD, running an R script ..."
 echo
@@ -53,8 +53,8 @@ echo "--------- continue on ---------"
 # ----------------------------------------------------------------
 # Run python code for matrix
 # ----------------------------------------------------------------
-
-python /home/h.noorazar/rangeland_bio/03_plot_trends_Kamiak/03_ACFsigma_moving_window_plot_trend_weather_kamiak.py acf_or_variance
+## acf_or_variance : ACF1 or variance. variable_set : weather or drought 
+python /home/h.noorazar/rangeland_bio/03_plot_trends_Kamiak/03_ACFsigma_moving_window_plot_trend_weather_kamiak.py acf_or_variance variable_set
 
 echo end Time is `date`
 echo
