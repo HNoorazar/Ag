@@ -23,6 +23,7 @@ from scipy import stats
 import scipy.stats as scipy_stats
 from statsmodels.tsa.stattools import acf
 import geopandas
+from shapely.geometry import Polygon
 
 import matplotlib
 import matplotlib.pyplot as plt
@@ -92,9 +93,6 @@ state_fips = county_fips_dict["state_fips"]
 state_fips = state_fips[state_fips.state != "VI"].copy()
 state_fips.head(2)
 
-# %%
-from shapely.geometry import Polygon
-
 gdf = geopandas.read_file(common_data + "cb_2018_us_state_500k.zip")
 # gdf = geopandas.read_file(common_data +'cb_2018_us_state_500k')
 
@@ -111,7 +109,6 @@ visframe_mainLand_west = visframe_mainLand_west[
     ~visframe_mainLand_west.state.isin(["AK", "HI"])
 ].copy()
 
-# %%
 # %%time
 f_name = bio_reOrganized + "Albers_SF_west_ANPP_MK_Spearman_no2012.shp.zip"
 SF_west = geopandas.read_file(f_name)
@@ -157,9 +154,11 @@ SF_west.drop(
     inplace=True,
 )
 
-
-### Read all rolling window ACFs
-
+############################################################
+############################################################
+######
+###### Read all rolling window ACFs
+######
 if acf_or_variance == "ACF1":
     filename = bio_reOrganized + "weather_ACFs_rollingWindow_trends.sav"
     trends_MK_df = pd.read_pickle(filename)
@@ -170,6 +169,16 @@ elif acf_or_variance == "variance":
     trends_MK_df = pd.read_pickle(filename)
     trends_MK_df = trends_MK_df["weather_variances_trends_MK_df"]
 
+
+# drop trend and p-value columns
+bad_cols = [
+    col
+    for col in trends_MK_df.columns
+    if any(key in col for key in ["trend_ws", "p_value"])
+]
+del col
+trends_MK_df.drop(columns=bad_cols, inplace=True)
+len(trends_MK_df.columns)
 
 drought_indices = [
     x
@@ -198,17 +207,6 @@ elif variable_set == "weather":
 
 # trends_MK_df.head(2)
 
-# drop trend and p-value columns
-bad_cols = [
-    col
-    for col in trends_MK_df.columns
-    if any(key in col for key in ["trend_ws", "p_value"])
-]
-trends_MK_df.drop(columns=bad_cols, inplace=True)
-
-# %%
-len(trends_MK_df.columns)
-
 # %%
 SF_west = pd.merge(SF_west, trends_MK_df, how="left", on="fid")
 SF_west.head(2)
@@ -227,17 +225,19 @@ slope_cols[:5]
 import re
 
 # weather variables
-weather_variables = [re.sub(r"^slope_ws\d+_", "", item) for item in slope_cols]
-weather_variables = [
-    x.replace("_detrendLinReg", "").replace("_detrendSens", "")
-    for x in weather_variables
-]
-weather_variables = list(set(weather_variables))
-print(len(weather_variables))
-weather_variables[:5]
+# weather_variables = [re.sub(r"^slope_ws\d+_", "", item) for item in slope_cols]
+# weather_variables = [
+#     x.replace("_detrendLinReg", "").replace("_detrendSens", "")
+#     for x in weather_variables
+# ]
+# weather_variables = list(set(weather_variables))
+# print(len(weather_variables))
+# weather_variables[:5]
 
 
-# %%
+############################################################
+############################################################
+############################################################
 tick_legend_FontSize = 8
 params = {
     # "font.family": "Palatino",
@@ -306,7 +306,7 @@ for a_variable in weather_variables:
             fig, ax = plt.subplots(1, 1, dpi=map_dpi_)  # figsize=(2, 2)
             ax.set_xticks([])
             ax.set_yticks([])
-            rpc.plot_SF(
+            rcp.plot_SF(
                 SF=visframe_mainLand_west,
                 ax_=ax,
                 col="EW_meridian",
@@ -341,7 +341,6 @@ for a_variable in weather_variables:
                 pass
 
 """
-
 ###########################################################################################
 #######
 #######    Different color bars for each plot
@@ -352,7 +351,42 @@ try:
 except:
     pass
 
-for a_variable in weather_variables:
+################################################################################################
+################################################################################################
+################################################################################################
+###
+### we need to replace these columns as droughts have different windows sizes on them.
+### do something universal. Aug 26, 2025.
+### This code should not have worked. {ws} is used before it is defined!
+###
+# for a_variable in weather_variables:
+#     outdir = (
+#         bio_plots
+#         + "rolling_windows/"
+#         + "rollingWindow"
+#         + "_"
+#         + acf_or_variance
+#         + "_"
+#         + a_variable
+#         + "/slope_individual_colorbar/"
+#     )
+#     os.makedirs(outdir, exist_ok=True)
+
+#     for trendType in ["", "_detrendLinReg", "_detrendSens"]:
+#         all_win_sizes_cols = [
+#             f"slope_ws{ws}_{a_variable}{trendType}" for ws in range(5, 11)
+#         ]
+#         for col in all_win_sizes_cols:
+################################################################################################
+################################################################################################
+################################################################################################
+
+for a_col in slope_cols:
+    print("numerical:  ", a_col)
+    ws = re.search(r"ws(\d+)", a_col).group(1)
+    last_part = re.sub(r"^slope_ws\d+_", "", a_col)
+    a_variable = re.sub(r"^slope_ws\d+_", "", a_col)
+    a_variable = a_variable.replace("_detrendLinReg", "").replace("_detrendSens", "")
     outdir = (
         bio_plots
         + "rolling_windows/"
@@ -365,58 +399,51 @@ for a_variable in weather_variables:
     )
     os.makedirs(outdir, exist_ok=True)
 
-    for trendType in ["", "_detrendLinReg", "_detrendSens"]:
-        all_win_sizes_cols = [
-            f"slope_ws{ws}_{a_variable}{trendType}" for ws in range(5, 11)
-        ]
-        for col in all_win_sizes_cols:
-            print("numerical:  ", col)
-            ws = re.search(r"ws(\d+)", col).group(1)
-            last_part = re.sub(r"^slope_ws\d+_", "", col)
-            ###################################
-            #######
-            ####### plot
-            #######
-            fig, ax = plt.subplots(1, 1, dpi=map_dpi_)  # figsize=(2, 2)
-            ax.set_xticks([])
-            ax.set_yticks([])
-            rpc.plot_SF(
-                SF=visframe_mainLand_west,
-                ax_=ax,
-                col="EW_meridian",
-                cmap_=custom_cmap_GrayW,
-            )
+    ###################################
+    #######
+    ####### plot
+    #######
+    fig, ax = plt.subplots(1, 1, dpi=map_dpi_)  # figsize=(2, 2)
+    ax.set_xticks([])
+    ax.set_yticks([])
+    rcp.plot_SF(
+        SF=visframe_mainLand_west,
+        ax_=ax,
+        col="EW_meridian",
+        cmap_=custom_cmap_GrayW,
+    )
 
-            min_max0 = max(np.abs(SF_west[col].min()), np.abs(SF_west[col].max()))
-            norm0 = Normalize(vmin=-min_max0, vmax=min_max0, clip=True)
-            cent_plt = SF_west.plot(
-                column=col, ax=ax, legend=False, cmap="seismic", norm=norm0
-            )
-            ############# color bar
-            cax = ax.inset_axes(inset_axes_)
-            cbar1 = fig.colorbar(
-                cent_plt.collections[1],
-                ax=ax,
-                orientation="horizontal",
-                shrink=0.3,
-                cax=cax,
-            )
+    min_max0 = max(np.abs(SF_west[a_col].min()), np.abs(SF_west[a_col].max()))
+    norm0 = Normalize(vmin=-min_max0, vmax=min_max0, clip=True)
+    cent_plt = SF_west.plot(
+        column=a_col, ax=ax, legend=False, cmap="seismic", norm=norm0
+    )
+    ############# color bar
+    cax = ax.inset_axes(inset_axes_)
+    cbar1 = fig.colorbar(
+        cent_plt.collections[1],
+        ax=ax,
+        orientation="horizontal",
+        shrink=0.3,
+        cax=cax,
+    )
 
-            L_ = f"slope of {acf_var_title}$_{{ws={ws}}}$"
-            cbar1.set_label(L_, labelpad=2, fontdict=fontdict_normal)
-            plt.tight_layout()
-            plt.title(L_ + f" ({last_part})", y=0.98, fontdict=fontdict_bold_sup)
-            ax.set_aspect("equal", adjustable="box")
-            file_name = outdir + f"{col}.png"
-            plt.savefig(file_name, bbox_inches="tight", dpi=map_dpi_)
-            plt.close(fig)
-            try:
-                del (fig, cent_plt, cax, cbar1, ws, last_part, file_name)
-                gc.collect()
-            except:
-                pass
+    L_ = f"slope of {acf_var_title}$_{{ws={ws}}}$"
+    cbar1.set_label(L_, labelpad=2, fontdict=fontdict_normal)
+    plt.tight_layout()
+    plt.title(L_ + f" ({last_part})", y=0.98, fontdict=fontdict_bold_sup)
+    ax.set_aspect("equal", adjustable="box")
+    file_name = outdir + f"{col}.png"
+    plt.savefig(file_name, bbox_inches="tight", dpi=map_dpi_)
+    plt.close(fig)
+    try:
+        del (fig, cent_plt, cax, cbar1, ws, last_part, file_name)
+        gc.collect()
+    except:
+        pass
 
-    #############
+#############
 
 end_time = time.time()
+print("code is finished")
 print("it took {:.0f} minutes to run this code.".format((end_time - start_time) / 60))
