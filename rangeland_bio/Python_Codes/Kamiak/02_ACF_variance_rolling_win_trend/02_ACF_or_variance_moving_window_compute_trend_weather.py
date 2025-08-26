@@ -29,7 +29,7 @@ import scipy.stats as scipy_stats
 
 sys.path.append("/home/h.noorazar/rangeland/")
 import rangeland_core as rc
-import rangeland_plot_core as rpc
+import rangeland_plot_core as rcp
 
 
 from datetime import datetime
@@ -41,7 +41,7 @@ start_time = time.time()
 #######
 #######    Terminal Arguments
 #######
-variable_ = str(sys.argv[1])
+variable_ = str(sys.argv[1])  # ACF variance
 
 ###############################################################
 #######
@@ -52,7 +52,6 @@ rangeland_bio_base = research_data_ + "rangeland_bio/"
 rangeland_bio_data = rangeland_bio_base + "Data/"
 bio_reOrganized = rangeland_bio_data + "reOrganized/"
 common_data = research_data_ + "common_data/"
-
 
 if variable_ == "ACF":
     rolling_data_dir = rangeland_bio_data + "rolling_ACF1/"
@@ -96,7 +95,7 @@ import re
 import importlib
 
 # importlib.reload(rc)
-# importlib.reload(rpc)
+# importlib.reload(rcp)
 
 # %%
 # %%time
@@ -171,7 +170,5 @@ elif variable_ == "variance":
 pickle.dump(export_, open(filename, "wb"))
 
 end_time = time.time()
+print("code is finished")
 print("it took {:.0f} minutes to run this code.".format((end_time - start_time) / 60))
-
-# %%
-# %%
