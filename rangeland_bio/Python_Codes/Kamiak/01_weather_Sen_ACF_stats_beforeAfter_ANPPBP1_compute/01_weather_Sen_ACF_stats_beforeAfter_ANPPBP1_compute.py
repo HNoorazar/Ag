@@ -27,7 +27,7 @@ import scipy.stats as scipy_stats
 
 sys.path.append("/home/h.noorazar/rangeland/")
 import rangeland_core as rc
-import rangeland_plot_core as rpc
+import rangeland_plot_core as rcp
 from datetime import datetime
 from datetime import date
 import time
