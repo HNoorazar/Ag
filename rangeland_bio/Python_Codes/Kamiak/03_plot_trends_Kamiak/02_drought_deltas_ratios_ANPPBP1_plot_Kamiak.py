@@ -253,7 +253,7 @@ for y_var in diff_ratio_cols:
     fig, ax = plt.subplots(1, 1, dpi=map_dpi_)
     ax.set_xticks([])
     ax.set_yticks([])
-    rpc.plot_SF(
+    rcp.plot_SF(
         SF=visframe_mainLand_west,
         ax_=ax,
         col="EW_meridian",
@@ -330,13 +330,13 @@ for a_percent in [5, 10]:
         ax[0].set_aspect("equal", adjustable="box")
         ax[1].set_aspect("equal", adjustable="box")
 
-        rpc.plot_SF(
+        rcp.plot_SF(
             SF=visframe_mainLand_west,
             ax_=ax[0],
             col="EW_meridian",
             cmap_=ListedColormap(["grey", "white"]),
         )
-        rpc.plot_SF(
+        rcp.plot_SF(
             SF=visframe_mainLand_west,
             ax_=ax[1],
             col="EW_meridian",
@@ -434,4 +434,5 @@ for a_percent in [5, 10]:
             pass
 
 end_time = time.time()
+print("code is finished")
 print("it took {:.0f} minutes to run this code.".format((end_time - start_time) / 60))
