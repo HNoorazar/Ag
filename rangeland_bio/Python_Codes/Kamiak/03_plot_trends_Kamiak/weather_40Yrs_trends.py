@@ -187,27 +187,23 @@ A = pd.read_pickle(filename)
 bps_weather = A["bpszone_annual_weather_byHN"]
 slopes_interceps = A["slopes_interceps"]
 
+
 drought_indices_slopes_interceps = [
     x
     for x in slopes_interceps.columns
     if (("spei_" in x) or ("et0_" in x) or ("etr_" in x))
 ]
-
 weather_indices_slopes_interceps = [
     x for x in slopes_interceps.columns if not (x in drought_indices_slopes_interceps)
 ]
-
 drought_indices_bps_weather = [
     x for x in bps_weather.columns if (("spei_" in x) or ("et0_" in x) or ("etr_" in x))
 ]
-
 weather_indices_bps_weather = [
     x for x in bps_weather.columns if not (x in drought_indices_bps_weather)
 ]
-
 weather_indices_slopes_interceps = list(weather_indices_slopes_interceps)
 weather_indices_bps_weather = list(weather_indices_bps_weather)
-
 drought_indices_slopes_interceps = ["fid"] + list(drought_indices_slopes_interceps)
 drought_indices_bps_weather = [
     "fid",
@@ -528,9 +524,9 @@ for y_var in list(grouped_stats.columns)[1:]:
         upper_bound = clean_series.quantile(1 - perc_)
 
         # Filter rows between and outside outlier boundaries
-        lower_df = df_cleaned[df_cleaned[y_var] < lower_bound]
+        lower_df = df_cleaned[df_cleaned[y_var] <= lower_bound]
         between_df = df_cleaned[
-            (df_cleaned[y_var] >= lower_bound) & (df_cleaned[y_var] <= upper_bound)
+            (df_cleaned[y_var] > lower_bound) & (df_cleaned[y_var] < upper_bound)
         ]
         upper_df = df_cleaned[df_cleaned[y_var] >= upper_bound]
 
@@ -565,7 +561,7 @@ for y_var in list(grouped_stats.columns)[1:]:
         ###
         min_max = max(np.abs(lower_df[y_var].min()), np.abs(lower_df[y_var].max()))
         norm = Normalize(vmin=-min_max, vmax=min_max, clip=True)
-        cent_plt1 = lower_df.plot(
+        lower_plot = lower_df.plot(
             column=y_var, ax=ax1, legend=False, cmap="seismic", norm=norm
         )
         ###############################################################
@@ -574,7 +570,7 @@ for y_var in list(grouped_stats.columns)[1:]:
         ###
         min_max = np.abs(between_df[y_var]).max()
         norm = Normalize(vmin=-min_max, vmax=min_max, clip=True)
-        cent_plt2 = between_df.plot(
+        between_plot = between_df.plot(
             column=y_var, ax=ax2, legend=False, cmap="seismic", norm=norm
         )
         ###############################################################
@@ -583,24 +579,24 @@ for y_var in list(grouped_stats.columns)[1:]:
         ###
         min_max = np.abs(upper_df[y_var]).max()
         norm = Normalize(vmin=-min_max, vmax=min_max, clip=True)
-        cent_plt3 = upper_df.plot(
+        upper_plot = upper_df.plot(
             column=y_var, ax=ax3, legend=False, cmap="seismic", norm=norm
         )
         ######################################################
         cax = ax1.inset_axes(inset_axes_)
         print("---------------------- 591 -----------------------")
-        print(len(cent_plt1.collections))
-        print(cent_plt1.collections)
+        print(len(lower_plot.collections))
+        print(lower_plot.collections)
         try:
-            cbar1 = fig.colorbar(
-                cent_plt1.collections[1],
+            lower_bar = fig.colorbar(
+                lower_plot.collections[1],
                 ax=ax1,
                 orientation="horizontal",
                 shrink=0.3,
                 cax=cax,
             )
-            cbar1.ax.tick_params(labelsize=font_base * font_c)
-            cbar1.set_label(
+            lower_bar.ax.tick_params(labelsize=font_base * font_c)
+            lower_bar.set_label(
                 cbar_label,
                 labelpad=1,
                 fontdict=fontdict_normal,
@@ -613,15 +609,15 @@ for y_var in list(grouped_stats.columns)[1:]:
         ######################################################
         cax = ax2.inset_axes(inset_axes_)
         try:
-            cbar2 = fig.colorbar(
-                cent_plt2.collections[1],
+            between_bar = fig.colorbar(
+                between_plot.collections[1],
                 ax=ax2,
                 orientation="horizontal",
                 shrink=0.3,
                 cax=cax,
             )
-            cbar2.ax.tick_params(labelsize=font_base * font_c)
-            cbar2.set_label(
+            between_bar.ax.tick_params(labelsize=font_base * font_c)
+            between_bar.set_label(
                 cbar_label,
                 labelpad=1,
                 fontdict=fontdict_normal,
@@ -636,15 +632,15 @@ for y_var in list(grouped_stats.columns)[1:]:
         ######################################################
         try:
             cax = ax3.inset_axes(inset_axes_)
-            cbar3 = fig.colorbar(
-                cent_plt2.collections[1],
+            upper_bar = fig.colorbar(
+                upper_plot.collections[1],
                 ax=ax3,
                 orientation="horizontal",
                 shrink=0.3,
                 cax=cax,
             )
-            cbar3.ax.tick_params(labelsize=font_base * font_c)
-            cbar3.set_label(
+            upper_bar.ax.tick_params(labelsize=font_base * font_c)
+            upper_bar.set_label(
                 cbar_label,
                 labelpad=1,
                 fontdict=fontdict_normal,
@@ -660,6 +656,12 @@ for y_var in list(grouped_stats.columns)[1:]:
         plt.savefig(file_name, bbox_inches="tight", dpi=map_dpi_)
         plt.close(fig)
         gc.collect()
-        del (cax, cbar1, cbar2, cbar3, min_max, norm)
+        for var in ["cax", "lower_bar", "between_bar", "upper_bar", "min_max", "norm"]:
+            try:
+                del globals()[var]
+            except KeyError:  # variable not found
+                pass
+
+
 end_time = time.time()
 print("it took {:.0f} minutes to run this code.".format((end_time - start_time) / 60))
