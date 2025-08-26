@@ -13,8 +13,8 @@
 ####SBATCH --array=0-30000
 
 ###SBATCH -k o
-#SBATCH --output=/home/h.noorazar/rangeland_bio/03_plot_trends_Kamiak/error/03_ACFsigma_moving_window_plot_trend_weather_acf_or_variance_variable_set.o
-#SBATCH  --error=/home/h.noorazar/rangeland_bio/03_plot_trends_Kamiak/error/03_ACFsigma_moving_window_plot_trend_weather_acf_or_variance_variable_set.e
+#SBATCH --output=/home/h.noorazar/rangeland_bio/03_plot_trends_Kamiak/error/03_moving_win_plot_trend_acf_or_variance_variable_set.o
+#SBATCH  --error=/home/h.noorazar/rangeland_bio/03_plot_trends_Kamiak/error/03_moving_win_plot_trend_acf_or_variance_variable_set.e
 echo
 echo "--- We are now in $PWD, running an R script ..."
 echo
