@@ -176,7 +176,7 @@ bad_cols = [
     for col in trends_MK_df.columns
     if any(key in col for key in ["trend_ws", "p_value"])
 ]
-del col
+
 trends_MK_df.drop(columns=bad_cols, inplace=True)
 len(trends_MK_df.columns)
 
@@ -233,8 +233,6 @@ import re
 # weather_variables = list(set(weather_variables))
 # print(len(weather_variables))
 # weather_variables[:5]
-
-
 ############################################################
 ############################################################
 ############################################################
@@ -433,7 +431,7 @@ for a_col in slope_cols:
     plt.tight_layout()
     plt.title(L_ + f" ({last_part})", y=0.98, fontdict=fontdict_bold_sup)
     ax.set_aspect("equal", adjustable="box")
-    file_name = outdir + f"{col}.png"
+    file_name = outdir + f"{a_col}.png"
     plt.savefig(file_name, bbox_inches="tight", dpi=map_dpi_)
     plt.close(fig)
     try:
@@ -445,5 +443,6 @@ for a_col in slope_cols:
 #############
 
 end_time = time.time()
-print("code is finished")
+
 print("it took {:.0f} minutes to run this code.".format((end_time - start_time) / 60))
+print("code is finished")

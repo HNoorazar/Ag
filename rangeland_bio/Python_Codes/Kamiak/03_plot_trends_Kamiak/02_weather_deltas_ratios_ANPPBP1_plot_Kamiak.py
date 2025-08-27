@@ -424,5 +424,5 @@ for a_percent in [5, 10]:
             pass
 
 end_time = time.time()
-print("code is finished")
 print("it took {:.0f} minutes to run this code.".format((end_time - start_time) / 60))
+print("code is finished")

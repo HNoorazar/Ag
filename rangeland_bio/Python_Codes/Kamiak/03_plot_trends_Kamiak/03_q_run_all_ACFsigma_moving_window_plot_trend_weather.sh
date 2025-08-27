@@ -6,7 +6,7 @@ for acf_or_variance in ACF1 variance
 do
   for variable_set in weather drought
   do
-    sbatch ./03_ACFsigma_moving_window_plot_trend_weather_$acf_or_variance$variable_set.sh
+    sbatch ./03_moving_win_plot_trend_$acf_or_variance$variable_set.sh
   done
 done
 

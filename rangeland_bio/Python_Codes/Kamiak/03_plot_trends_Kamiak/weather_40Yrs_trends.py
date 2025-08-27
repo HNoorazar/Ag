@@ -665,3 +665,4 @@ for y_var in list(grouped_stats.columns)[1:]:
 
 end_time = time.time()
 print("it took {:.0f} minutes to run this code.".format((end_time - start_time) / 60))
+print("code is finished")
