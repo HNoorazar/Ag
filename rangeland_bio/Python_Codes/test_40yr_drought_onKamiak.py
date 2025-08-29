@@ -536,6 +536,46 @@ slopes_interceps.drop(columns=intercept_cols, inplace=True)
 slopes_interceps.head(2)
 
 # %%
+plot_what = "min"
+
+# %%
+plotting_df = bps_weather.copy()
+print(plotting_df.shape)
+plotting_df = plotting_df[plotting_df["fid"].isin(west_FIDs)]
+plotting_df.reset_index(drop=True, inplace=True)
+print(plotting_df.shape)
+plotting_df.head(2)
+
+first_cols = ["fid", "year", "state_majority_area", "EW_meridian"]
+new_cols_order = first_cols + [
+    col for col in plotting_df.columns if col not in first_cols
+]
+plotting_df = plotting_df[new_cols_order]
+plotting_df.head(2)
+####################################################
+####
+####     Compute statistics
+####
+# stats = ['var', 'mean', 'std', 'min', 'max', 'median']
+df = plotting_df.copy()
+df.drop(columns=["year", "state_majority_area", "EW_meridian"], inplace=True)
+
+stats = [plot_what]
+
+# %%
+grouped_stats = df.groupby("fid").agg(stats).reset_index()
+
+grouped_stats.columns = [
+    f"40year{stat}_{col}" for col, stat in grouped_stats.columns
+]
+grouped_stats.rename(columns={"40year_fid": "fid"}, inplace=True)
+
+grouped_stats.head(2)
+
+# %%
+plot_what in ["min", "mean", "median", "max", "var", "std"]
+
+# %%
 # %%time
 
 if plot_what == "stats":

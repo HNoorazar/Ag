@@ -51,7 +51,11 @@ start_time = time.time()
 #######
 #######    Terminal arguments
 #######
-plot_what = str(sys.argv[1])  # "stats" or "ACF1" or "trends"
+"""
+plot_what options are "stats" or "ACF1" or "trends". 
+        no more stats. it is expanded to "min", "mean", "median", "max", "var", "std"
+"""
+plot_what = str(sys.argv[1])
 """
 should be either "weather" or "drought". We added this line Aug. 19 2025.
 Drought was added later and has too many variables in it. So, we may need
@@ -227,7 +231,7 @@ intercept_cols = [x for x in slopes_interceps.columns if "intercep" in x]
 slopes_interceps.drop(columns=intercept_cols, inplace=True)
 slopes_interceps.head(2)
 
-if plot_what == "stats":
+if plot_what in ["min", "mean", "median", "max", "var", "std"]:  # == "stats":
     bio_plots = bio_plots + "weather_longterm_stats/"
     os.makedirs(bio_plots, exist_ok=True)
 
@@ -248,11 +252,11 @@ if plot_what == "stats":
     ####
     ####     Compute statistics
     ####
-    # stats = ['var', 'mean', 'std', 'min', 'max', 'median']
     df = plotting_df.copy()
     df.drop(columns=["year", "state_majority_area", "EW_meridian"], inplace=True)
 
-    stats = ["min", "mean", "median", "max", "var", "std"]
+    # stats = ["min", "mean", "median", "max", "var", "std"]
+    stats = [plot_what]
     grouped_stats = df.groupby("fid").agg(stats).reset_index()
 
     grouped_stats.columns = [
