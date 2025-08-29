@@ -210,7 +210,7 @@ non_weather_indices = [
     if (("spei_" in x) or ("et0_" in x) or ("etr_" in x))
 ]
 weather_indices = [x for x in weather_ANPPBP1.columns if not (x in non_weather_indices)]
-weather_indices = weather_indices[weather_indices]
+weather_ANPPBP1 = weather_ANPPBP1[weather_indices]
 
 diff_ratio_cols = [x for x in weather_ANPPBP1 if (diff_or_ratio in x)]
 cols_ = ["fid"] + diff_ratio_cols
